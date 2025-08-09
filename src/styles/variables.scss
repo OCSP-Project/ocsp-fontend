@@ -1,0 +1,26 @@
+// Colors
+$primary-color: #1890ff;
+$secondary-color: #52c41a;
+$error-color: #ff4d4f;
+$warning-color: #faad14;
+$success-color: #52c41a;
+$text-primary: #262626;
+$text-secondary: #8c8c8c;
+$border-color: #d9d9d9;
+$background-color: #f0f2f5;
+
+// Layout
+$header-height: 64px;
+$sidebar-width: 256px;
+$sidebar-collapsed-width: 80px;
+$content-padding: 24px;
+
+// Export variables for TS
+:export {
+  primaryColor: $primary-color;
+  secondaryColor: $secondary-color;
+  breakpointMd: 768px;
+  breakpointLg: 992px;
+  headerHeight: $header-height;
+  sidebarWidth: $sidebar-width;
+}

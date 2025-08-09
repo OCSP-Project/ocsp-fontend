@@ -1,0 +1,7 @@
+.button {
+  @apply inline-flex items-center justify-center rounded-md px-4 py-2;
+  background: var(--primary);
+  color: white;
+  transition: all .2s;
+  &:hover { filter: brightness(0.95); }
+}
