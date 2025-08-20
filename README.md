@@ -23,82 +23,290 @@ npm run dev
 - Đã cấu hình Tailwind, SCSS Modules, alias `@` -> `src/`.
 
 ocsp-frontend/
-├── .env.local # File chứa biến môi trường thật (dùng khi chạy dev)
-├── .env.example # File mẫu biến môi trường để tham khảo
-├── .gitignore # Danh sách file/thư mục sẽ bị bỏ qua khi commit lên git
-├── next.config.js # Cấu hình Next.js (alias, rewrite API, hình ảnh...)
-├── tailwind.config.js # Cấu hình Tailwind CSS (theme, màu sắc, responsive...)
-├── tsconfig.json # Cấu hình TypeScript (kiểu dữ liệu, alias...)
-├── package.json # Thông tin dự án & danh sách thư viện
-├── README.md # Tài liệu giới thiệu & hướng dẫn chạy dự án
+├── .env.local # Biến môi trường thực (không commit)
+├── .env.example # Template biến môi trường
+├── .gitignore # File/folder bỏ qua khi commit
+├── next.config.js # Cấu hình Next.js (alias, API routes, images...)
+├── tailwind.config.js # Cấu hình Tailwind CSS (theme, colors, breakpoints...)
+├── tsconfig.json # Cấu hình TypeScript (types, paths, compiler options...)
+├── package.json # Dependencies & scripts
+├── README.md # Tài liệu dự án
 │
-├── public/ # Chứa file tĩnh (ảnh, icon, favicon...) - tải trực tiếp
-│ ├── icons/ # Nơi lưu các biểu tượng SVG/PNG
-│ ├── images/ # Nơi lưu ảnh tĩnh cho UI
-│ └── favicon.ico # Icon hiển thị trên tab trình duyệt
+├── public/ # 📂 Static assets (truy cập trực tiếp qua URL)
+│ ├── icons/ # SVG icons, favicons
+│ ├── images/ # Ảnh tĩnh cho UI
+│ │ ├── page/ # Ảnh cho từng trang cụ thể
+│ │ │ └── homePage/ # Ảnh riêng cho home page
+│ │ ├── projects/ # Ảnh dự án
+│ │ ├── about/ # Ảnh about section
+│ │ └── avatars/ # Avatar người dùng
+│ └── favicon.ico # Icon tab trình duyệt
 │
-├── types/ # Nơi định nghĩa type/interface TypeScript
-│ ├── sass.d.ts # Kiểu dữ liệu cho file SCSS
-│ ├── gsap.d.ts # Kiểu dữ liệu cho thư viện GSAP
-│ └── global.d.ts # Biến toàn cục & mở rộng interface mặc định
+├── types/ # 📂 TypeScript type definitions
+│ ├── sass.d.ts # Types cho SCSS modules
+│ ├── gsap.d.ts # Types cho GSAP animations
+│ ├── api.d.ts # Types cho API responses
+│ └── global.d.ts # Global types & interface extensions
 │
 ├── src/
-│ ├── app/ # "App Router" của Next.js 13+ (quản lý page, layout)
+│ ├── app/ # 📂 Next.js 14 App Router (pages & layouts)
 │ │ ├── globals.css # CSS toàn cục
-│ │ ├── layout.tsx # Layout gốc, bao quanh toàn bộ trang
+│ │ ├── layout.tsx # Root layout (wrapper cho toàn app)
 │ │ ├── page.tsx # Trang chủ (/)
-│ │ ├── loading.tsx # UI hiển thị khi đang tải
-│ │ ├── error.tsx # UI hiển thị khi lỗi
-│ │ ├── not-found.tsx # UI 404 khi không tìm thấy trang
-│ │ ├── (auth)/ # Nhóm route cho đăng nhập/đăng ký
-│ │ │ ├── login/page.tsx
-│ │ │ ├── register/page.tsx
-│ │ │ └── layout.tsx
-│ │ ├── (dashboard)/ # Nhóm route cho bảng điều khiển (sau khi đăng nhập)
-│ │ │ ├── dashboard/page.tsx
-│ │ │ ├── projects/... # Các trang quản lý dự án
-│ │ │ └── layout.tsx
-│ │ └── api/ # API routes nội bộ (chạy trên server Next.js)
-│ │ └── auth/callback/route.ts
+│ │ ├── loading.tsx # Loading UI component
+│ │ ├── error.tsx # Error boundary UI
+│ │ ├── not-found.tsx # 404 page
+│ │ │
+│ │ ├── (auth)/ # 📁 Route group: Authentication pages
+│ │ │ ├── login/page.tsx # Trang đăng nhập
+│ │ │ ├── register/page.tsx # Trang đăng ký
+│ │ │ ├── forgot-password/page.tsx # Quên mật khẩu
+│ │ │ └── layout.tsx # Layout riêng cho auth pages
+│ │ │
+│ │ ├── (dashboard)/ # 📁 Route group: Protected dashboard
+│ │ │ ├── dashboard/page.tsx # Trang dashboard chính
+│ │ │ ├── projects/ # Quản lý dự án
+│ │ │ │ ├── page.tsx # Danh sách dự án
+│ │ │ │ ├── create/page.tsx # Tạo dự án mới
+│ │ │ │ └── [id]/ # Dynamic route cho dự án cụ thể
+│ │ │ │ ├── page.tsx # Chi tiết dự án
+│ │ │ │ └── edit/page.tsx # Chỉnh sửa dự án
+│ │ │ ├── contractors/ # Quản lý thầu xây dựng
+│ │ │ ├── supervisors/ # Quản lý giám sát viên
+│ │ │ ├── payments/ # Quản lý thanh toán
+│ │ │ ├── chat/ # Hệ thống chat
+│ │ │ └── layout.tsx # Layout cho dashboard (có sidebar)
+│ │ │
+│ │ ├── contractors/ # 📁 Public contractor pages
+│ │ │ ├── page.tsx # Danh sách thầu xây dựng
+│ │ │ └── [id]/page.tsx # Profile thầu xây dựng
+│ │ │
+│ │ ├── supervisors/ # 📁 Public supervisor pages
+│ │ ├── news/ # 📁 Tin tức xây dựng
+│ │ ├── about/ # 📁 Giới thiệu
+│ │ ├── contact/ # 📁 Liên hệ
+│ │ │
+│ │ └── api/ # 📂 API routes (server-side endpoints)
+│ │ ├── auth/ # API authentication
+│ │ ├── projects/ # API quản lý dự án
+│ │ └── webhooks/ # Webhooks từ external services
 │ │
-│ ├── components/ # Các thành phần UI tái sử dụng
-│ │ ├── ui/ # Thành phần giao diện cơ bản (Button, Input, Modal...)
-│ │ ├── layout/ # Thành phần bố cục (Header, Sidebar, Footer...)
-│ │ ├── auth/ # Thành phần liên quan đến đăng nhập/đăng ký
-│ │ ├── project/ # Thành phần hiển thị dữ liệu dự án
-│ │ └── shared/ # Thành phần dùng chung (LoadingSpinner, SEOHead...)
+│ ├── components/ # 📂 React Components (tái sử dụng)
+│ │ │
+│ │ ├── ui/ # 📁 Base UI Components (atomic design)
+│ │ │ ├── Button/ # Button component với variants
+│ │ │ │ ├── index.tsx
+│ │ │ │ ├── Button.module.scss
+│ │ │ │ └── Button.stories.tsx # Storybook stories
+│ │ │ ├── Input/ # Form inputs
+│ │ │ ├── Modal/ # Modal dialogs
+│ │ │ ├── Card/ # Card layouts
+│ │ │ ├── Badge/ # Status badges
+│ │ │ ├── Dropdown/ # Dropdown menus
+│ │ │ ├── Tabs/ # Tab navigation
+│ │ │ └── Pagination/ # Pagination component
+│ │ │
+│ │ ├── layout/ # 📁 Layout Components
+│ │ │ ├── Header/ # Site header với navigation
+│ │ │ │ ├── index.tsx
+│ │ │ │ └── Header.module.scss
+│ │ │ ├── Footer/ # Site footer
+│ │ │ ├── Sidebar/ # Dashboard sidebar
+│ │ │ ├── Navigation/ # Navigation components
+│ │ │ └── Breadcrumb/ # Breadcrumb navigation
+│ │ │
+│ │ ├── features/ # 📁 Feature-based Components (business logic)
+│ │ │ │
+│ │ │ ├── home/ # 🏠 Home page feature
+│ │ │ │ ├── components/ # Sub-components cho home
+│ │ │ │ │ ├── HeroSection/
+│ │ │ │ │ ├── AboutSection/
+│ │ │ │ │ ├── ServicesSection/
+│ │ │ │ │ ├── ProjectsGallery/
+│ │ │ │ │ └── TestimonialsSection/
+│ │ │ │ ├── HomePage.tsx # Main home page component
+│ │ │ │ └── HomePage.module.scss
+│ │ │ │
+│ │ │ ├── auth/ # 🔐 Authentication feature
+│ │ │ │ ├── components/
+│ │ │ │ │ ├── LoginForm/
+│ │ │ │ │ ├── RegisterForm/
+│ │ │ │ │ ├── ForgotPasswordForm/
+│ │ │ │ │ └── SocialLogin/
+│ │ │ │ ├── hooks/ # Auth-specific hooks
+│ │ │ │ │ ├── useLogin.ts
+│ │ │ │ │ ├── useRegister.ts
+│ │ │ │ │ └── useAuth.ts
+│ │ │ │ └── types/ # Auth types
+│ │ │ │
+│ │ │ ├── projects/ # 🏗️ Project management feature
+│ │ │ │ ├── components/
+│ │ │ │ │ ├── ProjectCard/
+│ │ │ │ │ ├── ProjectForm/
+│ │ │ │ │ ├── ProjectList/
+│ │ │ │ │ ├── ProjectTimeline/
+│ │ │ │ │ ├── ProgressTracker/
+│ │ │ │ │ └── DocumentUpload/
+│ │ │ │ ├── hooks/
+│ │ │ │ │ ├── useProjects.ts
+│ │ │ │ │ ├── useProjectForm.ts
+│ │ │ │ │ └── useProjectTimeline.ts
+│ │ │ │ └── types/
+│ │ │ │ ├── project.types.ts
+│ │ │ │ └── timeline.types.ts
+│ │ │ │
+│ │ │ ├── contractors/ # 👷 Contractor management
+│ │ │ │ ├── components/
+│ │ │ │ │ ├── ContractorCard/
+│ │ │ │ │ ├── ContractorProfile/
+│ │ │ │ │ ├── ContractorSearch/
+│ │ │ │ │ ├── QuoteRequest/
+│ │ │ │ │ └── RatingSystem/
+│ │ │ │ ├── hooks/
+│ │ │ │ └── types/
+│ │ │ │
+│ │ │ ├── supervisors/ # 👨‍💼 Supervisor management
+│ │ │ │ ├── components/
+│ │ │ │ │ ├── SupervisorCard/
+│ │ │ │ │ ├── InspectionReport/
+│ │ │ │ │ ├── ComplianceCheck/
+│ │ │ │ │ └── ReportUpload/
+│ │ │ │ ├── hooks/
+│ │ │ │ └── types/
+│ │ │ │
+│ │ │ ├── payments/ # 💰 Payment system
+│ │ │ │ ├── components/
+│ │ │ │ │ ├── PaymentForm/
+│ │ │ │ │ ├── EscrowStatus/
+│ │ │ │ │ ├── PaymentHistory/
+│ │ │ │ │ └── InvoiceGeneration/
+│ │ │ │ ├── hooks/
+│ │ │ │ └── types/
+│ │ │ │
+│ │ │ ├── chat/ # 💬 Communication system
+│ │ │ │ ├── components/
+│ │ │ │ │ ├── ChatWindow/
+│ │ │ │ │ ├── MessageList/
+│ │ │ │ │ ├── FileUpload/
+│ │ │ │ │ └── NotificationCenter/
+│ │ │ │ ├── hooks/
+│ │ │ │ └── types/
+│ │ │ │
+│ │ │ ├── ai-assistant/ # 🤖 AI Advisory system
+│ │ │ │ ├── components/
+│ │ │ │ │ ├── ChatBot/
+│ │ │ │ │ ├── MaterialRecommendation/
+│ │ │ │ │ ├── RegulatoryAdvice/
+│ │ │ │ │ └── ConstructionDiagnosis/
+│ │ │ │ ├── hooks/
+│ │ │ │ └── types/
+│ │ │ │
+│ │ │ └── admin/ # ⚙️ Admin panel features
+│ │ │ ├── components/
+│ │ │ │ ├── UserManagement/
+│ │ │ │ ├── SystemSettings/
+│ │ │ │ ├── Analytics/
+│ │ │ │ └── ContentModeration/
+│ │ │ ├── hooks/
+│ │ │ └── types/
+│ │ │
+│ │ └── shared/ # 📁 Shared Components (dùng chung)
+│ │ ├── LoadingSpinner/ # Loading indicators
+│ │ ├── ErrorBoundary/ # Error handling
+│ │ ├── SEOHead/ # SEO meta tags
+│ │ ├── ConfirmDialog/ # Confirmation dialogs
+│ │ ├── EmptyState/ # Empty state illustrations
+│ │ └── ProtectedRoute/ # Route protection
 │ │
-│ ├── hooks/ # Custom hooks (tái sử dụng logic React)
-│ │ ├── useAuth.ts # Xử lý trạng thái đăng nhập
-│ │ ├── useProjects.ts # Gọi API & lưu dữ liệu dự án
-│ │ └── useWebSocket.ts # Kết nối realtime
+│ ├── hooks/ # 📂 Global Custom Hooks
+│ │ ├── useAuth.ts # Authentication state
+│ │ ├── useLocalStorage.ts # Local storage management
+│ │ ├── useDebounce.ts # Input debouncing
+│ │ ├── useWebSocket.ts # WebSocket connections
+│ │ ├── useInfiniteScroll.ts # Infinite scrolling
+│ │ └── useGeolocation.ts # Location services
 │ │
-│ ├── lib/ # Thư viện & tiện ích dùng chung
-│ │ ├── api/ # API client (Axios)
-│ │ ├── auth/ # Hàm xử lý xác thực & phân quyền
-│ │ ├── websocket/ # Client SignalR/WebSocket
-│ │ ├── utils/ # Hàm tiện ích (format, validate, date...)
-│ │ └── animations/ # Animation bằng GSAP
+│ ├── lib/ # 📂 Libraries & Utilities
+│ │ │
+│ │ ├── api/ # 🌐 API Client Configuration
+│ │ │ ├── client.ts # Axios instance với interceptors
+│ │ │ ├── endpoints.ts # API endpoint constants
+│ │ │ ├── auth.api.ts # Authentication APIs
+│ │ │ ├── projects.api.ts # Project management APIs
+│ │ │ ├── contractors.api.ts # Contractor APIs
+│ │ │ ├── payments.api.ts # Payment APIs
+│ │ │ └── upload.api.ts # File upload APIs
+│ │ │
+│ │ ├── auth/ # 🔐 Authentication Logic
+│ │ │ ├── jwt.ts # JWT token handling
+│ │ │ ├── permissions.ts # Role-based permissions
+│ │ │ ├── oauth.ts # Google OAuth integration
+│ │ │ └── session.ts # Session management
+│ │ │
+│ │ ├── websocket/ # 🔄 Real-time Communication
+│ │ │ ├── signalr.ts # SignalR client
+│ │ │ ├── chat.ts # Chat functionality
+│ │ │ └── notifications.ts # Real-time notifications
+│ │ │
+│ │ ├── utils/ # 🛠️ Utility Functions
+│ │ │ ├── format.ts # Data formatting (date, currency, etc.)
+│ │ │ ├── validate.ts # Form validation helpers
+│ │ │ ├── constants.ts # App constants
+│ │ │ ├── helpers.ts # General helper functions
+│ │ │ ├── localStorage.ts # Local storage utilities
+│ │ │ └── upload.ts # File upload utilities
+│ │ │
+│ │ ├── animations/ # 🎬 GSAP Animation Library
+│ │ │ ├── page-transitions.ts # Page transition animations
+│ │ │ ├── scroll-animations.ts # Scroll-triggered animations
+│ │ │ ├── hover-effects.ts # Interactive hover animations
+│ │ │ └── loading-animations.ts # Loading state animations
+│ │ │
+│ │ └── config/ # ⚙️ Configuration
+│ │ ├── app.ts # App configuration
+│ │ ├── api.ts # API configuration
+│ │ ├── payments.ts # Payment gateway config
+│ │ └── upload.ts # File upload config
 │ │
-│ ├── store/ # State management (Zustand)
-│ │ ├── auth-store.ts # Lưu & xử lý trạng thái đăng nhập
-│ │ ├── project-store.ts # Lưu & xử lý dữ liệu dự án
-│ │ └── ui-store.ts # Lưu trạng thái UI (sidebar mở/đóng, theme...)
+│ ├── store/ # 📂 State Management (Zustand)
+│ │ ├── auth-store.ts # Authentication state
+│ │ ├── project-store.ts # Project data state
+│ │ ├── contractor-store.ts # Contractor data state
+│ │ ├── ui-store.ts # UI state (modals, sidebar, theme)
+│ │ ├── chat-store.ts # Chat messages state
+│ │ └── notification-store.ts # Notifications state
 │ │
-│ ├── styles/ # SCSS & Tailwind styles
-│ │ ├── globals.scss # SCSS toàn cục
-│ │ ├── variables.scss # Biến SCSS (màu, kích thước...)
-│ │ └── components/ # SCSS riêng cho từng component
+│ ├── styles/ # 📂 Styling (SCSS + Tailwind)
+│ │ ├── globals.scss # Global SCSS styles
+│ │ ├── variables.scss # SCSS variables (colors, spacing, etc.)
+│ │ ├── mixins.scss # SCSS mixins
+│ │ ├── animations.scss # CSS animations
+│ │ ├── typography.scss # Font styles
+│ │ │
+│ │ ├── components/ # 📁 Component-specific styles
+│ │ │ ├── buttons.scss # Button variations
+│ │ │ ├── forms.scss # Form styling
+│ │ │ ├── cards.scss # Card components
+│ │ │ └── navigation.scss # Navigation styling
+│ │ │
+│ │ └── pages/ # 📁 Page-specific styles
+│ │ ├── home.scss # Home page styles
+│ │ ├── auth.scss # Authentication pages
+│ │ └── dashboard.scss # Dashboard styles
 │ │
-│ └── middleware.ts # Middleware chặn route, bảo vệ trang private
+│ └── middleware.ts # 🛡️ Next.js Middleware (route protection, redirects)
 │
-├── docs/ # Tài liệu nội bộ (API, triển khai, kiến trúc)
-│ ├── API.md
-│ ├── DEPLOYMENT.md
-│ └── ARCHITECTURE.md
+├── docs/ # 📂 Documentation
+│ ├── API.md # API documentation
+│ ├── DEPLOYMENT.md # Deployment guide
+│ ├── ARCHITECTURE.md # System architecture
+│ ├── CONTRIBUTING.md # Contribution guidelines
+│ └── CHANGELOG.md # Version changes
 │
-└── tests/ # Test code
-├── components/ # Test component UI
-├── hooks/ # Test custom hook
-├── utils/ # Test hàm tiện ích
-└── setup.ts # Cấu hình chung cho test
+└── tests/ # 📂 Testing
+├── components/ # Component tests
+├── hooks/ # Hook tests
+├── utils/ # Utility function tests
+├── pages/ # Page tests
+├── setup.ts # Test configuration
+└── **mocks**/ # Mock files

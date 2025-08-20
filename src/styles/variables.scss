@@ -1,26 +1,63 @@
+// variables.scss
+
 // Colors
-$primary-color: #1890ff;
-$secondary-color: #52c41a;
-$error-color: #ff4d4f;
-$warning-color: #faad14;
-$success-color: #52c41a;
-$text-primary: #262626;
-$text-secondary: #8c8c8c;
-$border-color: #d9d9d9;
-$background-color: #f0f2f5;
+$primary-color: #007BFF;
+$primary-dark: #0056B3;
+$secondary-color: #FF6B6B;
+$accent-color: #FFD700;
+$success-color: #28A745;
+$warning-color: #FFC107;
+$danger-color: #DC3545;
+$info-color: #17A2B8;
 
-// Layout
-$header-height: 64px;
-$sidebar-width: 256px;
-$sidebar-collapsed-width: 80px;
-$content-padding: 24px;
+// Text Colors
+$text-primary: #333;
+$text-secondary: #666;
+$text-muted: #999;
+$text-light: #fff;
 
-// Export variables for TS
-:export {
-  primaryColor: $primary-color;
-  secondaryColor: $secondary-color;
-  breakpointMd: 768px;
-  breakpointLg: 992px;
-  headerHeight: $header-height;
-  sidebarWidth: $sidebar-width;
-}
+// Background Colors
+$bg-primary: #ffffff;
+$bg-secondary: #f8f9ff;
+$bg-dark: #343a40;
+$bg-light: #f8f9fa;
+
+// Spacing
+$spacing-xs: 0.25rem;
+$spacing-sm: 0.5rem;
+$spacing-md: 1rem;
+$spacing-lg: 1.5rem;
+$spacing-xl: 2rem;
+$spacing-xxl: 3rem;
+
+// Breakpoints
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+
+// Border Radius
+$border-radius-sm: 0.25rem;
+$border-radius-md: 0.5rem;
+$border-radius-lg: 1rem;
+$border-radius-xl: 1.5rem;
+
+// Shadows
+$shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 8px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.1);
+
+// Transitions
+$transition-fast: 0.15s ease;
+$transition-normal: 0.3s ease;
+$transition-slow: 0.5s ease;
+
+// Z-index
+$z-dropdown: 1000;
+$z-sticky: 1020;
+$z-fixed: 1030;
+$z-modal-backdrop: 1040;
+$z-modal: 1050;
+$z-popover: 1060;
+$z-tooltip: 1070;
