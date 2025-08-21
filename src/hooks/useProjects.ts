@@ -1,8 +1,8 @@
 'use client';
 import useSWR from 'swr';
-import { api } from '@/lib/api/client';
+import { apiClient } from '@/lib/api/client';
 
-const fetcher = (url: string) => api.get(url).then(r => r.data);
+const fetcher = (url: string) => apiClient.get(url).then(r => r.data);
 
 export const useProjects = () => {
   const { data, error, mutate } = useSWR(`/projects`, fetcher, {
