@@ -1,0 +1,280 @@
+// src/features/contractors/components/ContractorList/ContractorList.module.scss
+.contractorList {
+    position: relative;
+    min-height: 400px;
+    
+    .resultsSummary {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding: 16px;
+      background: #fafafa;
+      border-radius: 8px;
+      
+      @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
+      
+      .resultsCount {
+        font-size: 14px;
+        color: #595959;
+        font-weight: 500;
+      }
+      
+      .loadingIndicator {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: #9b7234;
+      }
+    }
+    
+    .contractorGrid {
+      position: relative;
+      
+      // Ensure equal height cards
+      .ant-col {
+        display: flex;
+        
+        > div {
+          flex: 1;
+        }
+      }
+    }
+    
+    .paginationContainer {
+      margin-top: 32px;
+      text-align: center;
+      
+      .pagination {
+        display: inline-block;
+        
+        :global(.ant-pagination-item-active) {
+          border-color: #1890ff;
+          
+          a {
+            color: #1890ff;
+          }
+        }
+        
+        :global(.ant-pagination-item:hover) {
+          border-color: #1890ff;
+          
+          a {
+            color: #1890ff;
+          }
+        }
+        
+        :global(.ant-pagination-prev),
+        :global(.ant-pagination-next) {
+          &:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+          }
+        }
+      }
+    }
+    
+    .loadingContainer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 400px;
+      
+      :global(.ant-spin-tip) {
+        color: #595959;
+        margin-top: 16px;
+      }
+    }
+    
+    .loadingOverlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      border-radius: 8px;
+      backdrop-filter: blur(2px);
+    }
+    
+    .errorAlert {
+      margin-bottom: 24px;
+      
+      :global(.ant-alert-action) {
+        margin-left: 16px;
+      }
+    }
+    
+    .emptyState {
+      min-height: 300px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      
+      :global(.ant-empty-description) {
+        color: #8c8c8c;
+      }
+      
+      .emptySubtext {
+        margin-top: 8px;
+        font-size: 12px;
+        color: #bfbfbf;
+      }
+    }
+  }
+  
+  // Responsive grid adjustments
+  @media (max-width: 1200px) {
+    .contractorList .contractorGrid {
+      :global(.ant-col-xl-6) {
+        flex: 0 0 33.333333%;
+        max-width: 33.333333%;
+      }
+    }
+  }
+  
+  @media (max-width: 992px) {
+    .contractorList .contractorGrid {
+      :global(.ant-col-lg-8) {
+        flex: 0 0 50%;
+        max-width: 50%;
+      }
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .contractorList {
+      .resultsSummary {
+        margin-bottom: 16px;
+        padding: 12px;
+      }
+      
+      .contractorGrid {
+        :global(.ant-col-md-12) {
+          flex: 0 0 100%;
+          max-width: 100%;
+        }
+      }
+      
+      .paginationContainer {
+        margin-top: 24px;
+        
+        .pagination {
+          :global(.ant-pagination-total-text) {
+            display: none;
+          }
+          
+          :global(.ant-pagination-options) {
+            display: none;
+          }
+        }
+      }
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .contractorList {
+      .resultsSummary {
+        padding: 8px 12px;
+        
+        .resultsCount {
+          font-size: 13px;
+        }
+      }
+      
+      .paginationContainer .pagination {
+        :global(.ant-pagination-jump-prev),
+        :global(.ant-pagination-jump-next) {
+          display: none;
+        }
+        
+        :global(.ant-pagination-item) {
+          min-width: 32px;
+          height: 32px;
+          line-height: 30px;
+          
+          a {
+            height: 30px;
+            line-height: 30px;
+          }
+        }
+        
+        :global(.ant-pagination-prev),
+        :global(.ant-pagination-next) {
+          min-width: 32px;
+          height: 32px;
+          line-height: 30px;
+        }
+      }
+    }
+  }
+  
+  // Animation keyframes
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes pulse {
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  
+  // Smooth transitions
+  .contractorList {
+    .contractorGrid {
+      transition: opacity 0.3s ease;
+      
+      &.loading {
+        opacity: 0.7;
+      }
+    }
+  }
+  
+  // Dark mode support
+  [data-theme='dark'] {
+    .contractorList {
+      .resultsSummary {
+        background: #262626;
+        color: #f0f0f0;
+        
+        .resultsCount {
+          color: #d9d9d9;
+        }
+      }
+      
+      .loadingOverlay {
+        background: rgba(0, 0, 0, 0.6);
+      }
+      
+      .emptyState {
+        :global(.ant-empty-description) {
+          color: #8c8c8c;
+        }
+        
+        .emptySubtext {
+          color: #595959;
+        }
+      }
+    }
+  }

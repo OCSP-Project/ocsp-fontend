@@ -1,57 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
-import { getSupervisorById, SupervisorDetailsDto } from "@/lib/api/supervisors";
+import React from "react";
+import { useRouter } from "next/navigation";
+import { SupervisorDetailsDto } from "../../types/supervisor.types";
 
-export default function SupervisorProfilePage() {
-  const { id } = useParams();
+interface SupervisorProfileProps {
+  supervisor: SupervisorDetailsDto;
+}
+
+const SupervisorProfile: React.FC<SupervisorProfileProps> = ({
+  supervisor,
+}) => {
   const router = useRouter();
-  const [supervisor, setSupervisor] = useState<SupervisorDetailsDto | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    if (id) {
-      setIsLoading(true);
-      getSupervisorById(id as string)
-        .then(setSupervisor)
-        .catch(console.error)
-        .finally(() => setIsLoading(false));
-    }
-  }, [id]);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-amber-600 mx-auto mb-4"></div>
-          <p className="text-xl font-semibold text-gray-700">Đang tải thông tin...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!supervisor) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 flex items-center justify-center">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-md mx-auto">
-          <div className="text-6xl mb-4">❌</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Không tìm thấy</h2>
-          <p className="text-gray-600 mb-6">Giám sát viên này không tồn tại hoặc đã bị xóa.</p>
-          <button
-            onClick={() => router.push("/supervisors")}
-            className="bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-          >
-            ← Quay lại danh sách
-          </button>
-        </div>
-      </div>
-    );
-  }
 
   const renderStars = (rating: number) => {
     return Array.from({ length: 5 }, (_, i) => (
-      <span key={i} className={`text-2xl ${i < rating ? 'text-yellow-500' : 'text-gray-300'}`}>
+      <span
+        key={i}
+        className={`text-2xl ${
+          i < rating ? "text-yellow-500" : "text-gray-300"
+        }`}
+      >
         ⭐
       </span>
     ));
@@ -59,14 +28,14 @@ export default function SupervisorProfilePage() {
 
   const formatPrice = (price: number | null | undefined) => {
     if (!price) return "Chưa cập nhật";
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND'
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
     }).format(price);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100">
+    <div className="supervisor-profile">
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white">
         <div className="container mx-auto px-6 py-12">
@@ -93,12 +62,14 @@ export default function SupervisorProfilePage() {
               <div className="w-32 h-32 bg-gradient-to-br from-amber-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-4xl shadow-xl">
                 {supervisor.username.charAt(0).toUpperCase()}
               </div>
-              
+
               {/* Basic Info */}
               <div className="flex-1">
-                <h2 className="text-3xl font-bold text-gray-800 mb-2">{supervisor.username}</h2>
+                <h2 className="text-3xl font-bold text-gray-800 mb-2">
+                  {supervisor.username}
+                </h2>
                 <p className="text-lg text-gray-600 mb-4">{supervisor.email}</p>
-                
+
                 {/* Rating */}
                 <div className="flex items-center gap-2 mb-4">
                   <div className="flex">
@@ -113,12 +84,16 @@ export default function SupervisorProfilePage() {
                 </div>
 
                 {/* Availability Status */}
-                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold ${
-                  supervisor.availableNow 
-                    ? 'bg-green-100 text-green-800 border border-green-200' 
-                    : 'bg-red-100 text-red-800 border border-red-200'
-                }`}>
-                  {supervisor.availableNow ? "✅ Sẵn sàng nhận việc" : "❌ Hiện tại không rảnh"}
+                <div
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold ${
+                    supervisor.availableNow
+                      ? "bg-green-100 text-green-800 border border-green-200"
+                      : "bg-red-100 text-red-800 border border-red-200"
+                  }`}
+                >
+                  {supervisor.availableNow
+                    ? "✅ Sẵn sàng nhận việc"
+                    : "❌ Hiện tại không rảnh"}
                 </div>
               </div>
             </div>
@@ -133,17 +108,30 @@ export default function SupervisorProfilePage() {
               </h3>
               <div className="space-y-4">
                 <div className="border-l-4 border-amber-500 pl-4">
-                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Điện thoại</p>
-                  <p className="text-lg text-gray-800">{supervisor.phone || "Chưa cập nhật"}</p>
-                </div>
-                <div className="border-l-4 border-amber-500 pl-4">
-                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Khu vực</p>
-                  <p className="text-lg text-gray-800">{supervisor.district || "Chưa cập nhật"}</p>
-                </div>
-                <div className="border-l-4 border-amber-500 pl-4">
-                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Kinh nghiệm</p>
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    Điện thoại
+                  </p>
                   <p className="text-lg text-gray-800">
-                    <span className="font-bold text-amber-600">{supervisor.yearsExperience || 0}</span> năm
+                    {supervisor.phone || "Chưa cập nhật"}
+                  </p>
+                </div>
+                <div className="border-l-4 border-amber-500 pl-4">
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    Khu vực
+                  </p>
+                  <p className="text-lg text-gray-800">
+                    {supervisor.district || "Chưa cập nhật"}
+                  </p>
+                </div>
+                <div className="border-l-4 border-amber-500 pl-4">
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    Kinh nghiệm
+                  </p>
+                  <p className="text-lg text-gray-800">
+                    <span className="font-bold text-amber-600">
+                      {supervisor.yearsExperience || 0}
+                    </span>{" "}
+                    năm
                   </p>
                 </div>
               </div>
@@ -156,15 +144,25 @@ export default function SupervisorProfilePage() {
               </h3>
               <div className="space-y-4">
                 <div className="border-l-4 border-orange-500 pl-4">
-                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Phòng ban</p>
-                  <p className="text-lg text-gray-800">{supervisor.department || "Chưa cập nhật"}</p>
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    Phòng ban
+                  </p>
+                  <p className="text-lg text-gray-800">
+                    {supervisor.department || "Chưa cập nhật"}
+                  </p>
                 </div>
                 <div className="border-l-4 border-orange-500 pl-4">
-                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Vị trí</p>
-                  <p className="text-lg text-gray-800">{supervisor.position || "Chưa cập nhật"}</p>
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    Vị trí
+                  </p>
+                  <p className="text-lg text-gray-800">
+                    {supervisor.position || "Chưa cập nhật"}
+                  </p>
                 </div>
                 <div className="border-l-4 border-orange-500 pl-4">
-                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Mức giá</p>
+                  <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+                    Mức giá
+                  </p>
                   <div className="text-lg text-gray-800">
                     <div className="flex items-center gap-2">
                       <span className="text-green-600 font-semibold">Từ:</span>
@@ -187,7 +185,9 @@ export default function SupervisorProfilePage() {
                 📝 Giới thiệu bản thân
               </h3>
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-6 border-l-4 border-amber-500">
-                <p className="text-gray-700 leading-relaxed text-lg">{supervisor.bio}</p>
+                <p className="text-gray-700 leading-relaxed text-lg">
+                  {supervisor.bio}
+                </p>
               </div>
             </div>
           )}
@@ -211,4 +211,6 @@ export default function SupervisorProfilePage() {
       </div>
     </div>
   );
-}
+};
+
+export default SupervisorProfile;

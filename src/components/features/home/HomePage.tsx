@@ -5,7 +5,7 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
 import Link from "next/link";
-import Header from "@/components/layout/Header";
+
 import styles from "./HomePage.module.scss";
 
 // Register GSAP plugins
@@ -201,130 +201,112 @@ const HomePage: React.FC = () => {
   ];
 
   return (
-    <>
-      <Header />
+    <main className={styles.homePage}>
+      {/* Hero Section */}
+      <section ref={heroRef} className={styles.heroSection}>
+        <div className={styles.heroBackground}>
+          <Image
+            src="/images/page/homePage/bgHome.png"
+            alt="OCSP Background"
+            fill
+            className={styles.backgroundImage}
+            priority
+          />
+          <div className={styles.overlay} />
+        </div>
 
-      <main className={styles.homePage}>
-        {/* Hero Section */}
-        <section ref={heroRef} className={styles.heroSection}>
-          <div className={styles.heroBackground}>
-            <Image
-              src="/images/page/homePage/bgHome.png"
-              alt="OCSP Background"
-              fill
-              className={styles.backgroundImage}
-              priority
-            />
-            <div className={styles.overlay} />
+        <div className={styles.container}>
+          <div className={styles.heroContent}>
+            <h1 className={`${styles.heroTitle} hero-title`}>
+              XÂY DỰNG
+              <br />
+              TƯƠNG LAI
+            </h1>
+
+            <p className={`${styles.heroSubtitle} hero-subtitle`}>
+              Kết nối chủ đầu tư với các thầu xây dựng và giám sát viên uy tín.
+              <br />
+              Nền tảng quản lý dự án toàn diện với công nghệ AI tiên tiến.
+            </p>
+
+            <Link
+              href="/projects/create"
+              className={`${styles.heroButton} hero-button`}
+            >
+              BẮT ĐẦU DỰ ÁN
+            </Link>
           </div>
+        </div>
+      </section>
 
-          <div className={styles.container}>
-            <div className={styles.heroContent}>
-              <h1 className={`${styles.heroTitle} hero-title`}>
-                XÂY DỰNG
+      {/* About Section */}
+      <section ref={aboutRef} className={styles.aboutSection}>
+        <div className={styles.container}>
+          <div className={styles.aboutGrid}>
+            <div className={`${styles.aboutText} about-text`}>
+              <span className={styles.sectionLabel}>VỀ CHÚNG TÔI</span>
+              <h2 className={styles.aboutTitle}>
+                BUILD BRICK
                 <br />
-                TƯƠNG LAI
-              </h1>
-
-              <p className={`${styles.heroSubtitle} hero-subtitle`}>
-                Kết nối chủ đầu tư với các thầu xây dựng và giám sát viên uy
-                tín.
-                <br />
-                Nền tảng quản lý dự án toàn diện với công nghệ AI tiên tiến.
+                BY BRICK
+              </h2>
+              <p className={styles.aboutDescription}>
+                OCSP là nền tảng kết nối hàng đầu trong lĩnh vực xây dựng tại
+                Việt Nam. Chúng tôi tạo cầu nối tin cậy giữa chủ đầu tư và các
+                nhà thầu chuyên nghiệp, đảm bảo mọi dự án được thực hiện với
+                chất lượng cao nhất.
               </p>
-
-              <Link
-                href="/projects/create"
-                className={`${styles.heroButton} hero-button`}
-              >
-                BẮT ĐẦU DỰ ÁN
+              <Link href="/about" className={styles.aboutButton}>
+                TÌM HIỂU THÊM
               </Link>
             </div>
+            <div className={`${styles.aboutImages} about-image`}>
+              <div className={styles.imageGrid}>
+                <div className={styles.imageItem}>
+                  <Image
+                    src="/images/about/construction1.jpg"
+                    alt="Construction"
+                    fill
+                    className={styles.aboutImg}
+                  />
+                </div>
+                <div className={styles.imageItem}>
+                  <Image
+                    src="/images/about/construction2.jpg"
+                    alt="Construction"
+                    fill
+                    className={styles.aboutImg}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* About Section */}
-        <section ref={aboutRef} className={styles.aboutSection}>
-          <div className={styles.container}>
-            <div className={styles.aboutGrid}>
-              <div className={`${styles.aboutText} about-text`}>
-                <span className={styles.sectionLabel}>VỀ CHÚNG TÔI</span>
-                <h2 className={styles.aboutTitle}>
-                  BUILD BRICK
-                  <br />
-                  BY BRICK
-                </h2>
-                <p className={styles.aboutDescription}>
-                  OCSP là nền tảng kết nối hàng đầu trong lĩnh vực xây dựng tại
-                  Việt Nam. Chúng tôi tạo cầu nối tin cậy giữa chủ đầu tư và các
-                  nhà thầu chuyên nghiệp, đảm bảo mọi dự án được thực hiện với
-                  chất lượng cao nhất.
+      {/* The Art of Innovation */}
+
+      {/* Services Section */}
+      <section ref={servicesRef} className={styles.servicesSection}>
+        <div className={styles.container}>
+          <div className={styles.servicesGrid}>
+            {services.map((service, index) => (
+              <div key={index} className={`${styles.serviceCard} service-card`}>
+                <div className={styles.serviceIcon}>{service.icon}</div>
+                <h3 className={styles.serviceTitle}>{service.title}</h3>
+                <p className={styles.serviceDescription}>
+                  {service.description}
                 </p>
-                <Link href="/about" className={styles.aboutButton}>
-                  TÌM HIỂU THÊM
-                </Link>
+                <ul className={styles.serviceFeatures}>
+                  {service.features.map((feature, idx) => (
+                    <li key={idx}>{feature}</li>
+                  ))}
+                </ul>
               </div>
-              <div className={`${styles.aboutImages} about-image`}>
-                <div className={styles.imageGrid}>
-                  <div className={styles.imageItem}>
-                    <Image
-                      src="/images/about/construction1.jpg"
-                      alt="Construction"
-                      fill
-                      className={styles.aboutImg}
-                    />
-                  </div>
-                  <div className={styles.imageItem}>
-                    <Image
-                      src="/images/about/construction2.jpg"
-                      alt="Construction"
-                      fill
-                      className={styles.aboutImg}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
-        </section>
 
-        {/* The Art of Innovation */}
-        <section className={styles.innovationSection}>
-          <div className={styles.container}>
-            <div className={styles.innovationContent}>
-              <h2 className={styles.innovationTitle}>
-                THE ART OF
-                <br />
-                INNOVATION
-              </h2>
-            </div>
-          </div>
-        </section>
-
-        {/* Services Section */}
-        <section ref={servicesRef} className={styles.servicesSection}>
-          <div className={styles.container}>
-            <div className={styles.servicesGrid}>
-              {services.map((service, index) => (
-                <div
-                  key={index}
-                  className={`${styles.serviceCard} service-card`}
-                >
-                  <div className={styles.serviceIcon}>{service.icon}</div>
-                  <h3 className={styles.serviceTitle}>{service.title}</h3>
-                  <p className={styles.serviceDescription}>
-                    {service.description}
-                  </p>
-                  <ul className={styles.serviceFeatures}>
-                    {service.features.map((feature, idx) => (
-                      <li key={idx}>{feature}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-
-            {/* <div className={styles.servicesBottom}>
+          {/* <div className={styles.servicesBottom}>
               <h3 className={styles.servicesBottomTitle}>
                 DESIGNS
                 <br />
@@ -334,116 +316,115 @@ const HomePage: React.FC = () => {
                 LIFE
               </h3>
             </div> */}
-          </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Solutions Section */}
-        <section className={styles.solutionsSection}>
-          <div className={styles.container}>
-            <div className={styles.solutionsHeader}>
-              <span className={styles.sectionLabel}>GIẢI PHÁP CHO DỰ ÁN</span>
-              <h2 className={styles.solutionsTitle}>
-                Dành cho mọi loại dự án xây dựng
-              </h2>
-            </div>
+      {/* Solutions Section */}
+      <section className={styles.solutionsSection}>
+        <div className={styles.container}>
+          <div className={styles.solutionsHeader}>
+            <span className={styles.sectionLabel}>GIẢI PHÁP CHO DỰ ÁN</span>
+            <h2 className={styles.solutionsTitle}>
+              Dành cho mọi loại dự án xây dựng
+            </h2>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Projects Gallery */}
-        <section ref={projectsRef} className={styles.projectsSection}>
-          <div className={styles.container}>
-            <div className={styles.projectsGrid}>
-              {projects.map((project, index) => (
-                <div
-                  key={project.id}
-                  className={`${styles.projectCard} project-card`}
-                >
-                  <div className={styles.projectImage}>
-                    <Image
-                      src={project.image}
-                      alt={project.title}
-                      fill
-                      className={styles.projectImg}
-                    />
-                    <div className={styles.projectOverlay}>
-                      <span className={styles.projectCategory}>
-                        {project.category}
-                      </span>
-                      <h3 className={styles.projectTitle}>{project.title}</h3>
-                      <p className={styles.projectDescription}>
-                        {project.description}
-                      </p>
-                    </div>
+      {/* Projects Gallery */}
+      <section ref={projectsRef} className={styles.projectsSection}>
+        <div className={styles.container}>
+          <div className={styles.projectsGrid}>
+            {projects.map((project, index) => (
+              <div
+                key={project.id}
+                className={`${styles.projectCard} project-card`}
+              >
+                <div className={styles.projectImage}>
+                  <Image
+                    src={project.image}
+                    alt={project.title}
+                    fill
+                    className={styles.projectImg}
+                  />
+                  <div className={styles.projectOverlay}>
+                    <span className={styles.projectCategory}>
+                      {project.category}
+                    </span>
+                    <h3 className={styles.projectTitle}>{project.title}</h3>
+                    <p className={styles.projectDescription}>
+                      {project.description}
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Build Vision Section */}
-        <section className={styles.buildVisionSection}>
-          <div className={styles.buildVisionContent}>
-            <div className={styles.buildVisionText}>
-              <h2>
-                BUILD
-                <br />
-                VISION
-              </h2>
-            </div>
-            <div className={styles.buildVisionImage}>
-              <Image
-                src="/images/vision/city-view.jpg"
-                alt="City Vision"
-                fill
-                className={styles.visionImg}
-              />
-            </div>
+      {/* Build Vision Section */}
+      <section className={styles.buildVisionSection}>
+        <div className={styles.buildVisionContent}>
+          <div className={styles.buildVisionText}>
+            <h2>
+              BUILD
+              <br />
+              VISION
+            </h2>
           </div>
-        </section>
+          <div className={styles.buildVisionImage}>
+            <Image
+              src="/images/vision/city-view.jpg"
+              alt="City Vision"
+              fill
+              className={styles.visionImg}
+            />
+          </div>
+        </div>
+      </section>
 
-        {/* Precision Section */}
-        <section className={styles.precisionSection}>
-          <div className={styles.container}>
-            <div className={styles.precisionContent}>
-              <span className={styles.sectionLabel}>CHẤT LƯỢNG</span>
-              <h2 className={styles.precisionTitle}>
-                PRECISION
-                <br />
-                IN <span className={styles.highlight}>EVERY</span>
-                <br />
-                DESIGN
-              </h2>
-              <p className={styles.precisionDescription}>
-                Mỗi dự án được thực hiện với độ chính xác cao nhất, từ khâu
-                thiết kế đến thi công hoàn thiện.
-              </p>
-              <Link href="/projects" className={styles.precisionButton}>
-                XEM DỰ ÁN
+      {/* Precision Section */}
+      <section className={styles.precisionSection}>
+        <div className={styles.container}>
+          <div className={styles.precisionContent}>
+            <span className={styles.sectionLabel}>CHẤT LƯỢNG</span>
+            <h2 className={styles.precisionTitle}>
+              PRECISION
+              <br />
+              IN <span className={styles.highlight}>EVERY</span>
+              <br />
+              DESIGN
+            </h2>
+            <p className={styles.precisionDescription}>
+              Mỗi dự án được thực hiện với độ chính xác cao nhất, từ khâu thiết
+              kế đến thi công hoàn thiện.
+            </p>
+            <Link href="/projects" className={styles.precisionButton}>
+              XEM DỰ ÁN
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section ref={ctaRef} className={styles.ctaSection}>
+        <div className={styles.container}>
+          <div className={`${styles.ctaContent} cta-content`}>
+            <h2>Sẵn sàng khởi tạo dự án của bạn?</h2>
+            <p>Tham gia cùng hàng nghìn khách hàng đã tin tướng OCSP</p>
+            <div className={styles.ctaButtons}>
+              <Link href="/register" className={styles.ctaPrimaryButton}>
+                BẮT ĐẦU NGAY
+              </Link>
+              <Link href="/contact" className={styles.ctaSecondaryButton}>
+                LIÊN HỆ TƯ VẤN
               </Link>
             </div>
           </div>
-        </section>
-
-        {/* CTA Section */}
-        <section ref={ctaRef} className={styles.ctaSection}>
-          <div className={styles.container}>
-            <div className={`${styles.ctaContent} cta-content`}>
-              <h2>Sẵn sàng khởi tạo dự án của bạn?</h2>
-              <p>Tham gia cùng hàng nghìn khách hàng đã tin tướng OCSP</p>
-              <div className={styles.ctaButtons}>
-                <Link href="/register" className={styles.ctaPrimaryButton}>
-                  BẮT ĐẦU NGAY
-                </Link>
-                <Link href="/contact" className={styles.ctaSecondaryButton}>
-                  LIÊN HỆ TƯ VẤN
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-    </>
+        </div>
+      </section>
+    </main>
   );
 };
 
