@@ -1,0 +1,348 @@
+// src/features/contractors/components/ContractorSearch/ContractorSearch.module.scss
+.searchContainer {
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: none;
+    margin-bottom: 24px;
+    
+    .filterLabel {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #262626;
+      font-size: 14px;
+    }
+    
+    // Main search input styling
+    :global(.ant-input-affix-wrapper) {
+      border-radius: 8px;
+      border: 2px solid #f0f0f0;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        border-color: #1890ff;
+      }
+      
+      &:focus-within {
+        border-color: #1890ff;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+      }
+      
+      .ant-input {
+        font-size: 16px;
+        
+        &::placeholder {
+          color: #bfbfbf;
+        }
+      }
+      
+      .ant-input-prefix {
+        color: #8c8c8c;
+        font-size: 18px;
+      }
+    }
+    
+    // AutoComplete dropdown
+    :global(.ant-select-dropdown) {
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      
+      .ant-select-item {
+        padding: 8px 12px;
+        
+        &:hover {
+          background: #f0f7ff;
+        }
+      }
+    }
+    
+    // Primary search button
+    :global(.ant-btn-primary) {
+      background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      height: 46px;
+      
+      &:hover {
+        background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(24, 144, 255, 0.3);
+      }
+      
+      &:focus {
+        background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+      }
+      
+      &.ant-btn-loading {
+        transform: none;
+      }
+    }
+    
+    // Filter button
+    :global(.ant-btn):not(.ant-btn-primary) {
+      border-radius: 8px;
+      height: 46px;
+      border-color: #d9d9d9;
+      
+      &:hover {
+        border-color: #1890ff;
+        color: #1890ff;
+      }
+    }
+    
+    // Quick filter tags
+    :global(.ant-tag) {
+      border-radius: 16px;
+      padding: 4px 12px;
+      border: 1px solid #d9d9d9;
+      background: #fafafa;
+      color: #595959;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      user-select: none;
+      
+      &:hover {
+        border-color: #1890ff;
+        background: #f0f7ff;
+        color: #1890ff;
+      }
+      
+      &.ant-tag-checkable-checked {
+        background: #1890ff;
+        border-color: #1890ff;
+        color: white;
+        
+        &:hover {
+          background: #40a9ff;
+          border-color: #40a9ff;
+        }
+      }
+    }
+    
+    // Advanced filters section
+    :global(.ant-divider) {
+      margin: 24px 0;
+      border-color: #f0f0f0;
+    }
+    
+    // Select components
+    :global(.ant-select) {
+      .ant-select-selector {
+        border-radius: 6px;
+        border: 1px solid #d9d9d9;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          border-color: #1890ff;
+        }
+      }
+      
+      &.ant-select-focused .ant-select-selector {
+        border-color: #1890ff;
+        box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+      }
+      
+      .ant-select-selection-placeholder {
+        color: #bfbfbf;
+      }
+    }
+    
+    // Multiple select tags
+    :global(.ant-select-multiple) {
+      .ant-select-selection-item {
+        background: #f0f7ff;
+        border-color: #91d5ff;
+        color: #1890ff;
+        border-radius: 12px;
+      }
+    }
+    
+    // Rate component
+    :global(.ant-rate) {
+      color: #fadb14;
+      font-size: 18px;
+      
+      .ant-rate-star {
+        margin-right: 4px;
+      }
+    }
+    
+    // InputNumber
+    :global(.ant-input-number) {
+      width: 100%;
+      border-radius: 6px;
+      
+      .ant-input-number-input {
+        text-align: left;
+      }
+    }
+    
+    // Slider
+    :global(.ant-slider) {
+      .ant-slider-track {
+        background: linear-gradient(90deg, #1890ff 0%, #40a9ff 100%);
+      }
+      
+      .ant-slider-handle {
+        border-color: #1890ff;
+        
+        &:hover {
+          border-color: #40a9ff;
+        }
+      }
+    }
+    
+    // Clear filters button
+    :global(.ant-btn):has(.anticon-clear) {
+      color: #8c8c8c;
+      
+      &:hover {
+        color: #ff4d4f;
+        border-color: #ff4d4f;
+      }
+    }
+  }
+  
+  // Responsive design
+  @media (max-width: 768px) {
+    .searchContainer {
+      margin-bottom: 16px;
+      
+      :global(.ant-card-body) {
+        padding: 16px;
+      }
+      
+      // Stack buttons on mobile
+      :global(.ant-row) {
+        :global(.ant-col):last-child {
+          margin-top: 12px;
+        }
+      }
+      
+      // Smaller filter label
+      .filterLabel {
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
+      
+      // Adjust input heights for mobile
+      :global(.ant-input-affix-wrapper),
+      :global(.ant-btn) {
+        height: 42px;
+      }
+      
+      // Smaller tags
+      :global(.ant-tag) {
+        padding: 2px 8px;
+        font-size: 12px;
+      }
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .searchContainer {
+      :global(.ant-card-body) {
+        padding: 12px;
+      }
+      
+      // Full width elements
+      :global(.ant-space) {
+        width: 100%;
+        
+        :global(.ant-space-item) {
+          flex: 1;
+        }
+      }
+      
+      // Smaller components
+      :global(.ant-input-affix-wrapper),
+      :global(.ant-btn) {
+        height: 40px;
+      }
+      
+      :global(.ant-rate) {
+        font-size: 16px;
+      }
+    }
+  }
+  
+  // Dark mode support
+  [data-theme='dark'] {
+    .searchContainer {
+      background: #1f1f1f;
+      
+      .filterLabel {
+        color: #f0f0f0;
+      }
+      
+      :global(.ant-input-affix-wrapper) {
+        background: #262626;
+        border-color: #434343;
+        
+        .ant-input {
+          background: transparent;
+          color: #f0f0f0;
+          
+          &::placeholder {
+            color: #8c8c8c;
+          }
+        }
+        
+        .ant-input-prefix {
+          color: #bfbfbf;
+        }
+        
+        &:hover {
+          border-color: #177ddc;
+        }
+        
+        &:focus-within {
+          border-color: #177ddc;
+          box-shadow: 0 0 0 2px rgba(23, 125, 220, 0.1);
+        }
+      }
+      
+      :global(.ant-tag) {
+        background: #262626;
+        border-color: #434343;
+        color: #bfbfbf;
+        
+        &:hover {
+          border-color: #177ddc;
+          background: #162537;
+          color: #177ddc;
+        }
+        
+        &.ant-tag-checkable-checked {
+          background: #177ddc;
+          border-color: #177ddc;
+        }
+      }
+      
+      :global(.ant-select) {
+        .ant-select-selector {
+          background: #262626;
+          border-color: #434343;
+          
+          &:hover {
+            border-color: #177ddc;
+          }
+        }
+        
+        &.ant-select-focused .ant-select-selector {
+          border-color: #177ddc;
+          box-shadow: 0 0 0 2px rgba(23, 125, 220, 0.1);
+        }
+      }
+      
+      :global(.ant-input-number) {
+        background: #262626;
+        border-color: #434343;
+        
+        .ant-input-number-input {
+          color: #f0f0f0;
+        }
+      }
+    }
+  }
