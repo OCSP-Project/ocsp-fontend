@@ -33,8 +33,15 @@ export default function ProjectsPage() {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN');
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return 'Chưa có';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Ngày không hợp lệ';
+      return date.toLocaleDateString('vi-VN');
+    } catch (error) {
+      return 'Ngày không hợp lệ';
+    }
   };
 
   const getStatusColor = (status: string) => {

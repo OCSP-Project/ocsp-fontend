@@ -75,14 +75,11 @@ export default function CreateProjectPage() {
           : undefined
       };
       
-      console.log('Sending data:', projectData); // Debug log
-      
       const project = await projectsApi.createProject(projectData);
       
       // Redirect to project detail page
       router.push(`/projects/${project.id}`);
     } catch (e: any) {
-      console.error('API Error:', e); // Debug log
       setError(e?.response?.data?.message || e?.message || 'Failed to create project');
     } finally {
       setLoading(false);

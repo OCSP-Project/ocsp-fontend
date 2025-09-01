@@ -92,16 +92,16 @@ export default function ProjectDetailPage() {
         startDate: form.startDate ? new Date(form.startDate).toISOString() : undefined,
         estimatedCompletionDate: form.estimatedCompletionDate 
           ? new Date(form.estimatedCompletionDate).toISOString() 
-          : undefined
+          : undefined,
+        // Remove status if it's empty string to avoid backend validation error
+        status: form.status && form.status.trim() ? form.status : undefined
       };
       
-      console.log('Updating with data:', updateData); // Debug log
-      
+
       const updated = await projectsApi.updateProject(projectId, updateData);
       setProject(updated);
       setEditing(false);
     } catch (e: any) {
-      console.error('Update Error:', e); // Debug log
       setError(e?.response?.data?.message || e?.message || 'Failed to update project');
     } finally {
       setSaving(false);
@@ -116,8 +116,15 @@ export default function ProjectDetailPage() {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN');
+  const formatDate = (dateString: string | undefined | null) => {
+    if (!dateString) return 'Chưa có';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'Ngày không hợp lệ';
+      return date.toLocaleDateString('vi-VN');
+    } catch (error) {
+      return 'Ngày không hợp lệ';
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -404,16 +411,16 @@ export default function ProjectDetailPage() {
                     <div className="text-stone-400">Chưa có thành viên nào</div>
                   ) : (
                     <div className="space-y-3">
-                      {project.participants.map((participant, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-stone-700/30 rounded-lg">
-                          <div>
-                            <div className="text-stone-100 font-medium">User ID: {participant.userId}</div>
-                            <div className="text-sm text-stone-400">
-                              {participant.role} • {participant.status}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
+                                             {project.participants.map((participant, index) => (
+                         <div key={index} className="flex items-center justify-between p-3 bg-stone-700/30 rounded-lg">
+                           <div>
+                             <div className="text-stone-100 font-medium">{participant.userName}</div>
+                             <div className="text-sm text-stone-400">
+                               {participant.role} • {participant.status}
+                             </div>
+                           </div>
+                         </div>
+                       ))}
                     </div>
                   )}
                 </div>
@@ -423,7 +430,6 @@ export default function ProjectDetailPage() {
               <div className="space-y-6">
                 {/* Quick Actions */}
                 <div className={cardCls}>
-                  <h3 className="text-lg font-semibold text-stone-100 mb-4">Hành động nhanh</h3>
                   <div className="space-y-3">
                     <Link 
                       href={`/projects/${project.id}/progress`}

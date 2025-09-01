@@ -60,6 +60,7 @@ export interface ProjectDetailDto {
 
 export interface ProjectParticipantDto {
   userId: string;
+  userName: string;
   role: string;
   status: string;
 }
