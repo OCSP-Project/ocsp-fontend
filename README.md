@@ -37,15 +37,17 @@ ocsp-frontend/
 │ ├── images/ # Ảnh tĩnh cho UI
 │ │ ├── page/ # Ảnh cho từng trang cụ thể
 │ │ │ └── homePage/ # Ảnh riêng cho home page
-│ │ ├── projects/ # Ảnh dự án
-│ │ ├── about/ # Ảnh about section
-│ │ └── avatars/ # Avatar người dùng
+│ │ │ ├── bgHome.png
+│ │ │ └── layout1.png
+│ │ ├── projects/ # Ảnh dự án (project1.jpg - project6.jpg)
+│ │ ├── about/ # Ảnh about section (construction1.jpg, construction2.jpg)
+│ │ ├── avatars/ # Avatar người dùng
+│ │ └── vision/ # Ảnh tầm nhìn (city-view.jpg)
 │ └── favicon.ico # Icon tab trình duyệt
 │
 ├── types/ # 📂 TypeScript type definitions
 │ ├── sass.d.ts # Types cho SCSS modules
 │ ├── gsap.d.ts # Types cho GSAP animations
-│ ├── api.d.ts # Types cho API responses
 │ └── global.d.ts # Global types & interface extensions
 │
 ├── src/
@@ -61,33 +63,82 @@ ocsp-frontend/
 │ │ │ ├── login/page.tsx # Trang đăng nhập
 │ │ │ ├── register/page.tsx # Trang đăng ký
 │ │ │ ├── forgot-password/page.tsx # Quên mật khẩu
+│ │ │ ├── verify-email/page.tsx # Xác thực email
 │ │ │ └── layout.tsx # Layout riêng cho auth pages
 │ │ │
 │ │ ├── (dashboard)/ # 📁 Route group: Protected dashboard
-│ │ │ ├── dashboard/page.tsx # Trang dashboard chính
-│ │ │ ├── projects/ # Quản lý dự án
+│ │ │ ├── layout.tsx # Layout cho dashboard (có sidebar)
+│ │ │ │
+│ │ │ ├── admin/ # ⚙️ Admin panel
+│ │ │ │ ├── page.tsx # Dashboard admin
+│ │ │ │ ├── projects/ # Quản lý dự án admin
+│ │ │ │ │ ├── page.tsx # Danh sách dự án
+│ │ │ │ │ └── [id]/page.tsx # Chi tiết dự án
+│ │ │ │ ├── reports/ # Báo cáo hệ thống
+│ │ │ │ │ ├── page.tsx # Danh sách báo cáo
+│ │ │ │ │ └── [id]/page.tsx # Chi tiết báo cáo
+│ │ │ │ └── users/ # Quản lý người dùng
+│ │ │ │ ├── page.tsx # Danh sách người dùng
+│ │ │ │ └── [id]/page.tsx # Chi tiết người dùng
+│ │ │ │
+│ │ │ ├── contractors/ # 👷 Contractor dashboard
+│ │ │ │ ├── page.tsx # Dashboard contractor
+│ │ │ │ ├── leads/ # Quản lý leads
+│ │ │ │ │ ├── page.tsx # Danh sách leads
+│ │ │ │ │ └── [id]/page.tsx # Chi tiết lead
+│ │ │ │ └── projects/ # Dự án của contractor
+│ │ │ │ ├── page.tsx # Danh sách dự án
+│ │ │ │ └── [id]/ # Chi tiết dự án
+│ │ │ │ ├── page.tsx # Tổng quan dự án
+│ │ │ │ ├── team/page.tsx # Quản lý team
+│ │ │ │ └── timeline/page.tsx # Timeline dự án
+│ │ │ │
+│ │ │ ├── supervisor/ # 👨‍💼 Supervisor dashboard
+│ │ │ │ ├── page.tsx # Dashboard supervisor
+│ │ │ │ ├── inspections/ # Giám sát công trình
+│ │ │ │ │ ├── page.tsx # Danh sách inspections
+│ │ │ │ │ └── [id]/ # Chi tiết inspection
+│ │ │ │ │ ├── page.tsx # Tổng quan inspection
+│ │ │ │ │ ├── chat/page.tsx # Chat inspection
+│ │ │ │ │ ├── progress/page.tsx # Tiến độ
+│ │ │ │ │ └── reports/page.tsx # Báo cáo
+│ │ │ │ └── projects/ # Dự án giám sát
+│ │ │ │ ├── page.tsx # Danh sách dự án
+│ │ │ │ └── [id]/page.tsx # Chi tiết dự án
+│ │ │ │
+│ │ │ ├── projects/ # 🏗️ Project management (Homeowner)
 │ │ │ │ ├── page.tsx # Danh sách dự án
 │ │ │ │ ├── create/page.tsx # Tạo dự án mới
+│ │ │ │ ├── ContractsSection.tsx # Section hợp đồng
+│ │ │ │ ├── InvitesSection.tsx # Section mời thầu
+│ │ │ │ ├── QuotesSection.tsx # Section báo giá
 │ │ │ │ └── [id]/ # Dynamic route cho dự án cụ thể
 │ │ │ │ ├── page.tsx # Chi tiết dự án
-│ │ │ │ └── edit/page.tsx # Chỉnh sửa dự án
-│ │ │ ├── contractors/ # Quản lý thầu xây dựng
-│ │ │ ├── supervisors/ # Quản lý giám sát viên
-│ │ │ ├── payments/ # Quản lý thanh toán
-│ │ │ ├── chat/ # Hệ thống chat
-│ │ │ └── layout.tsx # Layout cho dashboard (có sidebar)
+│ │ │ │ ├── chat/page.tsx # Chat dự án
+│ │ │ │ ├── progress/page.tsx # Tiến độ dự án
+│ │ │ │ └── reports/page.tsx # Báo cáo dự án
+│ │ │ │
+│ │ │ ├── profile/page.tsx # Trang profile người dùng
+│ │ │ └── chat/ # Hệ thống chat tổng
 │ │ │
 │ │ ├── contractors/ # 📁 Public contractor pages
 │ │ │ ├── page.tsx # Danh sách thầu xây dựng
-│ │ │ └── [id]/page.tsx # Profile thầu xây dựng
+│ │ │ ├── contractors.module.scss # Styles cho trang contractors
+│ │ │ └── [id]/ # Profile thầu xây dựng
+│ │ │ ├── page.tsx # Chi tiết contractor
+│ │ │ └── contractor-detail.module.scss # Styles chi tiết
 │ │ │
 │ │ ├── supervisors/ # 📁 Public supervisor pages
-│ │ ├── news/ # 📁 Tin tức xây dựng
+│ │ │ ├── page.tsx # Danh sách giám sát viên
+│ │ │ └── [id]/page.tsx # Profile giám sát viên
+│ │ │
 │ │ ├── about/ # 📁 Giới thiệu
 │ │ ├── contact/ # 📁 Liên hệ
+│ │ ├── news/ # 📁 Tin tức xây dựng
 │ │ │
 │ │ └── api/ # 📂 API routes (server-side endpoints)
 │ │ ├── auth/ # API authentication
+│ │ │ └── callback/route.ts # OAuth callback
 │ │ ├── projects/ # API quản lý dự án
 │ │ └── webhooks/ # Webhooks từ external services
 │ │
@@ -95,16 +146,17 @@ ocsp-frontend/
 │ │ │
 │ │ ├── ui/ # 📁 Base UI Components (atomic design)
 │ │ │ ├── Button/ # Button component với variants
-│ │ │ │ ├── index.tsx
+│ │ │ │ ├── Button.tsx
 │ │ │ │ ├── Button.module.scss
-│ │ │ │ └── Button.stories.tsx # Storybook stories
+│ │ │ │ └── index.ts
 │ │ │ ├── Input/ # Form inputs
 │ │ │ ├── Modal/ # Modal dialogs
 │ │ │ ├── Card/ # Card layouts
 │ │ │ ├── Badge/ # Status badges
 │ │ │ ├── Dropdown/ # Dropdown menus
 │ │ │ ├── Tabs/ # Tab navigation
-│ │ │ └── Pagination/ # Pagination component
+│ │ │ ├── Pagination/ # Pagination component
+│ │ │ └── index.ts # Export tất cả UI components
 │ │ │
 │ │ ├── layout/ # 📁 Layout Components
 │ │ │ ├── Header/ # Site header với navigation
@@ -113,104 +165,85 @@ ocsp-frontend/
 │ │ │ ├── Footer/ # Site footer
 │ │ │ ├── Sidebar/ # Dashboard sidebar
 │ │ │ ├── Navigation/ # Navigation components
-│ │ │ └── Breadcrumb/ # Breadcrumb navigation
+│ │ │ ├── Breadcrumb/ # Breadcrumb navigation
+│ │ │ └── ConditionalLayout/ # Layout có điều kiện
+│ │ │ └── index.tsx
 │ │ │
 │ │ ├── features/ # 📁 Feature-based Components (business logic)
 │ │ │ │
 │ │ │ ├── home/ # 🏠 Home page feature
 │ │ │ │ ├── components/ # Sub-components cho home
-│ │ │ │ │ ├── HeroSection/
-│ │ │ │ │ ├── AboutSection/
-│ │ │ │ │ ├── ServicesSection/
-│ │ │ │ │ ├── ProjectsGallery/
-│ │ │ │ │ └── TestimonialsSection/
 │ │ │ │ ├── HomePage.tsx # Main home page component
 │ │ │ │ └── HomePage.module.scss
 │ │ │ │
 │ │ │ ├── auth/ # 🔐 Authentication feature
 │ │ │ │ ├── components/
-│ │ │ │ │ ├── LoginForm/
-│ │ │ │ │ ├── RegisterForm/
-│ │ │ │ │ ├── ForgotPasswordForm/
-│ │ │ │ │ └── SocialLogin/
+│ │ │ │ │ └── EmailVerificationPage.tsx # Trang xác thực email
 │ │ │ │ ├── hooks/ # Auth-specific hooks
-│ │ │ │ │ ├── useLogin.ts
-│ │ │ │ │ ├── useRegister.ts
-│ │ │ │ │ └── useAuth.ts
 │ │ │ │ └── types/ # Auth types
 │ │ │ │
 │ │ │ ├── projects/ # 🏗️ Project management feature
 │ │ │ │ ├── components/
-│ │ │ │ │ ├── ProjectCard/
-│ │ │ │ │ ├── ProjectForm/
-│ │ │ │ │ ├── ProjectList/
-│ │ │ │ │ ├── ProjectTimeline/
-│ │ │ │ │ ├── ProgressTracker/
-│ │ │ │ │ └── DocumentUpload/
 │ │ │ │ ├── hooks/
-│ │ │ │ │ ├── useProjects.ts
-│ │ │ │ │ ├── useProjectForm.ts
-│ │ │ │ │ └── useProjectTimeline.ts
 │ │ │ │ └── types/
-│ │ │ │ ├── project.types.ts
-│ │ │ │ └── timeline.types.ts
 │ │ │ │
 │ │ │ ├── contractors/ # 👷 Contractor management
 │ │ │ │ ├── components/
-│ │ │ │ │ ├── ContractorCard/
-│ │ │ │ │ ├── ContractorProfile/
-│ │ │ │ │ ├── ContractorSearch/
-│ │ │ │ │ ├── QuoteRequest/
-│ │ │ │ │ └── RatingSystem/
+│ │ │ │ │ ├── ContractorCard/ # Card hiển thị contractor
+│ │ │ │ │ │ ├── ContractorCard.tsx
+│ │ │ │ │ │ └── ContractorCard.module.scss
+│ │ │ │ │ ├── ContractorList/ # Danh sách contractors
+│ │ │ │ │ │ ├── ContractorList.tsx
+│ │ │ │ │ │ └── ContractorList.module.scss
+│ │ │ │ │ └── ContractorSearch/ # Tìm kiếm contractors
+│ │ │ │ │ ├── ContractorSearch.tsx
+│ │ │ │ │ └── ContractorSearch.module.scss
 │ │ │ │ ├── hooks/
 │ │ │ │ └── types/
+│ │ │ │ └── contractor.types.ts
 │ │ │ │
 │ │ │ ├── supervisors/ # 👨‍💼 Supervisor management
 │ │ │ │ ├── components/
-│ │ │ │ │ ├── SupervisorCard/
-│ │ │ │ │ ├── InspectionReport/
-│ │ │ │ │ ├── ComplianceCheck/
-│ │ │ │ │ └── ReportUpload/
+│ │ │ │ │ ├── SupervisorList/ # Danh sách supervisors
+│ │ │ │ │ │ └── SupervisorList.tsx
+│ │ │ │ │ ├── SupervisorProfile/ # Profile supervisor
+│ │ │ │ │ │ └── SupervisorProfile.tsx
+│ │ │ │ │ └── SupervisorSearch/ # Tìm kiếm supervisors
+│ │ │ │ │ └── SupervisorSearch.tsx
 │ │ │ │ ├── hooks/
+│ │ │ │ │ └── useSupervisors.ts
+│ │ │ │ ├── index.ts # Export chính
 │ │ │ │ └── types/
+│ │ │ │ └── supervisor.types.ts
 │ │ │ │
 │ │ │ ├── payments/ # 💰 Payment system
 │ │ │ │ ├── components/
-│ │ │ │ │ ├── PaymentForm/
-│ │ │ │ │ ├── EscrowStatus/
-│ │ │ │ │ ├── PaymentHistory/
-│ │ │ │ │ └── InvoiceGeneration/
 │ │ │ │ ├── hooks/
 │ │ │ │ └── types/
 │ │ │ │
 │ │ │ ├── chat/ # 💬 Communication system
 │ │ │ │ ├── components/
-│ │ │ │ │ ├── ChatWindow/
-│ │ │ │ │ ├── MessageList/
-│ │ │ │ │ ├── FileUpload/
-│ │ │ │ │ └── NotificationCenter/
 │ │ │ │ ├── hooks/
 │ │ │ │ └── types/
 │ │ │ │
 │ │ │ ├── ai-assistant/ # 🤖 AI Advisory system
 │ │ │ │ ├── components/
-│ │ │ │ │ ├── ChatBot/
-│ │ │ │ │ ├── MaterialRecommendation/
-│ │ │ │ │ ├── RegulatoryAdvice/
-│ │ │ │ │ └── ConstructionDiagnosis/
 │ │ │ │ ├── hooks/
 │ │ │ │ └── types/
 │ │ │ │
-│ │ │ └── admin/ # ⚙️ Admin panel features
-│ │ │ ├── components/
-│ │ │ │ ├── UserManagement/
-│ │ │ │ ├── SystemSettings/
-│ │ │ │ ├── Analytics/
-│ │ │ │ └── ContentModeration/
-│ │ │ ├── hooks/
-│ │ │ └── types/
+│ │ │ ├── admin/ # ⚙️ Admin panel features
+│ │ │ │ ├── components/
+│ │ │ │ ├── hooks/
+│ │ │ │ └── types/
+│ │ │ │
+│ │ │ └── quotes/ # 💬 Quote management
+│ │ │ ├── QuoteSendButton.tsx # Nút gửi quote
+│ │ │ └── QuoteSendModal.tsx # Modal gửi quote
 │ │ │
 │ │ └── shared/ # 📁 Shared Components (dùng chung)
+│ │ ├── AIChatAssistant/ # AI chat assistant
+│ │ │ ├── index.tsx
+│ │ │ └── AIChatAssistant.module.scss
 │ │ ├── LoadingSpinner/ # Loading indicators
 │ │ ├── ErrorBoundary/ # Error handling
 │ │ ├── SEOHead/ # SEO meta tags
@@ -220,88 +253,72 @@ ocsp-frontend/
 │ │
 │ ├── hooks/ # 📂 Global Custom Hooks
 │ │ ├── useAuth.ts # Authentication state
-│ │ ├── useLocalStorage.ts # Local storage management
 │ │ ├── useDebounce.ts # Input debouncing
-│ │ ├── useWebSocket.ts # WebSocket connections
-│ │ ├── useInfiniteScroll.ts # Infinite scrolling
-│ │ └── useGeolocation.ts # Location services
+│ │ └── useProjects.ts # Project management hooks
 │ │
 │ ├── lib/ # 📂 Libraries & Utilities
 │ │ │
 │ │ ├── api/ # 🌐 API Client Configuration
 │ │ │ ├── client.ts # Axios instance với interceptors
-│ │ │ ├── endpoints.ts # API endpoint constants
-│ │ │ ├── auth.api.ts # Authentication APIs
-│ │ │ ├── projects.api.ts # Project management APIs
-│ │ │ ├── contractors.api.ts # Contractor APIs
-│ │ │ ├── payments.api.ts # Payment APIs
-│ │ │ └── upload.api.ts # File upload APIs
+│ │ │ ├── contractors.ts # Contractor APIs
+│ │ │ └── supervisors.ts # Supervisor APIs
 │ │ │
 │ │ ├── auth/ # 🔐 Authentication Logic
-│ │ │ ├── jwt.ts # JWT token handling
-│ │ │ ├── permissions.ts # Role-based permissions
-│ │ │ ├── oauth.ts # Google OAuth integration
-│ │ │ └── session.ts # Session management
+│ │ │ ├── auth.api.ts # Authentication APIs
+│ │ │ └── permissions.ts # Role-based permissions
 │ │ │
 │ │ ├── websocket/ # 🔄 Real-time Communication
-│ │ │ ├── signalr.ts # SignalR client
-│ │ │ ├── chat.ts # Chat functionality
-│ │ │ └── notifications.ts # Real-time notifications
+│ │ │ └── signalr-client.ts # SignalR client
+│ │ │
+│ │ ├── contracts/ # 📋 Contract management
+│ │ │ └── contracts.api.ts # Contract APIs
+│ │ │
+│ │ ├── profile/ # 👤 Profile management
+│ │ │ └── profile.api.ts # Profile APIs
+│ │ │
+│ │ ├── projects/ # 🏗️ Project management
+│ │ │ ├── project.types.ts # Project type definitions
+│ │ │ └── projects.api.ts # Project APIs
+│ │ │
+│ │ ├── proposals/ # 📝 Proposal management
+│ │ │ ├── proposal.types.ts # Proposal types
+│ │ │ ├── proposals.api.ts # Proposal APIs
+│ │ │ └── proposals.homeowner.api.ts # Homeowner proposal APIs
+│ │ │
+│ │ ├── quotes/ # 💰 Quote management
+│ │ │ ├── quote.types.ts # Quote types
+│ │ │ ├── quotes.api.ts # Quote APIs
+│ │ │ └── quotes.contractor.api.ts # Contractor quote APIs
 │ │ │
 │ │ ├── utils/ # 🛠️ Utility Functions
-│ │ │ ├── format.ts # Data formatting (date, currency, etc.)
-│ │ │ ├── validate.ts # Form validation helpers
-│ │ │ ├── constants.ts # App constants
-│ │ │ ├── helpers.ts # General helper functions
-│ │ │ ├── localStorage.ts # Local storage utilities
-│ │ │ └── upload.ts # File upload utilities
+│ │ │ └── constants.ts # App constants
 │ │ │
 │ │ ├── animations/ # 🎬 GSAP Animation Library
-│ │ │ ├── page-transitions.ts # Page transition animations
-│ │ │ ├── scroll-animations.ts # Scroll-triggered animations
-│ │ │ ├── hover-effects.ts # Interactive hover animations
-│ │ │ └── loading-animations.ts # Loading state animations
 │ │ │
 │ │ └── config/ # ⚙️ Configuration
-│ │ ├── app.ts # App configuration
-│ │ ├── api.ts # API configuration
-│ │ ├── payments.ts # Payment gateway config
-│ │ └── upload.ts # File upload config
+│ │
+│ ├── providers/ # 📂 React Context Providers
+│ │ ├── AuthProvider.tsx # Authentication context
+│ │ └── index.ts # Export providers
 │ │
 │ ├── store/ # 📂 State Management (Zustand)
-│ │ ├── auth-store.ts # Authentication state
-│ │ ├── project-store.ts # Project data state
-│ │ ├── contractor-store.ts # Contractor data state
-│ │ ├── ui-store.ts # UI state (modals, sidebar, theme)
-│ │ ├── chat-store.ts # Chat messages state
-│ │ └── notification-store.ts # Notifications state
+│ │ └── contractor-store.ts # Contractor data state
 │ │
 │ ├── styles/ # 📂 Styling (SCSS + Tailwind)
-│ │ ├── globals.scss # Global SCSS styles
 │ │ ├── variables.scss # SCSS variables (colors, spacing, etc.)
-│ │ ├── mixins.scss # SCSS mixins
-│ │ ├── animations.scss # CSS animations
-│ │ ├── typography.scss # Font styles
-│ │ │
-│ │ ├── components/ # 📁 Component-specific styles
-│ │ │ ├── buttons.scss # Button variations
-│ │ │ ├── forms.scss # Form styling
-│ │ │ ├── cards.scss # Card components
-│ │ │ └── navigation.scss # Navigation styling
-│ │ │
-│ │ └── pages/ # 📁 Page-specific styles
-│ │ ├── home.scss # Home page styles
-│ │ ├── auth.scss # Authentication pages
-│ │ └── dashboard.scss # Dashboard styles
+│ │ ├── components/ # Component-specific styles
+│ │ └── pages/ # Page-specific styles
+│ │ ├── EmailVerificationPage.module.scss
+│ │ ├── ForgotPasswordPage.module.scss
+│ │ ├── LoginPage.module.scss
+│ │ └── RegisterPage.module.scss
 │ │
 │ └── middleware.ts # 🛡️ Next.js Middleware (route protection, redirects)
 │
 ├── docs/ # 📂 Documentation
 │ ├── API.md # API documentation
 │ ├── DEPLOYMENT.md # Deployment guide
-│ ├── ARCHITECTURE.md # System architecture
-│ ├── CONTRIBUTING.md # Contribution guidelines
-│ └── CHANGELOG.md # Version changes
+│ └── ARCHITECTURE.md # System architecture
 │
 └── tests/ # 📂 Testing
 ├── components/ # Component tests
