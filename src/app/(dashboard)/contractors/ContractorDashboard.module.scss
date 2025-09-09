@@ -1,0 +1,462 @@
+// src/app/dashboard/contractor/ContractorDashboard.module.scss
+@import '../../../styles/variables.scss';
+
+.contractorDashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e8f5e8 0%, #d4e5d4 100%);
+  padding: 2rem;
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
+
+  // Global Ant Design overrides - properly scoped within contractorDashboard
+  :global(.ant-list) {
+    :global(.ant-list-item) {
+      padding: 1rem !important;
+      border-bottom: 1px solid #f5f5f5 !important;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe) !important;
+        border-bottom-color: #45B7D1 !important;
+      }
+
+      &:last-child {
+        border-bottom: none !important;
+      }
+
+      :global(.ant-list-item-meta) {
+        :global(.ant-list-item-meta-title) {
+          font-weight: 500;
+          margin-bottom: 0.5rem;
+        }
+
+        :global(.ant-list-item-meta-description) {
+          color: #666;
+        }
+      }
+    }
+  }
+
+  :global(.ant-timeline) {
+    :global(.ant-timeline-item) {
+      padding-bottom: 1rem;
+
+      :global(.ant-timeline-item-content) {
+        margin-left: 1.5rem;
+        padding: 0.75rem 1rem;
+        background: linear-gradient(135deg, #f8f9ff, #f0f7ff);
+        border-radius: 6px;
+        border-left: 3px solid #45B7D1;
+      }
+    }
+  }
+
+  :global(.ant-rate) {
+    :global(.ant-rate-star) {
+      margin-right: 2px;
+    }
+  }
+
+  :global(.ant-avatar-group) {
+    :global(.ant-avatar) {
+      border: 2px solid white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  :global(.ant-progress) {
+    :global(.ant-progress-bg) {
+      border-radius: 10px !important;
+    }
+
+    :global(.ant-progress-inner) {
+      border-radius: 10px !important;
+      background: #f0f2f5 !important;
+    }
+
+    :global(.ant-progress-success-bg) {
+      background: linear-gradient(90deg, #2E8B57, #228B22) !important;
+    }
+  }
+
+  :global(.ant-btn) {
+    &.ant-btn-primary {
+      background: linear-gradient(135deg, #45B7D1, #2E8B57) !important;
+      border: none !important;
+      box-shadow: 0 2px 8px rgba(69, 183, 209, 0.3) !important;
+
+      &:hover {
+        background: linear-gradient(135deg, #2E8B57, #1e6b41) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(69, 183, 209, 0.4) !important;
+      }
+    }
+
+    &.ant-btn-link {
+      color: #45B7D1 !important;
+      
+      &:hover {
+        color: #2E8B57 !important;
+      }
+    }
+  }
+
+  :global(.ant-modal) {
+    :global(.ant-modal-header) {
+      border-bottom: 1px solid #f0f0f0;
+      padding: 1.5rem 1.5rem 1rem;
+      
+      :global(.ant-modal-title) {
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+    }
+
+    :global(.ant-modal-body) {
+      padding: 1.5rem;
+    }
+
+    :global(.ant-modal-footer) {
+      border-top: 1px solid #f0f0f0;
+      padding: 1rem 1.5rem;
+      
+      :global(.ant-btn) {
+        margin-left: 0.5rem;
+      }
+    }
+  }
+
+  :global(.ant-table) {
+    :global(.ant-table-thead) {
+      :global(.ant-table-cell) {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef) !important;
+        color: #495057 !important;
+        font-weight: 600 !important;
+        border-bottom: 2px solid #dee2e6 !important;
+      }
+    }
+
+    :global(.ant-table-tbody) {
+      :global(.ant-table-row) {
+        &:hover {
+          background: linear-gradient(135deg, #f0f9ff, #e0f2fe) !important;
+        }
+
+        :global(.ant-table-cell) {
+          border-bottom: 1px solid #f5f5f5 !important;
+          padding: 1rem !important;
+        }
+      }
+    }
+  }
+
+  :global(.ant-tag) {
+    border-radius: 12px !important;
+    padding: 0.25rem 0.75rem !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    border: none !important;
+
+    &.ant-tag-green {
+      background: linear-gradient(135deg, #d4edda, #c3e6cb) !important;
+      color: #155724 !important;
+    }
+
+    &.ant-tag-blue {
+      background: linear-gradient(135deg, #cce7ff, #99d6ff) !important;
+      color: #004085 !important;
+    }
+
+    &.ant-tag-orange {
+      background: linear-gradient(135deg, #fff3cd, #ffeaa7) !important;
+      color: #856404 !important;
+    }
+  }
+}
+
+.dashboardHeader {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #45B7D1, #2E8B57);
+  }
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+}
+
+.pageTitle {
+  color: #1a1a1a !important;
+  margin-bottom: 0.5rem !important;
+  font-weight: 700 !important;
+  font-size: 2rem !important;
+
+  @media (max-width: 768px) {
+    font-size: 1.5rem !important;
+  }
+}
+
+.pageSubtitle {
+  color: #666 !important;
+  font-size: 1rem;
+}
+
+.headerActions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+.statsSection {
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background: white !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12) !important;
+  }
+
+  &:nth-child(1) {
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #45B7D1, #2980B9);
+    }
+  }
+
+  &:nth-child(2) {
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #2E8B57, #228B22);
+    }
+  }
+
+  &:nth-child(3) {
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #DAA520, #B8860B);
+    }
+  }
+
+  &:nth-child(4) {
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #DC143C, #B22222);
+    }
+  }
+
+  :global(.ant-card-body) {
+    padding: 1.5rem !important;
+    padding-top: 2rem !important;
+  }
+
+  :global(.ant-statistic-title) {
+    color: #666 !important;
+    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  :global(.ant-statistic-content) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  :global(.ant-statistic-content-value) {
+    font-weight: 700 !important;
+    font-size: 1.8rem !important;
+
+    @media (max-width: 768px) {
+      font-size: 1.5rem !important;
+    }
+  }
+
+  :global(.ant-statistic-content-prefix) {
+    margin-right: 0.5rem !important;
+    font-size: 1.2rem !important;
+  }
+}
+
+.growthIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  background: rgba(82, 196, 26, 0.1);
+  border-radius: 12px;
+  color: #52c41a;
+}
+
+.mainContent {
+  :global(.ant-tabs) {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+    :global(.ant-tabs-nav) {
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      margin: 0;
+      padding: 0 1.5rem;
+      
+      &::before {
+        border: none !important;
+      }
+    }
+
+    :global(.ant-tabs-tab) {
+      background: transparent !important;
+      border: none !important;
+      margin: 0.5rem 0.5rem 0 0 !important;
+      padding: 0.75rem 1.5rem !important;
+      border-radius: 8px 8px 0 0 !important;
+      transition: all 0.3s ease !important;
+
+      &:hover {
+        background: rgba(69, 183, 209, 0.05) !important;
+      }
+
+      &.ant-tabs-tab-active {
+        background: white !important;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+        
+        :global(.ant-tabs-tab-btn) {
+          color: #45B7D1 !important;
+          font-weight: 600 !important;
+        }
+      }
+    }
+
+    :global(.ant-tabs-content-holder) {
+      background: white;
+    }
+
+    :global(.ant-tabs-tabpane) {
+      padding: 1.5rem;
+
+      @media (max-width: 768px) {
+        padding: 1rem;
+      }
+    }
+  }
+}
+
+.contentCard {
+  background: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+  }
+
+  :global(.ant-card-head) {
+    border-bottom: 1px solid #f0f0f0 !important;
+    padding: 1.5rem 1.5rem 1rem !important;
+    
+    :global(.ant-card-head-title) {
+      font-weight: 600 !important;
+      font-size: 1.1rem !important;
+      color: #1a1a1a !important;
+    }
+  }
+
+  :global(.ant-card-body) {
+    padding: 1.5rem !important;
+  }
+}
+
+// Animations
+@keyframes contractorFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.contractor-content {
+  animation: contractorFadeIn 0.6s ease-out;
+}
+
+// Responsive design
+@media (max-width: 1200px) {
+  .contractorDashboard {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .pageTitle {
+    font-size: 1.5rem !important;
+  }
+}

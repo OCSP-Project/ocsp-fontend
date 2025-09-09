@@ -4,7 +4,8 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { gsap } from "gsap";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthContext } from "@/providers";
+import { getDashboardRoute } from "@/lib/utils/roleRouting";
 import styles from "@/styles/pages/LoginPage.module.scss";
 
 const LoginPage: React.FC = () => {
@@ -17,7 +18,12 @@ const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
-  const { login } = useAuth();
+  const {
+    login,
+    user,
+    isAuthenticated,
+    isLoading: authLoading,
+  } = useAuthContext();
 
   // Animation on mount
   React.useEffect(() => {
@@ -33,6 +39,14 @@ const LoginPage: React.FC = () => {
       { opacity: 1, scale: 1, duration: 0.6, ease: "back.out(1.7)", delay: 0.2 }
     );
   }, []);
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated && user && !authLoading) {
+      const dashboardRoute = getDashboardRoute(user.role);
+      router.push(dashboardRoute);
+    }
+  }, [isAuthenticated, user, authLoading, router]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -80,7 +94,18 @@ const LoginPage: React.FC = () => {
         yoyo: true,
         repeat: 1,
         onComplete: () => {
-          router.push("/");
+          // Small delay to ensure auth state is fully updated
+          setTimeout(() => {
+            // Get current user from context after login
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) {
+              const user = JSON.parse(storedUser);
+              const dashboardRoute = getDashboardRoute(user.role);
+              router.push(dashboardRoute);
+            } else {
+              router.push("/");
+            }
+          }, 100);
         },
       });
     } catch (error: any) {
@@ -103,6 +128,17 @@ const LoginPage: React.FC = () => {
     // TODO: Implement Google OAuth
     console.log("Google login will be implemented");
   };
+
+  // Show loading if auth is still initializing
+  if (authLoading) {
+    return (
+      <div className={styles.loginPage}>
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner}>Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.loginPage}>
@@ -153,6 +189,7 @@ const LoginPage: React.FC = () => {
                     onChange={handleInputChange}
                     placeholder="your@email.com"
                     className={errors.email ? styles.inputError : ""}
+                    disabled={isLoading}
                   />
                   <svg
                     className={styles.inputIcon}
@@ -187,11 +224,13 @@ const LoginPage: React.FC = () => {
                     onChange={handleInputChange}
                     placeholder="••••••••"
                     className={errors.password ? styles.inputError : ""}
+                    disabled={isLoading}
                   />
                   <button
                     type="button"
                     className={styles.passwordToggle}
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
                   >
                     {showPassword ? (
                       <svg
@@ -247,7 +286,7 @@ const LoginPage: React.FC = () => {
               <button
                 type="submit"
                 className={styles.submitButton}
-                disabled={isLoading}
+                disabled={isLoading || authLoading}
               >
                 {isLoading ? (
                   <div className={styles.spinner}>
@@ -293,6 +332,7 @@ const LoginPage: React.FC = () => {
               type="button"
               className={styles.googleButton}
               onClick={handleGoogleLogin}
+              disabled={isLoading || authLoading}
             >
               <svg width="20" height="20" viewBox="0 0 24 24">
                 <path
