@@ -49,6 +49,7 @@ export interface ContractorListResponse {
 
 export interface ContractorProfile {
   id: string;
+  ownerUserId?: string;
   companyName: string;
   description?: string;
   website?: string;

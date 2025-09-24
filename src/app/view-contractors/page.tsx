@@ -14,7 +14,7 @@ import Link from "next/link";
 import ContractorSearch from "@/./components/features/contractors/components/ContractorSearch/ContractorSearch";
 import ContractorList from "@/./components/features/contractors/components/ContractorList/ContractorList";
 import QuoteSendModal from "@/./components/features/quotes/QuoteSendModal";
-import { useAuth, UserRole } from "../../hooks/useAuth";
+import { useAuth, UserRole } from "@/hooks/useAuth";
 import styles from "./contractors.module.scss";
 
 const { Title, Paragraph } = Typography;
@@ -222,7 +222,7 @@ const ContractorsPage: React.FC = () => {
         onClose={() => setShowSendToAllModal(false)}
         onSuccess={() => {
           // Refresh contractor list or show success message
-          console.log('Quote sent successfully');
+          console.log("Quote sent successfully");
         }}
         sendToAll={true}
       />

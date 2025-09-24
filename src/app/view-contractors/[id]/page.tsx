@@ -24,6 +24,7 @@ import {
   Alert,
   Badge,
   Tooltip,
+  message,
 } from "antd";
 import {
   HomeOutlined,
@@ -53,6 +54,7 @@ import { useContractorStore } from "../../../store/contractor-store";
 import { useAuth, UserRole } from "../../../hooks/useAuth";
 import QuoteSendModal from "../../../components/features/quotes/QuoteSendModal";
 import styles from "./contractor-detail.module.scss";
+import { projectsApi } from "../../../lib/projects/projects.api";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -129,10 +131,27 @@ const ContractorDetailPage: React.FC = () => {
     setIsFavorited(!isFavorited);
   };
 
-  const handleContact = () => {
+  const handleContact = async () => {
     if (user?.role === UserRole.Homeowner) {
-      // Open chat or contact modal
-      console.log("Contact contractor:", contractorId);
+      try {
+        // Require contractor's owner user GUID for chat participant
+        const ownerUserId = (currentContractor as any)?.ownerUserId;
+        if (!ownerUserId) {
+          message.error(
+            "Không tìm thấy user của nhà thầu. Vui lòng liên hệ admin."
+          );
+          return;
+        }
+
+        // Consultation chat does not require projectId
+        router.push(
+          `/chat?contractorId=${
+            contractor.ownerUserId ?? contractor.id
+          }&type=consultation`
+        );
+      } catch (error) {
+        message.error("Lỗi khi khởi tạo chat");
+      }
     } else {
       router.push("/login");
     }
@@ -205,7 +224,7 @@ const ContractorDetailPage: React.FC = () => {
             type="error"
             showIcon
             action={
-              <Button onClick={() => router.push("/contractors")}>
+              <Button onClick={() => router.push("/view-contractors")}>
                 Quay lại danh sách
               </Button>
             }
@@ -229,7 +248,7 @@ const ContractorDetailPage: React.FC = () => {
             </Link>
           </Breadcrumb.Item>
           <Breadcrumb.Item>
-            <Link href="/contractors">
+            <Link href="/view-contractors">
               <TeamOutlined />
               <span>Nhà thầu</span>
             </Link>
