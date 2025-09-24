@@ -64,3 +64,26 @@ export interface ProjectParticipantDto {
   role: string;
   status: string;
 }
+
+// Progress / Gallery types for UC-34
+export interface ProgressMediaDto {
+  id: string;
+  projectId: string;
+  taskId?: string | null;
+  progressUpdateId?: string | null;
+  url: string;
+  caption: string;
+  fileName: string;
+  fileSize: number;
+  contentType: string;
+  createdBy: string;
+  creatorName: string;
+  createdAt: string;
+}
+
+export interface ProgressMediaListDto {
+  items: ProgressMediaDto[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
