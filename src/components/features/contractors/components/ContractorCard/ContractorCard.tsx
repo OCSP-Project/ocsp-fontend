@@ -30,6 +30,29 @@ interface ContractorCardProps {
   showAnimation?: boolean;
   animationDelay?: number;
 }
+interface ContractorAction {
+  contractor_id: string;
+  contractor_name: string;
+  contractor_slug: string;
+  description: string;
+  budget_range: string;
+  rating: number;
+  specialties: string[];
+  location: string;
+  profile_url: string;
+  contact_url: string;
+}
+
+interface EnhancedChatResponse {
+  response: string;
+  sources: Array<{
+    id: number;
+    score: number;
+    source?: string;
+  }>;
+  contractors: ContractorAction[];
+  has_recommendations: boolean;
+}
 
 const ContractorCard: React.FC<ContractorCardProps> = ({
   contractor,
@@ -185,13 +208,15 @@ const ContractorCard: React.FC<ContractorCardProps> = ({
           }
           actions={[
             <Button key="view" type="link" icon={<EyeOutlined />}>
-              <Link href={`/contractors/${contractor.id}`}>Xem chi tiết</Link>
+              <Link href={`/view-contractors/${contractor.id}`}>
+                Xem chi tiết
+              </Link>
             </Button>,
-            <QuoteSendButton 
-              key="send-quote" 
-              contractorId={contractor.id} 
+            <QuoteSendButton
+              key="send-quote"
+              contractorId={contractor.id}
               contractorName={contractor.companyName}
-              type="link" 
+              type="link"
               size="small"
             />,
             <Button key="contact" type="link" icon={<PhoneOutlined />}>
@@ -204,7 +229,7 @@ const ContractorCard: React.FC<ContractorCardProps> = ({
             <div className={styles.header}>
               <div className={styles.title}>
                 <h3 className={styles.companyName}>
-                  <Link href={`/contractors/${contractor.id}`}>
+                  <Link href={`/view-contractors/${contractor.id}`}>
                     {contractor.companyName}
                   </Link>
                 </h3>
