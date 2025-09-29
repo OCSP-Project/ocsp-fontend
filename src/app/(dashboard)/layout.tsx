@@ -92,10 +92,7 @@ export default function DashboardLayout({
                 </Link>
               )}
               {isHomeowner && (
-                <Link
-                  href="/homeowner"
-                  className={getActiveClass("/homeowner")}
-                >
+                <Link href="/" className={getActiveClass("/")}>
                   🏠 Dashboard Chủ nhà
                 </Link>
               )}
