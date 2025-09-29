@@ -1,4 +1,4 @@
-// src/app/dashboard/contractor/ContractorDashboard.module.scss
+// src/app/(dashboard)/contractor/ContractorDashboard.module.scss
 @import '../../../styles/variables.scss';
 
 .contractorDashboard {
@@ -10,7 +10,6 @@
     padding: 1rem;
   }
 
-  // Global Ant Design overrides - properly scoped within contractorDashboard
   :global(.ant-list) {
     :global(.ant-list-item) {
       padding: 1rem !important;
@@ -151,29 +150,6 @@
           padding: 1rem !important;
         }
       }
-    }
-  }
-
-  :global(.ant-tag) {
-    border-radius: 12px !important;
-    padding: 0.25rem 0.75rem !important;
-    font-size: 0.75rem !important;
-    font-weight: 500 !important;
-    border: none !important;
-
-    &.ant-tag-green {
-      background: linear-gradient(135deg, #d4edda, #c3e6cb) !important;
-      color: #155724 !important;
-    }
-
-    &.ant-tag-blue {
-      background: linear-gradient(135deg, #cce7ff, #99d6ff) !important;
-      color: #004085 !important;
-    }
-
-    &.ant-tag-orange {
-      background: linear-gradient(135deg, #fff3cd, #ffeaa7) !important;
-      color: #856404 !important;
     }
   }
 }
@@ -432,7 +408,6 @@
   }
 }
 
-// Animations
 @keyframes contractorFadeIn {
   from {
     opacity: 0;
@@ -448,7 +423,6 @@
   animation: contractorFadeIn 0.6s ease-out;
 }
 
-// Responsive design
 @media (max-width: 1200px) {
   .contractorDashboard {
     padding: 1.5rem;
@@ -460,3 +434,5 @@
     font-size: 1.5rem !important;
   }
 }
+
+
