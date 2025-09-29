@@ -106,3 +106,94 @@ export const contractsApi = {
     return res.data;
   },
 };
+
+// Milestones API for homeowner management
+export interface MilestoneDto {
+  id: string;
+  contractId: string;
+  name: string;
+  amount: number;
+  dueDate?: string | null;
+  status: string;
+  note?: string | null;
+  createdAt: string;
+}
+
+export interface CreateMilestoneDto {
+  name: string;
+  amount: number;
+  dueDate?: string | null;
+  note?: string | null;
+}
+
+export interface BulkCreateMilestonesDto {
+  contractId: string;
+  milestones: CreateMilestoneDto[];
+}
+
+export interface UpdateMilestoneDto {
+  name: string;
+  amount: number;
+  dueDate?: string | null;
+  note?: string | null;
+}
+
+export const milestonesApi = {
+  // List milestones by contract
+  listByContract: async (contractId: string): Promise<MilestoneDto[]> => {
+    const res = await apiClient.get(`/milestones/by-contract/${contractId}`);
+    return res.data;
+  },
+
+  // Bulk create milestones
+  createBulk: async (data: BulkCreateMilestonesDto): Promise<MilestoneDto[]> => {
+    const res = await apiClient.post(`/milestones/bulk`, data);
+    return res.data;
+  },
+
+  // Update milestone
+  update: async (milestoneId: string, data: UpdateMilestoneDto): Promise<MilestoneDto> => {
+    const res = await apiClient.put(`/milestones/${milestoneId}`, data);
+    return res.data;
+  },
+
+  // Delete milestone
+  delete: async (milestoneId: string): Promise<void> => {
+    await apiClient.delete(`/milestones/${milestoneId}`);
+  },
+};
+
+export interface EscrowAccountDto {
+  id: string;
+  contractId: string;
+  provider: number;
+  status: string;
+  balance: number;
+  externalAccountId?: string | null;
+  createdAt: string;
+}
+
+export const escrowApi = {
+  getByContract: async (contractId: string): Promise<EscrowAccountDto> => {
+    const res = await apiClient.get(`/escrow/by-contract/${contractId}`);
+    return res.data;
+  },
+};
+
+// Payments API (MoMo)
+export interface MomoCreatePaymentDto {
+  amount: number;
+  description?: string;
+  contractId?: string;
+}
+export interface MomoCreatePaymentResultDto {
+  payUrl: string;
+  orderId: string;
+  requestId: string;
+}
+export const paymentsApi = {
+  momoCreate: async (data: MomoCreatePaymentDto): Promise<MomoCreatePaymentResultDto> => {
+    const res = await apiClient.post(`/payments/momo/create`, data);
+    return res.data;
+  },
+};

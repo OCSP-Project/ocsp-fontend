@@ -5,6 +5,7 @@ import { useAuth, UserRole } from '@/hooks/useAuth';
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const isContractor = user?.role === UserRole.Contractor;
+  const isHomeowner = user?.role === UserRole.Homeowner;
   return (
     <div className="min-h-screen grid grid-cols-[240px_1fr]">
       <aside className="bg-white border-r p-4">
@@ -21,6 +22,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link href="/projects?tab=contracts" className="block px-3 py-2 rounded-md hover:bg-stone-100 text-stone-800">
                 Contracts
               </Link>
+              <Link href="/projects?tab=milestones" className="block px-3 py-2 rounded-md hover:bg-stone-100 text-stone-800">
+                Milestones
+              </Link>
             </>
           ) : (
             <>
@@ -30,6 +34,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link href="/projects?tab=contracts" className="block px-3 py-2 rounded-md hover:bg-stone-100 text-stone-800">
                 Contracts
               </Link>
+              {isHomeowner && (
+                <Link href="/projects?tab=milestones" className="block px-3 py-2 rounded-md hover:bg-stone-100 text-stone-800">
+                  Milestones
+                </Link>
+              )}
             </>
           )}
         </nav>
