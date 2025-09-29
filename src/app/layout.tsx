@@ -1,8 +1,9 @@
+// src/app/layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Header from "@/components/layout/Header";
-import AIChatAssistant from "@/components/shared/AIChatAssistant";
+import { AuthProvider } from "@/providers";
+import ConditionalLayout from "@/components/layout/ConditionalLayout";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,10 +21,10 @@ export default function RootLayout({
     <html lang="vi">
       <body>
         <div className={inter.className}>
-          <Header />
-          <main style={{ paddingTop: "80px" }}>{children}</main>
+          <AuthProvider>
+            <ConditionalLayout>{children}</ConditionalLayout>
+          </AuthProvider>
         </div>
-        <AIChatAssistant />
       </body>
     </html>
   );
