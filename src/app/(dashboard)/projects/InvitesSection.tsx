@@ -19,7 +19,7 @@ export default function InvitesSection({}: Props) {
   const [durationDays, setDurationDays] = useState<number>(30);
   const [termsSummary, setTermsSummary] = useState<string>('');
   const [items, setItems] = useState<Array<{ name: string; unit: string; qty: number; unitPrice: number }>>([
-    { name: '', unit: 'gói', qty: 1, unitPrice: 0 },
+    { name: '', unit: '', qty: 1, unitPrice: 0 },
   ]);
   const [submitting, setSubmitting] = useState<boolean>(false);
   const priceTotal = useMemo(() => items.reduce((s, i) => s + (i.qty || 0) * (i.unitPrice || 0), 0), [items]);
@@ -29,6 +29,9 @@ export default function InvitesSection({}: Props) {
   const [previewData, setPreviewData] = useState<{priceTotal: number; durationDays: number; termsSummary?: string; items: {name:string; unit:string; qty:number; unitPrice:number}[]}|null>(null);
   const [showProjectDetail, setShowProjectDetail] = useState<string | null>(null);
   const [projectDetailData, setProjectDetailData] = useState<QuoteRequestDetailDto | null>(null);
+  const [showQuoteDetailFor, setShowQuoteDetailFor] = useState<string | null>(null);
+  const [quoteDetailLoading, setQuoteDetailLoading] = useState<boolean>(false);
+  const [quoteDetailData, setQuoteDetailData] = useState<QuoteRequestDetailDto | null>(null);
 
   // Load proposal detail once when previewFor changes
   useEffect(() => {
@@ -163,6 +166,20 @@ export default function InvitesSection({}: Props) {
     }
   };
 
+  const handleViewQuoteDetail = async (quoteId: string) => {
+    try {
+      setQuoteDetailLoading(true);
+      setShowQuoteDetailFor(quoteId);
+      setQuoteDetailData(null);
+      const detail = await contractorQuotesApi.getDetail(quoteId);
+      setQuoteDetailData(detail);
+    } catch (e) {
+      // ignore
+    } finally {
+      setQuoteDetailLoading(false);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -213,6 +230,12 @@ export default function InvitesSection({}: Props) {
                 >
                   Xem chi tiết dự án
                 </button>
+                <button
+                  className="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white"
+                  onClick={() => void handleViewQuoteDetail(q.id)}
+                >
+                  Xem chi tiết yêu cầu báo giá
+                </button>
                 {!q.myProposal?.id ? (
                   <button className="px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-stone-900" onClick={() => setShowFormFor(q.id)}>Tạo Proposal</button>
                 ) : (
@@ -253,9 +276,31 @@ export default function InvitesSection({}: Props) {
                       {items.map((it, idx) => (
                         <div key={idx} className="grid grid-cols-12 gap-2 items-center">
                           <input placeholder="Tên" className="col-span-4 bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100" value={it.name} onChange={e => updateItem(idx, 'name', e.target.value)} />
-                          <input placeholder="Đơn vị" className="col-span-2 bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100" value={it.unit} onChange={e => updateItem(idx, 'unit', e.target.value)} />
-                          <input type="number" placeholder="Số lượng" className="col-span-2 bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100" value={it.qty} onChange={e => updateItem(idx, 'qty', e.target.value)} />
-                          <input type="number" placeholder="Đơn giá" className="col-span-3 bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100" value={it.unitPrice} onChange={e => updateItem(idx, 'unitPrice', e.target.value)} />
+                          <input placeholder="Đơn vị:bao,gói,..." className="col-span-2 bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100" value={it.unit} onChange={e => updateItem(idx, 'unit', e.target.value)} />
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            placeholder="Số lượng (Ví dụ :1)"
+                            className="col-span-2 bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100"
+                            value={it.qty ? it.qty.toLocaleString('vi-VN') : ''}
+                            onChange={e => {
+                              const digits = e.target.value.replace(/[^\d]/g, '');
+                              updateItem(idx, 'qty', digits);
+                            }}
+                          />
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            placeholder="Đơn Giá (Ví dụ: 250.000)"
+                            className="col-span-3 bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100"
+                            value={it.unitPrice ? it.unitPrice.toLocaleString('vi-VN') : ''}
+                            onChange={e => {
+                              const digits = e.target.value.replace(/[^\d]/g, '');
+                              updateItem(idx, 'unitPrice', digits);
+                            }}
+                          />
                           <button className="col-span-1 px-2 py-2 rounded bg-rose-700/70 hover:bg-rose-600/80 text-stone-50" onClick={() => removeItem(idx)}>Xoá</button>
                         </div>
                       ))}
@@ -421,6 +466,43 @@ export default function InvitesSection({}: Props) {
           </div>
         );
       })()}
+
+      {/* Quote Request Detail Modal */}
+      {showQuoteDetailFor && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-stone-800 rounded-xl border border-stone-700 p-6 w-full max-w-4xl mx-auto max-h-[90vh] overflow-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-amber-300">Chi tiết yêu cầu báo giá</h3>
+              <button className="text-stone-400 hover:text-stone-200 text-2xl" onClick={() => { setShowQuoteDetailFor(null); setQuoteDetailData(null); }}>×</button>
+            </div>
+            {quoteDetailLoading || !quoteDetailData ? (
+              <div className="text-stone-300">Đang tải...</div>
+            ) : (
+              <div className="space-y-4 text-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div><span className="text-stone-400">Mô tả phạm vi:</span> <span className="text-stone-100">{quoteDetailData.scope || '—'}</span></div>
+                 
+                  <div><span className="text-stone-400">Trạng thái:</span> <span className="text-stone-100">{quoteDetailData.status}</span></div>
+                 
+                  <div><span className="text-stone-400">Hạn chót:</span> <span className="text-stone-100">{quoteDetailData.dueDate ? new Date(quoteDetailData.dueDate).toLocaleDateString('vi-VN') : '—'}</span></div>
+                </div>
+                <div className="border-t border-stone-700/60 pt-3">
+                  <div className="text-stone-400 mb-2">Chủ nhà</div>
+                  <div className="text-stone-100">{quoteDetailData.homeowner.username} ({quoteDetailData.homeowner.email})</div>
+                </div>
+           
+                <div className="border-t border-stone-700/60 pt-3">
+                  <div className="text-stone-400 mb-2">Dự án</div>
+                  <div className="text-stone-100">{quoteDetailData.project.name} • {quoteDetailData.project.address}</div>
+                </div>
+              </div>
+            )}
+            <div className="mt-6 text-right">
+              <button className="px-4 py-2 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-200" onClick={() => { setShowQuoteDetailFor(null); setQuoteDetailData(null); }}>Đóng</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
