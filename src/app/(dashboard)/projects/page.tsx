@@ -8,18 +8,20 @@ import { projectsApi, type ProjectResponseDto } from '@/lib/projects/projects.ap
 import QuotesSection from './QuotesSection';
 import InvitesSection from './InvitesSection';
 import ContractsSection from './ContractsSection';
+import MilestonesSection from './MilestonesSection';
+import ContractorMilestonesSection from './ContractorMilestonesSection';
 
 export default function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [projects, setProjects] = useState<ProjectResponseDto[]>([]);
-  const [activeTab, setActiveTab] = useState<'projects' | 'quotes' | 'invites' | 'contracts'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'quotes' | 'invites' | 'contracts' | 'milestones'>('projects');
 
 
   const params = useSearchParams();
   useEffect(() => {
     const tab = (params.get('tab') || 'projects').toLowerCase();
-    if (tab === 'projects' || tab === 'quotes' || tab === 'invites' || tab === 'contracts') setActiveTab(tab as any);
+    if (tab === 'projects' || tab === 'quotes' || tab === 'invites' || tab === 'contracts' || tab === 'milestones') setActiveTab(tab as any);
   }, [params]);
 
   const fetchProjects = async () => {
@@ -183,6 +185,18 @@ export default function ProjectsPage() {
           )}
           {activeTab === 'contracts' && (
             <ContractsSection />
+          )}
+          {activeTab === 'milestones' && (
+            // Render homeowner vs contractor view by role stored in local user
+            (typeof window !== 'undefined' && (() => {
+              try {
+                const u = localStorage.getItem('user');
+                const role = u ? JSON.parse(u).role : null;
+                return role === 2 ? <ContractorMilestonesSection /> : <MilestonesSection />;
+              } catch {
+                return <MilestonesSection />;
+              }
+            })())
           )}
         </div>
       </div>

@@ -1,0 +1,326 @@
+// src/app/(dashboard)/admin/AdminDashboard.module.scss
+@import '../../../styles/variables.scss';
+
+.adminDashboard {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: $spacing-xl;
+
+  @media (max-width: $breakpoint-md) {
+    padding: $spacing-md;
+  }
+
+  // Global Ant Design overrides - properly scoped within adminDashboard
+  :global(.ant-table) {
+    .ant-table-thead {
+      .ant-table-cell {
+        background: #fafafa !important;
+        color: #{$text-secondary} !important;
+        font-weight: 600 !important;
+        border-bottom: 2px solid #f0f0f0 !important;
+      }
+    }
+
+    .ant-table-tbody {
+      .ant-table-row {
+        transition: #{$transition-normal};
+
+        &:hover {
+          background: #f9f9f9 !important;
+        }
+
+        .ant-table-cell {
+          border-bottom: 1px solid #f5f5f5 !important;
+          padding: #{$spacing-md} #{$spacing-md} !important;
+        }
+      }
+    }
+  }
+
+  :global(.ant-tag) {
+    border-radius: #{$border-radius-lg} !important;
+    padding: #{$spacing-xs} #{$spacing-sm} !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    border: none !important;
+  }
+
+  :global(.ant-progress) {
+    .ant-progress-bg {
+      border-radius: 10px !important;
+    }
+
+    .ant-progress-inner {
+      border-radius: 10px !important;
+      background: #{$bg-light} !important;
+    }
+  }
+
+  :global(.ant-alert) {
+    border-radius: #{$border-radius-md} !important;
+    border: none !important;
+    padding: #{$spacing-md} #{$spacing-lg} !important;
+
+    &.ant-alert-success {
+      background: linear-gradient(135deg, #f6ffed, #d9f7be) !important;
+      
+      .ant-alert-icon {
+        color: #{$success-color} !important;
+      }
+    }
+  }
+
+  :global(.ant-btn) {
+    border-radius: #{$border-radius-sm} !important;
+    font-weight: 500 !important;
+    transition: #{$transition-normal} !important;
+
+    &.ant-btn-primary {
+      background: linear-gradient(135deg, #{$primary-color}, #{$primary-dark}) !important;
+      border: none !important;
+      box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3) !important;
+
+      &:hover {
+        background: linear-gradient(135deg, #{$primary-dark}, #003d82) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4) !important;
+      }
+    }
+
+    &.ant-btn-link {
+      color: #{$primary-color} !important;
+      
+      &:hover {
+        color: #{$primary-dark} !important;
+      }
+    }
+  }
+}
+
+.dashboardHeader {
+  background: $bg-primary;
+  border-radius: $border-radius-lg;
+  padding: $spacing-xl;
+  margin-bottom: $spacing-xl;
+  box-shadow: $shadow-lg;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.headerContent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  @media (max-width: $breakpoint-md) {
+    flex-direction: column;
+    gap: $spacing-md;
+    align-items: flex-start;
+  }
+}
+
+.pageTitle {
+  color: $text-primary !important;
+  margin-bottom: $spacing-sm !important;
+  font-weight: 700 !important;
+  font-size: 2rem !important;
+
+  @media (max-width: $breakpoint-md) {
+    font-size: 1.5rem !important;
+  }
+}
+
+.pageSubtitle {
+  color: $text-secondary !important;
+  font-size: 1rem;
+}
+
+.headerActions {
+  display: flex;
+  gap: $spacing-md;
+  align-items: center;
+
+  @media (max-width: $breakpoint-md) {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+  }
+}
+
+.notificationBtn {
+  border-color: #d9d9d9;
+  color: $text-secondary;
+  transition: $transition-normal;
+
+  &:hover {
+    border-color: $primary-color;
+    color: $primary-color;
+  }
+}
+
+.statsSection {
+  margin-bottom: $spacing-xl;
+}
+
+.statCard {
+  background: $bg-primary !important;
+  border: none !important;
+  border-radius: $border-radius-lg !important;
+  box-shadow: $shadow-lg !important;
+  transition: $transition-normal;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-xl !important;
+  }
+
+  :global(.ant-card-body) {
+    padding: $spacing-lg !important;
+  }
+
+  :global(.ant-statistic-title) {
+    color: $text-secondary !important;
+    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+    margin-bottom: $spacing-sm !important;
+  }
+
+  :global(.ant-statistic-content) {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  :global(.ant-statistic-content-value) {
+    font-weight: 700 !important;
+    font-size: 1.8rem !important;
+
+    @media (max-width: $breakpoint-md) {
+      font-size: 1.5rem !important;
+    }
+  }
+
+  :global(.ant-statistic-content-prefix) {
+    margin-right: $spacing-sm !important;
+    font-size: 1.2rem !important;
+  }
+}
+
+.growthIndicator {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: $spacing-xs $spacing-sm;
+  background: rgba(40, 167, 69, 0.1);
+  border-radius: $border-radius-lg;
+  color: $success-color;
+
+  &.negative {
+    background: rgba(220, 53, 69, 0.1);
+    color: $danger-color;
+  }
+}
+
+.alertSection {
+  margin-bottom: $spacing-xl;
+}
+
+.contentCard {
+  background: $bg-primary !important;
+  border: none !important;
+  border-radius: $border-radius-lg !important;
+  box-shadow: $shadow-lg !important;
+  transition: $transition-normal;
+
+  &:hover {
+    box-shadow: $shadow-xl !important;
+  }
+
+  :global(.ant-card-head) {
+    border-bottom: 1px solid #f0f0f0 !important;
+    padding: $spacing-lg $spacing-lg $spacing-md !important;
+    
+    :global(.ant-card-head-title) {
+      font-weight: 600 !important;
+      font-size: 1.1rem !important;
+      color: $text-primary !important;
+    }
+  }
+
+  :global(.ant-card-body) {
+    padding: $spacing-lg !important;
+  }
+}
+
+.quickActions {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+}
+
+.actionButton {
+  height: 50px !important;
+  border-radius: $border-radius-md !important;
+  font-weight: 500 !important;
+  transition: $transition-normal;
+  border: 1px solid #e8e8e8 !important;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.2);
+  }
+
+  &.ant-btn-primary {
+    background: linear-gradient(135deg, $primary-color, $primary-dark) !important;
+    border: none !important;
+
+    &:hover {
+      background: linear-gradient(135deg, $primary-dark, #003d82) !important;
+    }
+  }
+
+  :global(.anticon) {
+    margin-right: $spacing-sm !important;
+  }
+}
+
+// Card animation classes
+.stat-card {
+  animation: slideUp 0.6s ease-out;
+}
+
+.content-section {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: $breakpoint-xl) {
+  .adminDashboard {
+    padding: $spacing-lg;
+  }
+}
