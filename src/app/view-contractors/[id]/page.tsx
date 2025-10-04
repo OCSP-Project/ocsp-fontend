@@ -54,6 +54,7 @@ import { useContractorStore } from "../../../store/contractor-store";
 import { useAuth, UserRole } from "../../../hooks/useAuth";
 import QuoteSendModal from "../../../components/features/quotes/QuoteSendModal";
 import styles from "./contractor-detail.module.scss";
+import { chatApi } from "../../../lib/api/chat";
 import { projectsApi } from "../../../lib/projects/projects.api";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -132,28 +133,29 @@ const ContractorDetailPage: React.FC = () => {
   };
 
   const handleContact = async () => {
-    if (user?.role === UserRole.Homeowner) {
-      try {
-        // Require contractor's owner user GUID for chat participant
-        const ownerUserId = (currentContractor as any)?.ownerUserId;
-        if (!ownerUserId) {
-          message.error(
-            "Không tìm thấy user của nhà thầu. Vui lòng liên hệ admin."
-          );
-          return;
-        }
-
-        // Consultation chat does not require projectId
-        router.push(
-          `/chat?contractorId=${
-            contractor.ownerUserId ?? contractor.id
-          }&type=consultation`
-        );
-      } catch (error) {
-        message.error("Lỗi khi khởi tạo chat");
-      }
-    } else {
+    if (user?.role !== UserRole.Homeowner) {
       router.push("/login");
+      return;
+    }
+
+    try {
+      const ownerUserId = (currentContractor as any)?.ownerUserId;
+      if (!ownerUserId) {
+        message.error(
+          "Không tìm thấy user của nhà thầu. Vui lòng liên hệ admin."
+        );
+        return;
+      }
+
+      const res = await chatApi.startConversation({
+        userIds: [user.id, ownerUserId],
+        chatType: "consultation",
+      });
+
+      // Điều hướng tới màn chat, mở đúng cuộc trò chuyện vừa tạo
+      router.push(`/chat?conversationId=${res.conversationId}`);
+    } catch (error) {
+      message.error("Lỗi khi khởi tạo cuộc trò chuyện");
     }
   };
 
