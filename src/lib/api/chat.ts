@@ -36,6 +36,27 @@ export interface StartChatRequest {
     participantIds: string[];
   }
 
+  // Conversation item returned by list endpoint
+  export interface ConversationListItem {
+    id: string;
+    projectId: string | null;
+  participants: Array<{
+    userId: string;
+    username: string;
+    role: number;
+  }>;
+    lastMessage: MessageResponse | null;
+    unreadCount: number;
+    updatedAt: string;
+  }
+
+// Lightweight public user info for displaying names/avatars in chat
+export interface PublicUserSummary {
+  id: string;
+  username: string;
+  avatarUrl?: string | null;
+}
+
   export const chatApi = {
     // Start new conversation
     startConversation: async (data: StartChatRequest): Promise<ConversationResponse> => {
@@ -54,6 +75,14 @@ export interface StartChatRequest {
       const response = await apiClient.get(`/chat/${conversationId}/messages`);
       return response.data;
     },
+
+    // Get conversations for a user
+    getUserConversations: async (userId: string): Promise<ConversationListItem[]> => {
+      const response = await apiClient.get(`/chat/users/${userId}/conversations`);
+      return response.data;
+    },
+
+    // Note: usernames are already returned inside conversations via `participants`
   
     // Acknowledge warning
     acknowledgeWarning: async (data: { userId: string; warningType: string }) => {

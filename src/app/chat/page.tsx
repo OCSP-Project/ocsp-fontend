@@ -1,16 +1,16 @@
 // src/app/chat/page.tsx
 import dynamic from "next/dynamic";
 
-// Tắt SSR cho client component (có hook, window, v.v.)
-const ChatPageClient = dynamic(
-  () => import("@/components/features/chat/components/ChatPageClient"),
+const ChatMessengerList = dynamic(
+  () => import("@/components/features/chat/components/ChatMessengerList"),
   { ssr: false }
 );
 
 export const metadata = {
-  title: "Chat | OCSP",
+  title: "Tin nhắn | OCSP",
+  description: "Quản lý tin nhắn và cuộc hội thoại",
 };
 
 export default function ChatPage() {
-  return <ChatPageClient />;
+  return <ChatMessengerList />;
 }
