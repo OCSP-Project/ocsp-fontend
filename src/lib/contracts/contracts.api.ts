@@ -34,12 +34,41 @@ export interface ContractDto {
   };
 }
 
+export interface HomeownerInfoDto {
+  username: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+}
+
+export interface ContractorInfoDto {
+  username: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  companyName: string;
+  contactPhone?: string;
+  contactEmail?: string;
+  address?: string;
+  city?: string;
+  province?: string;
+  yearsOfExperience: number;
+  teamSize: number;
+  averageRating: number;
+  totalReviews: number;
+  completedProjects: number;
+  isVerified: boolean;
+  isPremium: boolean;
+}
+
 export interface ContractDetailDto {
   id: string;
   proposalId: string;
   projectId: string;
   contractorUserId: string;
   homeownerUserId: string;
+  homeowner?: HomeownerInfoDto;
+  contractor?: ContractorInfoDto;
   terms: string;
   totalPrice: number;
   status: string;
