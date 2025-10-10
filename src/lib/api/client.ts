@@ -3,6 +3,8 @@ import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse } from 
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
+console.log('🚀 API Base URL:', API_BASE_URL);
+
 // Create axios instance
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -16,12 +18,15 @@ export const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     const token = localStorage.getItem('accessToken');
+    console.log('🌐 API Request:', config.method?.toUpperCase(), config.url);
+    console.log('🔑 Token present:', !!token);
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
+    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -29,9 +34,13 @@ apiClient.interceptors.request.use(
 // Response interceptor to handle token refresh
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
+    console.log('✅ API Response:', response.status, response.config.url);
     return response;
   },
   async (error) => {
+    console.error('❌ API Error:', error.response?.status, error.config?.url);
+    console.error('❌ Error details:', error.response?.data);
+    
     const originalRequest = error.config;
 
     // If token expired and we haven't already tried to refresh
