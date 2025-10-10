@@ -2,21 +2,134 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { gsap } from "gsap";
+import Link from "next/link";
 import styles from "./AIChatAssistant.module.scss";
+
+interface ContractorAction {
+  contractor_id: string;
+  contractor_name: string;
+  contractor_slug: string;
+  description: string;
+  budget_range: string;
+  rating: number;
+  specialties?: string[];
+  location: string;
+  profile_url: string;
+  contact_url: string;
+}
+
+interface EnhancedChatResponse {
+  response: string;
+  sources: Array<{
+    id: number;
+    score: number;
+    source?: string;
+  }>;
+  contractors: ContractorAction[];
+  has_recommendations: boolean;
+}
 
 interface Message {
   id: string;
   text: string;
   isUser: boolean;
   timestamp: Date;
+  sources?: Array<{
+    id: number;
+    score: number;
+    source?: string;
+  }>;
+  contractors?: ContractorAction[];
 }
+
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_RAG_API_URL || "http://13.210.146.91:8000";
+
+// Contractor Card Component
+const ContractorCard: React.FC<{ contractor: ContractorAction }> = ({
+  contractor,
+}) => {
+  // Add default values to prevent undefined errors
+  const safeContractor = {
+    contractor_id: contractor.contractor_id || "",
+    contractor_name: contractor.contractor_name || "Nhà thầu không tên",
+    contractor_slug: contractor.contractor_slug || "",
+    description: contractor.description || "Không có mô tả",
+    budget_range: contractor.budget_range || "Liên hệ để biết giá",
+    rating: contractor.rating || 0,
+    specialties: contractor.specialties || [],
+    location: contractor.location || "Không xác định",
+    profile_url: contractor.profile_url || "#",
+    contact_url: contractor.contact_url || "#",
+  };
+
+  return (
+    <div className={styles.contractorCard}>
+      <div className={styles.contractorHeader}>
+        <div className={styles.contractorName}>
+          <h4>{safeContractor.contractor_name}</h4>
+          <div className={styles.rating}>
+            {"★".repeat(Math.floor(safeContractor.rating))}
+            <span>{safeContractor.rating}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.contractorInfo}>
+        <p className={styles.description}>{safeContractor.description}</p>
+        <div className={styles.details}>
+          <span className={styles.budget}>
+            💰 {safeContractor.budget_range}
+          </span>
+          <span className={styles.location}>📍 {safeContractor.location}</span>
+        </div>
+
+        {safeContractor.specialties &&
+          safeContractor.specialties.length > 0 && (
+            <div className={styles.specialties}>
+              {safeContractor.specialties.slice(0, 2).map((specialty, idx) => (
+                <span key={idx} className={styles.specialtyTag}>
+                  {specialty}
+                </span>
+              ))}
+            </div>
+          )}
+      </div>
+
+      <div className={styles.contractorActions}>
+        <Link
+          href={`/view-contractors/${safeContractor.contractor_id}`}
+          className={styles.viewProfileBtn}
+        >
+          Xem chi tiết
+        </Link>
+        <button
+          className={styles.contactBtn}
+          onClick={() => {
+            if (
+              safeContractor.contact_url &&
+              safeContractor.contact_url !== "#"
+            ) {
+              window.open(safeContractor.contact_url, "_blank");
+            }
+          }}
+          disabled={
+            !safeContractor.contact_url || safeContractor.contact_url === "#"
+          }
+        >
+          Liên hệ ngay
+        </button>
+      </div>
+    </div>
+  );
+};
 
 const AIChatAssistant: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
-      text: "Xin chào! Tôi là AI Assistant của OCSP. Tôi có thể tư vấn cho bạn về xây dựng, vật liệu, quy trình và các vấn đề kỹ thuật. Bạn cần hỗ trợ gì?",
+      text: "Xin chào! Tôi là AI Assistant tư vấn nhà thầu xây dựng. Tôi có thể giúp bạn tìm nhà thầu phù hợp, tư vấn về ngân sách, quy trình xây dựng. Bạn cần hỗ trợ gì?",
       isUser: false,
       timestamp: new Date(),
     },
@@ -24,12 +137,31 @@ const AIChatAssistant: React.FC = () => {
   const [inputMessage, setInputMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
 
   const iconRef = useRef<HTMLDivElement>(null);
   const chatBoxRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const waveTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Check API health on mount
+  useEffect(() => {
+    checkAPIHealth();
+  }, []);
+
+  const checkAPIHealth = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/health`);
+      if (response.ok) {
+        const data = await response.json();
+        setIsConnected(data.status === "healthy");
+      }
+    } catch (error) {
+      console.error("API health check failed:", error);
+      setIsConnected(false);
+    }
+  };
 
   // Auto scroll to bottom
   const scrollToBottom = () => {
@@ -132,29 +264,48 @@ const AIChatAssistant: React.FC = () => {
     };
 
     setMessages((prev) => [...prev, newMessage]);
+    const currentMessage = inputMessage;
     setInputMessage("");
     setIsTyping(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const responses = [
-        "Để tư vấn chính xác, bạn có thể cho tôi biết thêm về loại công trình và quy mô dự án không?",
-        "Dựa trên kinh nghiệm, tôi khuyên bạn nên chọn vật liệu phù hợp với khí hậu Đà Nẵng.",
-        "Để đảm bảo chất lượng, bạn nên thuê giám sát viên có chứng chỉ từ đầu dự án.",
-        "Chi phí này phụ thuộc vào nhiều yếu tố. Bạn có thể tạo dự án trên OCSP để nhận báo giá chi tiết.",
-        "Theo quy định xây dựng hiện tại, bạn cần hoàn thành các thủ tục sau...",
-      ];
+    try {
+      const response = await fetch(`${API_BASE_URL}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: currentMessage,
+          top_k: 5,
+        }),
+      });
+
+      if (!response.ok) throw new Error(`API Error: ${response.status}`);
+
+      const data: EnhancedChatResponse = await response.json();
 
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        text: responses[Math.floor(Math.random() * responses.length)],
+        text: data.response,
+        isUser: false,
+        timestamp: new Date(),
+        sources: data.sources || [],
+        contractors: data.contractors || [],
+      };
+
+      setMessages((prev) => [...prev, aiResponse]);
+    } catch (error) {
+      console.error("Chat API error:", error);
+
+      const errorResponse: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "Xin lỗi, tôi đang gặp sự cố kết nối. Vui lòng thử lại sau.",
         isUser: false,
         timestamp: new Date(),
       };
 
-      setMessages((prev) => [...prev, aiResponse]);
+      setMessages((prev) => [...prev, errorResponse]);
+    } finally {
       setIsTyping(false);
-    }, 2000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -170,7 +321,7 @@ const AIChatAssistant: React.FC = () => {
       {showTooltip && !isOpen && (
         <div ref={tooltipRef} className={styles.tooltip}>
           <div className={styles.tooltipContent}>
-            <p>👋 Click vào để mình tư vấn nhé!</p>
+            <p>👋 Hỏi mình về nhà thầu xây dựng nhé!</p>
             <div className={styles.tooltipArrow}></div>
           </div>
         </div>
@@ -230,7 +381,11 @@ const AIChatAssistant: React.FC = () => {
           </svg>
 
           {/* Status indicator */}
-          <div className={styles.statusDot}></div>
+          <div
+            className={`${styles.statusDot} ${
+              isConnected ? styles.connected : styles.disconnected
+            }`}
+          ></div>
         </div>
       </div>
 
@@ -249,8 +404,10 @@ const AIChatAssistant: React.FC = () => {
                 </svg>
               </div>
               <div>
-                <h3>AI Tư vấn OCSP</h3>
-                <span className={styles.status}>🟢 Đang hoạt động</span>
+                <h3>AI Tư vấn Nhà thầu</h3>
+                <span className={styles.status}>
+                  {isConnected ? "🟢 Đang hoạt động" : "🔴 Offline"}
+                </span>
               </div>
             </div>
             <button className={styles.closeBtn} onClick={toggleChat}>
@@ -286,6 +443,47 @@ const AIChatAssistant: React.FC = () => {
                 )}
                 <div className={styles.messageContent}>
                   <p>{message.text}</p>
+
+                  {/* Contractor Recommendations */}
+                  {message.contractors &&
+                    Array.isArray(message.contractors) &&
+                    message.contractors.length > 0 && (
+                      <div className={styles.contractorRecommendations}>
+                        <div className={styles.recommendationHeader}>
+                          <h5>
+                            🏗️ Nhà thầu được đề xuất (
+                            {message.contractors.length})
+                          </h5>
+                        </div>
+                        <div className={styles.contractorGrid}>
+                          {message.contractors.map((contractor, index) => (
+                            <ContractorCard
+                              key={
+                                contractor.contractor_id ||
+                                `contractor-${index}`
+                              }
+                              contractor={contractor}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Sources */}
+                  {message.sources && message.sources.length > 0 && (
+                    <div className={styles.sources}>
+                      <small>Nguồn tham khảo:</small>
+                      {message.sources.slice(0, 3).map((source, index) => (
+                        <div key={source.id} className={styles.sourceItem}>
+                          <span>#{index + 1}</span>
+                          <span>
+                            Độ liên quan: {(source.score * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <span className={styles.timestamp}>
                     {message.timestamp.toLocaleTimeString("vi-VN", {
                       hour: "2-digit",
@@ -324,14 +522,19 @@ const AIChatAssistant: React.FC = () => {
               value={inputMessage}
               onChange={(e) => setInputMessage(e.target.value)}
               onKeyPress={handleKeyPress}
-              placeholder="Nhập câu hỏi của bạn..."
+              placeholder={
+                isConnected
+                  ? "Hỏi về nhà thầu, ngân sách, quy trình..."
+                  : "Đang kết nối..."
+              }
               className={styles.messageInput}
               rows={1}
+              disabled={!isConnected}
             />
             <button
               onClick={sendMessage}
               className={styles.sendButton}
-              disabled={!inputMessage.trim()}
+              disabled={!inputMessage.trim() || !isConnected}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path

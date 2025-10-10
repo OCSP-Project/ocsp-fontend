@@ -1,6 +1,7 @@
 // src/features/contractors/types/contractor.types.ts
 export interface Contractor {
     id: string;
+    ownerUserId?: string;
     companyName: string;
     description?: string;
     website?: string;
