@@ -27,7 +27,7 @@ const Header: React.FC = () => {
   const navItems: NavItem[] = [
     { label: "TRANG CHỦ", href: "/" },
     { label: "DỰ ÁN", href: "/projects" },
-    { label: "THẦU XÂY DỰNG", href: "/contractors" },
+    { label: "THẦU XÂY DỰNG", href: "/view-contractors" },
     { label: "GIÁM SÁT", href: "/supervisors" },
     { label: "TIN TỨC", href: "/news" },
     { label: "LIÊN HỆ", href: "/contact" },

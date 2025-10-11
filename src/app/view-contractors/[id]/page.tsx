@@ -24,6 +24,7 @@ import {
   Alert,
   Badge,
   Tooltip,
+  message,
 } from "antd";
 import {
   HomeOutlined,
@@ -53,6 +54,8 @@ import { useContractorStore } from "../../../store/contractor-store";
 import { useAuth, UserRole } from "../../../hooks/useAuth";
 import QuoteSendModal from "../../../components/features/quotes/QuoteSendModal";
 import styles from "./contractor-detail.module.scss";
+import { chatApi } from "../../../lib/api/chat";
+import { projectsApi } from "../../../lib/projects/projects.api";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -129,12 +132,30 @@ const ContractorDetailPage: React.FC = () => {
     setIsFavorited(!isFavorited);
   };
 
-  const handleContact = () => {
-    if (user?.role === UserRole.Homeowner) {
-      // Open chat or contact modal
-      console.log("Contact contractor:", contractorId);
-    } else {
+  const handleContact = async () => {
+    if (user?.role !== UserRole.Homeowner) {
       router.push("/login");
+      return;
+    }
+
+    try {
+      const ownerUserId = (currentContractor as any)?.ownerUserId;
+      if (!ownerUserId) {
+        message.error(
+          "Không tìm thấy user của nhà thầu. Vui lòng liên hệ admin."
+        );
+        return;
+      }
+
+      const res = await chatApi.startConversation({
+        userIds: [user.id, ownerUserId],
+        chatType: "consultation",
+      });
+
+      // Điều hướng tới màn chat, mở đúng cuộc trò chuyện vừa tạo
+      router.push(`/chat?conversationId=${res.conversationId}`);
+    } catch (error) {
+      message.error("Lỗi khi khởi tạo cuộc trò chuyện");
     }
   };
 
@@ -205,7 +226,7 @@ const ContractorDetailPage: React.FC = () => {
             type="error"
             showIcon
             action={
-              <Button onClick={() => router.push("/contractors")}>
+              <Button onClick={() => router.push("/view-contractors")}>
                 Quay lại danh sách
               </Button>
             }
@@ -229,7 +250,7 @@ const ContractorDetailPage: React.FC = () => {
             </Link>
           </Breadcrumb.Item>
           <Breadcrumb.Item>
-            <Link href="/contractors">
+            <Link href="/view-contractors">
               <TeamOutlined />
               <span>Nhà thầu</span>
             </Link>
