@@ -1,4 +1,4 @@
-// src/app/dashboard/contractor/page.tsx
+// src/app/(dashboard)/contractor/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -29,9 +29,7 @@ import {
   RiseOutlined,
   PlusOutlined,
   CalendarOutlined,
-  ToolOutlined,
   FileTextOutlined,
-  CameraOutlined,
   BankOutlined,
   AlertOutlined,
 } from "@ant-design/icons";
@@ -43,7 +41,6 @@ import styles from "./ContractorDashboard.module.scss";
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
-// Mock data
 const mockStats = {
   activeProjects: 5,
   totalRevenue: 1250000000,
@@ -148,7 +145,6 @@ const ContractorDashboard: React.FC = () => {
   useEffect(() => {
     setTimeout(() => setLoading(false), 1000);
 
-    // GSAP Animations
     gsap.fromTo(
       ".contractor-header",
       { opacity: 0, y: -30 },
@@ -251,7 +247,6 @@ const ContractorDashboard: React.FC = () => {
   return (
     <RoleBasedRoute allowedRoles={[UserRole.Contractor]}>
       <div className={styles.contractorDashboard}>
-        {/* Header */}
         <div className={`${styles.dashboardHeader} contractor-header`}>
           <div className={styles.headerContent}>
             <div>
@@ -271,7 +266,6 @@ const ContractorDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Statistics Cards */}
         <Row gutter={[24, 24]} className={styles.statsSection}>
           <Col xs={24} sm={12} lg={6}>
             <Card
@@ -354,7 +348,6 @@ const ContractorDashboard: React.FC = () => {
           </Col>
         </Row>
 
-        {/* Main Content Tabs */}
         <div className={`${styles.mainContent} contractor-content`}>
           <Tabs activeKey={activeTab} onChange={setActiveTab} type="card">
             <TabPane tab="Tổng quan" key="overview">
@@ -634,7 +627,6 @@ const ContractorDashboard: React.FC = () => {
           </Tabs>
         </div>
 
-        {/* Proposal Modal */}
         <Modal
           title="Chi tiết dự án"
           visible={proposalModalVisible}
@@ -696,3 +688,5 @@ const ContractorDashboard: React.FC = () => {
 };
 
 export default ContractorDashboard;
+
+
