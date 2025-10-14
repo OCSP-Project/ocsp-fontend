@@ -108,7 +108,6 @@ export const projectsApi = {
 
       // Thử endpoint cũ trước để test kết nối
       const response = await apiClient.post('/projects', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 60000 // Tăng timeout lên 60s
       });
       console.log('✅ API response:', response);
@@ -121,7 +120,6 @@ export const projectsApi = {
         console.log('🔄 Trying new endpoint /projects/create-with-files...');
         try {
           const response = await apiClient.post('/projects/create-with-files', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
             timeout: 60000
           });
           console.log('✅ New endpoint response:', response);
