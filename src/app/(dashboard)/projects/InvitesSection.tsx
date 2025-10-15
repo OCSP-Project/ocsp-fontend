@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { contractorQuotesApi, type QuoteRequestDetailDto, type ProjectDocumentDto } from '@/lib/quotes/quotes.contractor.api';
+import { projectsApi } from '@/lib/projects/projects.api';
 import { proposalsApi, type CreateProposalDto, type UpdateProposalDto } from '@/lib/proposals/proposals.api';
 
 interface Props {}
@@ -197,6 +198,26 @@ export default function InvitesSection({}: Props) {
     });
   };
 
+  const downloadBlob = (blob: Blob, fileName: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName || 'document';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const onDownloadDocument = async (doc: ProjectDocumentDto, projectId: string) => {
+    try {
+      const blob = await projectsApi.downloadDocumentById(doc.id);
+      downloadBlob(blob, doc.fileName);
+    } catch (e: any) {
+      alert(e?.response?.data?.message || e?.message || 'Không thể tải tài liệu');
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 gap-6">
       <div className="flex items-center justify-between">
@@ -218,7 +239,7 @@ export default function InvitesSection({}: Props) {
                 <div>
                   <div className="text-stone-100 font-medium mb-1">{q.scope || 'Không có mô tả'}</div>
                   <div className="text-xs text-stone-400">Dự án: {q.project?.name} • {q.project?.address}</div>
-                  <div className="text-xs text-stone-400">Trạng thái: {q.status}{q.dueDate ? ` • Hạn: ${new Date(q.dueDate).toLocaleDateString('vi-VN')}` : ''}</div>
+                  <div className="text-xs text-stone-400">Trạng thái: {q.status}</div>
                 </div>
                 <div className="text-xs text-stone-500">#{q.id.slice(0,8)}</div>
               </div>
@@ -473,8 +494,6 @@ export default function InvitesSection({}: Props) {
                   <div><span className="text-stone-400">Mô tả phạm vi:</span> <span className="text-stone-100">{quoteDetailData.scope || '—'}</span></div>
                  
                   <div><span className="text-stone-400">Trạng thái:</span> <span className="text-stone-100">{quoteDetailData.status}</span></div>
-                 
-                  <div><span className="text-stone-400">Hạn chót:</span> <span className="text-stone-100">{quoteDetailData.dueDate ? new Date(quoteDetailData.dueDate).toLocaleDateString('vi-VN') : '—'}</span></div>
                 </div>
                 <div className="border-t border-stone-700/60 pt-3">
                   <div className="text-stone-400 mb-2">Chủ nhà</div>
@@ -492,16 +511,14 @@ export default function InvitesSection({}: Props) {
                           .filter((d: ProjectDocumentDto) => d.documentType === 1 || d.documentType === 2)
                           .slice(0, 2)
                           .map((doc: ProjectDocumentDto) => (
-                            <a
+                            <button
                               key={doc.id}
-                              href={doc.fileUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="block p-3 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-100 border border-stone-600"
+                              onClick={() => onDownloadDocument(doc, quoteDetailData.project.id)}
+                              className="text-left p-3 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-100 border border-stone-600"
                             >
                               <div className="text-sm font-medium">{doc.documentTypeName}</div>
                               <div className="text-xs text-stone-300 truncate">{doc.fileName}</div>
-                            </a>
+                            </button>
                           ))}
                       </div>
                     </div>

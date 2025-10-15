@@ -26,7 +26,7 @@ export default function QuotesSection({ projects }: Props) {
 
   const [qrProjectId, setQrProjectId] = useState<string>('');
   const [qrScope, setQrScope] = useState<string>('');
-  const [qrDueDate, setQrDueDate] = useState<string>('');
+  
   const [qrSubmitting, setQrSubmitting] = useState<boolean>(false);
   const [qrSuccess, setQrSuccess] = useState<string | null>(null);
   const [qrError, setQrError] = useState<string | null>(null);
@@ -128,13 +128,12 @@ export default function QuotesSection({ projects }: Props) {
       const payload: CreateQuoteRequestDto = {
         projectId: qrProjectId,
         scope: qrScope.trim(),
-        dueDate: qrDueDate ? new Date(qrDueDate).toISOString() : undefined,
         inviteeUserIds: [], // Không chọn nhà thầu lúc tạo
       };
       const res = await quotesApi.create(payload);
       setQrSuccess(`Tạo bản nháp Quote Request thành công (trạng thái: ${res.status})`);
       setQrScope('');
-      setQrDueDate('');
+      
       await loadQuotes(selectedProjectId);
     } catch (e: any) {
       setQrError(e?.response?.data || e?.message || 'Tạo Quote Request thất bại');
@@ -282,15 +281,7 @@ export default function QuotesSection({ projects }: Props) {
               />
             </div>
 
-            <div>
-              <label className="block text-sm text-stone-300 mb-1">Hạn nộp báo giá (tùy chọn)</label>
-              <input
-                type="date"
-                className="w-full bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100"
-                value={qrDueDate}
-                onChange={(e) => setQrDueDate(e.target.value)}
-              />
-            </div>
+            
 
 
             {qrError && <div className="text-rose-400 text-sm">{qrError}</div>}
@@ -347,9 +338,7 @@ export default function QuotesSection({ projects }: Props) {
                       {q.status}
                     </span>
                   </div>
-                  {q.dueDate && (
-                    <div className="text-xs text-stone-400">Hạn: {new Date(q.dueDate).toLocaleDateString('vi-VN')}</div>
-                  )}
+                  
                   {q.inviteeUserIds.length > 0 && (
                     <div className="text-xs text-stone-400">Đã mời: {q.inviteeUserIds.length} nhà thầu</div>
                   )}
