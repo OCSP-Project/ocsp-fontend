@@ -450,12 +450,59 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <h5 className="text-stone-400 font-medium mb-2">Chủ nhà</h5>
-                      <p className="text-stone-300">ID: {contractDetail.homeownerUserId}</p>
+                      {contractDetail.homeowner ? (
+                        <>
+                          <p className="text-stone-300">{contractDetail.homeowner.username}</p>
+                          <p className="text-stone-400 text-sm">{contractDetail.homeowner.email}</p>
+                          {contractDetail.homeowner.firstName && contractDetail.homeowner.lastName && (
+                            <p className="text-stone-500 text-sm">{contractDetail.homeowner.firstName} {contractDetail.homeowner.lastName}</p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-stone-300">Thông tin chủ nhà (ID: {contractDetail.homeownerUserId})</p>
+                          <p className="text-stone-500 text-sm">Không thể tải thông tin chủ nhà</p>
+                        </>
+                      )}
                     </div>
                     <div>
                       <h5 className="text-stone-400 font-medium mb-2">Nhà thầu</h5>
-                      <p className="text-stone-300">{selectedContract.contractorName}</p>
-                      <p className="text-stone-400 text-sm">ID: {contractDetail.contractorUserId}</p>
+                      {contractDetail.contractor ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2">
+                            <p className="text-stone-300 font-medium">{contractDetail.contractor.companyName}</p>
+                            {contractDetail.contractor.isVerified && (
+                              <span className="px-2 py-1 bg-green-600 text-white text-xs rounded">Verified</span>
+                            )}
+                            {contractDetail.contractor.isPremium && (
+                              <span className="px-2 py-1 bg-amber-600 text-white text-xs rounded">Premium</span>
+                            )}
+                          </div>
+                          <p className="text-stone-400 text-sm">{contractDetail.contractor.username}</p>
+                          {contractDetail.contractor.firstName && contractDetail.contractor.lastName && (
+                            <p className="text-stone-500 text-sm">{contractDetail.contractor.firstName} {contractDetail.contractor.lastName}</p>
+                          )}
+                          <p className="text-stone-400 text-sm">{contractDetail.contractor.email}</p>
+                          {contractDetail.contractor.contactPhone && (
+                            <p className="text-stone-400 text-sm"> {contractDetail.contractor.contactPhone}</p>
+                          )}
+                          {contractDetail.contractor.address && (
+                            <p className="text-stone-500 text-sm"> {contractDetail.contractor.address}</p>
+                          )}
+                          <div className="flex items-center gap-4 text-xs text-stone-500">
+                            <span> {contractDetail.contractor.averageRating.toFixed(1)} ({contractDetail.contractor.totalReviews} đánh giá)</span>
+                            <span> {contractDetail.contractor.completedProjects} dự án</span>
+                            <span> {contractDetail.contractor.teamSize} thành viên</span>
+                            <span> {contractDetail.contractor.yearsOfExperience} năm kinh nghiệm</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-stone-300">{selectedContract.contractorName}</p>
+                          <p className="text-stone-400 text-sm">ID: {contractDetail.contractorUserId}</p>
+                          <p className="text-stone-500 text-sm">Không thể tải thông tin chi tiết nhà thầu</p>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

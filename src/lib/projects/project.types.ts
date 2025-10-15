@@ -2,11 +2,10 @@ export interface CreateProjectDto {
   name: string;
   description?: string;
   address: string;
-  floorArea: number;
-  numberOfFloors: number;
   budget: number;
-  startDate: string; // ISO date string
-  estimatedCompletionDate?: string; // ISO date string
+  floorArea?: number;
+  numberOfFloors?: number;
+  permitNumber?: string;
 }
 
 export interface UpdateProjectDto {

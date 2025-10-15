@@ -145,11 +145,7 @@ const AIChatAssistant: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const waveTimeoutRef = useRef<NodeJS.Timeout>();
 
-  // Check API health on mount
-  useEffect(() => {
-    checkAPIHealth();
-  }, []);
-
+  // Check API health only when chat is opened
   const checkAPIHealth = async () => {
     try {
       const response = await fetch(`${API_BASE_URL}/health`);
@@ -243,6 +239,8 @@ const AIChatAssistant: React.FC = () => {
       });
     } else {
       setIsOpen(true);
+      // Check API health when opening chat
+      checkAPIHealth();
       // Open animation
       gsap.fromTo(
         chatBoxRef.current,
