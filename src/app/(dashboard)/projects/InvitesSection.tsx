@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { contractorQuotesApi, type QuoteRequestDetailDto } from '@/lib/quotes/quotes.contractor.api';
+import { contractorQuotesApi, type QuoteRequestDetailDto, type ProjectDocumentDto } from '@/lib/quotes/quotes.contractor.api';
 import { proposalsApi, type CreateProposalDto, type UpdateProposalDto } from '@/lib/proposals/proposals.api';
 
 interface Props {}
@@ -369,18 +369,8 @@ export default function InvitesSection({}: Props) {
                       {projectDetailData.project.budget ? formatCurrency(projectDetailData.project.budget) : 'Chưa xác định'}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-stone-500 text-sm mb-2">Ngày bắt đầu</p>
-                    <p className="text-stone-100 text-lg">
-                      {projectDetailData.project.startDate ? formatDate(projectDetailData.project.startDate) : 'Chưa cập nhật'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-stone-500 text-sm mb-2">Ngày hoàn thành dự kiến</p>
-                    <p className="text-stone-100 text-lg">
-                      {projectDetailData.project.estimatedCompletionDate ? formatDate(projectDetailData.project.estimatedCompletionDate) : 'Chưa cập nhật'}
-                    </p>
-                  </div>
+                  {/* Ngừng hiển thị ngày bắt đầu theo flow mới */}
+                  {/* Ngừng hiển thị ngày hoàn thành dự kiến theo flow mới */}
                   <div>
                     <p className="text-stone-500 text-sm mb-2">Trạng thái dự án</p>
                     <p className="text-green-400 font-medium text-lg">Active</p>
@@ -494,6 +484,28 @@ export default function InvitesSection({}: Props) {
                 <div className="border-t border-stone-700/60 pt-3">
                   <div className="text-stone-400 mb-2">Dự án</div>
                   <div className="text-stone-100">{quoteDetailData.project.name} • {quoteDetailData.project.address}</div>
+                  {quoteDetailData.project.documents && quoteDetailData.project.documents.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-stone-400 mb-2">Tài liệu đính kèm</div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {quoteDetailData.project.documents
+                          .filter((d: ProjectDocumentDto) => d.documentType === 1 || d.documentType === 2)
+                          .slice(0, 2)
+                          .map((doc: ProjectDocumentDto) => (
+                            <a
+                              key={doc.id}
+                              href={doc.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="block p-3 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-100 border border-stone-600"
+                            >
+                              <div className="text-sm font-medium">{doc.documentTypeName}</div>
+                              <div className="text-xs text-stone-300 truncate">{doc.fileName}</div>
+                            </a>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
