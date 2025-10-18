@@ -31,6 +31,7 @@ export interface ProposalDto {
   // Excel-based proposal info
   isFromExcel: boolean;
   excelFileName?: string;
+  excelFileUrl?: string;
   
   // Project Information from Excel
   projectTitle?: string;
@@ -73,6 +74,14 @@ export const proposalsApi = {
     const form = new FormData();
     form.append('file', file);
     const res = await apiClient.post(`/proposals/by-quote/${quoteId}/upload-excel`, form);
+    return res.data;
+  },
+
+  // Download Excel file for proposal (homeowner)
+  downloadExcel: async (proposalId: string): Promise<Blob> => {
+    const res = await apiClient.get(`/proposals/${proposalId}/download-excel`, {
+      responseType: 'blob'
+    });
     return res.data;
   },
 };

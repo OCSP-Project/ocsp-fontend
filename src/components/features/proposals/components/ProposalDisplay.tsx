@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { ProposalDto } from '@/lib/proposals/proposals.api';
+import { ProposalDto } from '@/lib/proposals/proposal.types';
 
 interface ProposalDisplayProps {
   proposal: ProposalDto;
@@ -20,12 +20,24 @@ export default function ProposalDisplay({ proposal }: ProposalDisplayProps) {
     return value.toLocaleString('vi-VN');
   };
 
+  // Calculate percentage for each item
+  const calculatePercentage = (itemCost: number, totalCost: number): string => {
+    if (totalCost === 0 || isNaN(totalCost) || isNaN(itemCost)) return '0%';
+    const percentage = (itemCost / totalCost) * 100;
+    return `${percentage.toFixed(1)}%`;
+  };
+
+  // Calculate item cost safely - backend returns Price directly
+  const calculateItemCost = (item: any): number => {
+    return item.price || 0;
+  };
+
   return (
     <div className="bg-stone-900/50 rounded-xl border border-stone-700/50 p-6">
       {/* Header */}
       <div className="mb-6">
         <div className="flex justify-between items-start mb-2">
-          <h3 className="text-xl font-bold text-stone-100">Proposal Chi Tiết</h3>
+          <h3 className="text-xl font-bold text-stone-100">ĐỀ XUẤT TỔNG QUAN</h3>
           {proposal.isFromExcel && (
             <span className="px-3 py-1 bg-green-600/20 text-green-400 rounded-full text-sm">
               📊 Từ Excel: {proposal.excelFileName}
@@ -94,9 +106,11 @@ export default function ProposalDisplay({ proposal }: ProposalDisplayProps) {
                       <tr key={index} className="border-b border-stone-700/30 hover:bg-stone-700/20">
                         <td className="py-3 px-3 text-stone-200">{item.name}</td>
                         <td className="py-3 px-3 text-right text-stone-200 font-medium">
-                          {formatCurrency(item.price)} VNĐ
+                          {formatCurrency(calculateItemCost(item))} VNĐ
                         </td>
-                        <td className="py-3 px-3 text-center text-stone-300">{item.notes || ''}</td>
+                        <td className="py-3 px-3 text-center text-stone-300">
+                          {calculatePercentage(calculateItemCost(item), proposal.priceTotal)}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
