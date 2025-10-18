@@ -7,9 +7,6 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/a
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: 30000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 // Request interceptor to add auth token

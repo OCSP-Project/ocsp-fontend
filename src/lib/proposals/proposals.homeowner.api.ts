@@ -12,4 +12,17 @@ export const homeownerProposalsApi = {
   accept: async (proposalId: string): Promise<void> => {
     await apiClient.post(`/proposals/${proposalId}/accept`);
   },
+
+  // Homeowner: Request revision for a proposal
+  requestRevision: async (proposalId: string): Promise<void> => {
+    await apiClient.post(`/proposals/${proposalId}/request-revision`);
+  },
+
+  // Homeowner: Download Excel file for proposal
+  downloadExcel: async (proposalId: string): Promise<Blob> => {
+    const res = await apiClient.get(`/proposals/${proposalId}/download-excel`, {
+      responseType: 'blob'
+    });
+    return res.data;
+  },
 };

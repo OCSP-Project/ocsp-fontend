@@ -10,7 +10,8 @@ import { contractsApi, type CreateContractDto } from '@/lib/contracts/contracts.
 import type { CreateQuoteRequestDto, QuoteRequestDto } from '@/lib/quotes/quote.types';
 import type { ContractorSummary } from '@/lib/api/contractors';
 import type { ProposalDto } from '@/lib/proposals/proposal.types';
-import { CheckCircleOutlined, EyeOutlined, FileTextOutlined, UserOutlined } from '@ant-design/icons';
+import { CheckCircleOutlined, EyeOutlined, FileTextOutlined, UserOutlined, DownloadOutlined, EditOutlined } from '@ant-design/icons';
+import { ProposalDisplay } from '@/components/features/proposals';
 
 type Props = {
   projects: ProjectResponseDto[];
@@ -26,7 +27,7 @@ export default function QuotesSection({ projects }: Props) {
 
   const [qrProjectId, setQrProjectId] = useState<string>('');
   const [qrScope, setQrScope] = useState<string>('');
-  const [qrDueDate, setQrDueDate] = useState<string>('');
+  
   const [qrSubmitting, setQrSubmitting] = useState<boolean>(false);
   const [qrSuccess, setQrSuccess] = useState<string | null>(null);
   const [qrError, setQrError] = useState<string | null>(null);
@@ -44,6 +45,11 @@ export default function QuotesSection({ projects }: Props) {
   const [creatingContract, setCreatingContract] = useState(false);
   const [proposalSuccess, setProposalSuccess] = useState<string | null>(null);
   const [proposalError, setProposalError] = useState<string | null>(null);
+  
+  // Revision request state
+  const [requestingRevision, setRequestingRevision] = useState<string | null>(null);
+  const [revisionSuccess, setRevisionSuccess] = useState<string | null>(null);
+  const [revisionRequestedProposals, setRevisionRequestedProposals] = useState<Set<string>>(new Set());
 
   const selectedProjectId = useMemo(() => qrProjectId || (projects[0]?.id ?? ''), [qrProjectId, projects]);
 
@@ -85,6 +91,17 @@ export default function QuotesSection({ projects }: Props) {
         }
       }
       setProposals(allProposals);
+      
+      // Reset revision requested state for proposals that are now Resubmitted
+      setRevisionRequestedProposals(prev => {
+        const newSet = new Set(prev);
+        allProposals.forEach(proposal => {
+          if (proposal.status === 'Resubmitted') {
+            newSet.delete(proposal.id);
+          }
+        });
+        return newSet;
+      });
     } catch (e) {
       // silent fail to keep UI smooth; could surface later
       setQuotes([]);
@@ -128,13 +145,12 @@ export default function QuotesSection({ projects }: Props) {
       const payload: CreateQuoteRequestDto = {
         projectId: qrProjectId,
         scope: qrScope.trim(),
-        dueDate: qrDueDate ? new Date(qrDueDate).toISOString() : undefined,
         inviteeUserIds: [], // Không chọn nhà thầu lúc tạo
       };
       const res = await quotesApi.create(payload);
       setQrSuccess(`Tạo bản nháp Quote Request thành công (trạng thái: ${res.status})`);
       setQrScope('');
-      setQrDueDate('');
+      
       await loadQuotes(selectedProjectId);
     } catch (e: any) {
       setQrError(e?.response?.data || e?.message || 'Tạo Quote Request thất bại');
@@ -210,12 +226,62 @@ export default function QuotesSection({ projects }: Props) {
     }).format(amount);
   };
 
+  const handleDownloadExcel = async (proposal: ProposalDto) => {
+    if (!proposal.excelFileUrl) {
+      alert('Không có file Excel để tải xuống');
+      return;
+    }
+
+    try {
+      const blob = await homeownerProposalsApi.downloadExcel(proposal.id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = proposal.excelFileName || 'proposal.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e: any) {
+      alert('Tải file Excel thất bại: ' + (e?.response?.data?.message || e?.message || 'Lỗi không xác định'));
+    }
+  };
+
+  const handleRequestRevision = async (proposalId: string) => {
+    setRequestingRevision(proposalId);
+    setRevisionSuccess(null);
+    
+    try {
+      await homeownerProposalsApi.requestRevision(proposalId);
+      
+      // Mark this proposal as revision requested
+      setRevisionRequestedProposals(prev => new Set(prev).add(proposalId));
+      
+      setRevisionSuccess('Yêu cầu chỉnh sửa đã được gửi, vui lòng liên hệ với bên nhà thầu để thảo luận vấn đề cần chỉnh sửa');
+      
+      // Refresh proposals data to update status
+      await loadQuotes(selectedProjectId);
+      
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setRevisionSuccess(null);
+      }, 5000);
+      
+    } catch (e: any) {
+      alert('Gửi yêu cầu chỉnh sửa thất bại: ' + (e?.response?.data?.message || e?.message || 'Lỗi không xác định'));
+    } finally {
+      setRequestingRevision(null);
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Draft': return 'text-yellow-400';
       case 'Submitted': return 'text-blue-400';
+      case 'Resubmitted': return 'text-purple-400';
       case 'Accepted': return 'text-green-400';
       case 'Rejected': return 'text-red-400';
+      case 'RevisionRequested': return 'text-orange-400';
       default: return 'text-stone-400';
     }
   };
@@ -228,6 +294,16 @@ export default function QuotesSection({ projects }: Props) {
           <div className="flex items-center gap-2">
             <CheckCircleOutlined className="text-blue-400" />
             <span>{proposalSuccess}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Revision Request Success Message */}
+      {revisionSuccess && (
+        <div className="bg-orange-600/20 border border-orange-500/30 rounded-lg p-4 text-orange-300">
+          <div className="flex items-center gap-2">
+            <EditOutlined className="text-orange-400" />
+            <span>{revisionSuccess}</span>
           </div>
         </div>
       )}
@@ -282,15 +358,7 @@ export default function QuotesSection({ projects }: Props) {
               />
             </div>
 
-            <div>
-              <label className="block text-sm text-stone-300 mb-1">Hạn nộp báo giá (tùy chọn)</label>
-              <input
-                type="date"
-                className="w-full bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100"
-                value={qrDueDate}
-                onChange={(e) => setQrDueDate(e.target.value)}
-              />
-            </div>
+            
 
 
             {qrError && <div className="text-rose-400 text-sm">{qrError}</div>}
@@ -347,9 +415,7 @@ export default function QuotesSection({ projects }: Props) {
                       {q.status}
                     </span>
                   </div>
-                  {q.dueDate && (
-                    <div className="text-xs text-stone-400">Hạn: {new Date(q.dueDate).toLocaleDateString('vi-VN')}</div>
-                  )}
+                  
                   {q.inviteeUserIds.length > 0 && (
                     <div className="text-xs text-stone-400">Đã mời: {q.inviteeUserIds.length} nhà thầu</div>
                   )}
@@ -387,10 +453,17 @@ export default function QuotesSection({ projects }: Props) {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-3">
                       <UserOutlined className="text-amber-400" />
-                      <div>
-                        <h4 className="text-lg font-semibold text-amber-300">
-                          {proposal.contractor?.companyName || 'Nhà thầu'}
-                        </h4>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-lg font-semibold text-amber-300">
+                            {proposal.contractor?.companyName || 'Nhà thầu'}
+                          </h4>
+                          {proposal.isFromExcel && proposal.excelFileUrl && (
+                            <span className="px-2 py-1 bg-green-600/20 text-green-400 rounded-full text-xs flex items-center gap-1">
+                              📊 Excel
+                            </span>
+                          )}
+                        </div>
                         <p className="text-stone-400 text-sm">
                           {proposal.contractor?.contactPerson} • {proposal.contractor?.phone}
                         </p>
@@ -413,15 +486,56 @@ export default function QuotesSection({ projects }: Props) {
                         <p className={`font-medium ${getStatusColor(proposal.status)}`}>
                           {proposal.status}
                         </p>
+                        {proposal.status === 'Resubmitted' && (
+                          <div className="mt-2 px-3 py-2 bg-purple-600/20 border border-purple-500/30 rounded-lg">
+                            <p className="text-purple-400 text-sm font-medium">🔄 Đã chỉnh sửa và gửi lại</p>
+                            <p className="text-purple-300 text-xs">Nhà thầu đã cập nhật proposal theo yêu cầu của bạn</p>
+                          </div>
+                        )}
+                        {proposal.status === 'RevisionRequested' && (
+                          <div className="mt-2 px-3 py-2 bg-orange-600/20 border border-orange-500/30 rounded-lg">
+                            <p className="text-orange-400 text-sm font-medium">⏳ Đang chờ nhà thầu chỉnh sửa</p>
+                            <p className="text-orange-300 text-xs">Yêu cầu chỉnh sửa đã được gửi, nhà thầu sẽ liên hệ để thảo luận</p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {proposal.termsSummary && (
+                    {/* Project Overview */}
+                    {(proposal.projectTitle || proposal.constructionArea || proposal.constructionTime || proposal.numberOfWorkers || proposal.averageSalary) && (
                       <div className="mb-4">
-                        <p className="text-stone-500 text-sm mb-1">Điều khoản</p>
-                        <p className="text-stone-300 text-sm">{proposal.termsSummary}</p>
+                        <p className="text-stone-500 text-sm mb-2">Tổng quan</p>
+                        <div className="space-y-1">
+                          {proposal.projectTitle && (
+                            <p className="text-stone-300 text-sm">
+                              <span className="font-medium text-stone-200">Dự án:</span> {proposal.projectTitle}
+                            </p>
+                          )}
+                          {proposal.constructionArea && (
+                            <p className="text-stone-300 text-sm">
+                              <span className="font-medium text-stone-200">Diện tích xây dựng:</span> {proposal.constructionArea}
+                            </p>
+                          )}
+                          {proposal.constructionTime && (
+                            <p className="text-stone-300 text-sm">
+                              <span className="font-medium text-stone-200">Thời gian thi công:</span> {proposal.constructionTime}
+                            </p>
+                          )}
+                          {proposal.numberOfWorkers && (
+                            <p className="text-stone-300 text-sm">
+                              <span className="font-medium text-stone-200">Số công nhân:</span> {proposal.numberOfWorkers}
+                            </p>
+                          )}
+                          {proposal.averageSalary && (
+                            <p className="text-stone-300 text-sm">
+                              <span className="font-medium text-stone-200">Lương trung bình:</span> {proposal.averageSalary}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     )}
+
+                   
 
                     <div className="flex items-center gap-2">
                       <p className="text-stone-500 text-sm">Chi tiết:</p>
@@ -431,7 +545,7 @@ export default function QuotesSection({ projects }: Props) {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 ml-4">
+                  <div className="flex flex-wrap items-center gap-2 ml-4">
                     <button
                       onClick={() => handleViewProposal(proposal)}
                       className="flex items-center gap-2 px-3 py-2 bg-stone-600 hover:bg-stone-500 text-stone-300 rounded-lg transition-colors"
@@ -440,7 +554,30 @@ export default function QuotesSection({ projects }: Props) {
                       Xem chi tiết
                     </button>
                     
-                    {proposal.status === 'Submitted' && !proposals.some(p => p.status === 'Accepted') && (
+                    {proposal.isFromExcel && proposal.excelFileUrl && (
+                      <button
+                        onClick={() => handleDownloadExcel(proposal)}
+                        className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                      >
+                        <DownloadOutlined />
+                        Tải Excel
+                      </button>
+                    )}
+                    
+                    {(proposal.status === 'Submitted' || proposal.status === 'Resubmitted') && !proposals.some(p => p.status === 'Accepted') && (
+                      <button
+                        onClick={() => handleRequestRevision(proposal.id)}
+                        disabled={requestingRevision === proposal.id || revisionRequestedProposals.has(proposal.id)}
+                        className="flex items-center gap-2 px-3 py-2 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white rounded-lg transition-colors text-sm"
+                        title={revisionRequestedProposals.has(proposal.id) ? "Đã gửi yêu cầu chỉnh sửa" : "Yêu cầu chỉnh sửa lại đề xuất báo giá"}
+                      >
+                        <EditOutlined />
+                        {requestingRevision === proposal.id ? 'Đang gửi...' : 
+                         revisionRequestedProposals.has(proposal.id) ? 'Đã gửi yêu cầu' : 'Yêu cầu chỉnh sửa'}
+                      </button>
+                    )}
+                    
+                    {(proposal.status === 'Submitted' || proposal.status === 'Resubmitted') && !proposals.some(p => p.status === 'Accepted') && (
                       <button
                         onClick={() => handleAcceptProposal(proposal.id)}
                         className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
@@ -473,7 +610,7 @@ export default function QuotesSection({ projects }: Props) {
       {/* Proposal Detail Modal */}
       {showProposalModal && selectedProposal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-stone-800 rounded-xl border border-stone-700 p-6 w-full max-w-4xl mx-auto max-h-[90vh] overflow-auto">
+          <div className="bg-stone-800 rounded-xl border border-stone-700 p-6 w-full max-w-6xl mx-auto max-h-[90vh] overflow-auto">
             <div className="flex items-center justify-between mb-6">
               <h3 className="text-xl font-semibold text-amber-300">Chi tiết Proposal</h3>
               <button
@@ -484,110 +621,48 @@ export default function QuotesSection({ projects }: Props) {
               </button>
             </div>
 
-            <div className="space-y-6">
-              {/* Contractor Info */}
-              <div className="bg-stone-700 rounded-lg p-4">
-                <h4 className="text-lg font-medium text-amber-300 mb-3">Thông tin nhà thầu</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-stone-500 text-sm">Công ty</p>
-                    <p className="text-stone-300">{selectedProposal.contractor?.companyName}</p>
-                  </div>
-                  <div>
-                    <p className="text-stone-500 text-sm">Người liên hệ</p>
-                    <p className="text-stone-300">{selectedProposal.contractor?.contactPerson}</p>
-                  </div>
-                  <div>
-                    <p className="text-stone-500 text-sm">Điện thoại</p>
-                    <p className="text-stone-300">{selectedProposal.contractor?.phone}</p>
-                  </div>
-                  <div>
-                    <p className="text-stone-500 text-sm">Email</p>
-                    <p className="text-stone-300">{selectedProposal.contractor?.email}</p>
-                  </div>
+            {/* Contractor Info */}
+            <div className="bg-stone-700 rounded-lg p-4 mb-6">
+              <h4 className="text-lg font-medium text-amber-300 mb-3">Thông tin nhà thầu</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <p className="text-stone-500 text-sm">Công ty</p>
+                  <p className="text-stone-300">{selectedProposal.contractor?.companyName}</p>
+                </div>
+                <div>
+                  <p className="text-stone-500 text-sm">Người liên hệ</p>
+                  <p className="text-stone-300">{selectedProposal.contractor?.contactPerson}</p>
+                </div>
+                <div>
+                  <p className="text-stone-500 text-sm">Điện thoại</p>
+                  <p className="text-stone-300">{selectedProposal.contractor?.phone}</p>
+                </div>
+                <div>
+                  <p className="text-stone-500 text-sm">Email</p>
+                  <p className="text-stone-300">{selectedProposal.contractor?.email}</p>
                 </div>
               </div>
+            </div>
 
-              {/* Proposal Details */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-stone-700 rounded-lg p-4">
-                  <p className="text-stone-500 text-sm mb-1">Tổng giá trị</p>
-                  <p className="text-amber-300 font-semibold text-xl">
-                    {formatCurrency(selectedProposal.priceTotal)}
-                  </p>
-                </div>
-                <div className="bg-stone-700 rounded-lg p-4">
-                  <p className="text-stone-500 text-sm mb-1">Thời gian thi công</p>
-                  <p className="text-stone-300 text-lg">{selectedProposal.durationDays} ngày</p>
-                </div>
-                <div className="bg-stone-700 rounded-lg p-4">
-                  <p className="text-stone-500 text-sm mb-1">Trạng thái</p>
-                  <p className={`font-medium text-lg ${getStatusColor(selectedProposal.status)}`}>
-                    {selectedProposal.status}
-                  </p>
-                </div>
-              </div>
+            {/* Use ProposalDisplay component */}
+            <ProposalDisplay proposal={selectedProposal} />
 
-              {/* Terms */}
-              {selectedProposal.termsSummary && (
-                <div className="bg-stone-700 rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-amber-300 mb-3">Điều khoản</h4>
-                  <p className="text-stone-300">{selectedProposal.termsSummary}</p>
-                </div>
-              )}
-
-              {/* Items */}
-              {selectedProposal.items && selectedProposal.items.length > 0 && (
-                <div className="bg-stone-700 rounded-lg p-4">
-                  <h4 className="text-lg font-medium text-amber-300 mb-3">Chi tiết hạng mục</h4>
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-stone-600">
-                          <th className="text-left py-2 text-stone-400">Tên hạng mục</th>
-                          <th className="text-left py-2 text-stone-400">Đơn vị</th>
-                          <th className="text-right py-2 text-stone-400">Số lượng</th>
-                          <th className="text-right py-2 text-stone-400">Đơn giá</th>
-                          <th className="text-right py-2 text-stone-400">Thành tiền</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {selectedProposal.items.map((item: any, index: number) => (
-                          <tr key={index} className="border-b border-stone-600/50">
-                            <td className="py-2 text-stone-300">{item.name}</td>
-                            <td className="py-2 text-stone-300">{item.unit}</td>
-                            <td className="py-2 text-stone-300 text-right">{item.qty}</td>
-                            <td className="py-2 text-stone-300 text-right">
-                              {formatCurrency(item.unitPrice)}
-                            </td>
-                            <td className="py-2 text-amber-300 text-right font-medium">
-                              {formatCurrency(item.qty * item.unitPrice)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-600">
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-600 mt-6">
+              <button
+                onClick={() => setShowProposalModal(false)}
+                className="px-4 py-2 bg-stone-600 hover:bg-stone-500 text-stone-300 rounded-lg transition-colors"
+              >
+                Đóng
+              </button>
+              {selectedProposal.status === 'Submitted' && !proposals.some(p => p.status === 'Accepted') && (
                 <button
-                  onClick={() => setShowProposalModal(false)}
-                  className="px-4 py-2 bg-stone-600 hover:bg-stone-500 text-stone-300 rounded-lg transition-colors"
+                  onClick={() => handleAcceptProposal(selectedProposal.id)}
+                  className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
                 >
-                  Đóng
+                  Chấp nhận Proposal
                 </button>
-                {selectedProposal.status === 'Submitted' && !proposals.some(p => p.status === 'Accepted') && (
-                  <button
-                    onClick={() => handleAcceptProposal(selectedProposal.id)}
-                    className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-                  >
-                    Chấp nhận Proposal
-                  </button>
-                )}
-              </div>
+              )}
             </div>
           </div>
         </div>
