@@ -229,7 +229,8 @@ export default function ProjectResourcesPage() {
     }
   };
 
-  const canEdit = user?.role === UserRole.Supervisor || user?.role === UserRole.Contractor;
+  // Chỉ Supervisor được tạo/sửa/xóa; Contractor/Homeowner chỉ xem
+  const canEdit = user?.role === UserRole.Supervisor;
 
   // Helpers for month start/end
   const getMonthStartEnd = (ym: string) => {
