@@ -8,7 +8,7 @@ export const getDashboardRoute = (role: UserRole): string => {
     case UserRole.Supervisor:
       return '/supervisor';
     case UserRole.Contractor:
-      return '/contractors';
+      return '/contractor';
     case UserRole.Homeowner:
       return '/';
     default:

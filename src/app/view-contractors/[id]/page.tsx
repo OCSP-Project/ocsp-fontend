@@ -56,6 +56,9 @@ import QuoteSendModal from "../../../components/features/quotes/QuoteSendModal";
 import styles from "./contractor-detail.module.scss";
 import { chatApi } from "../../../lib/api/chat";
 import { projectsApi } from "../../../lib/projects/projects.api";
+import ContractorPostsList from "@/components/features/contractors/components/ContractorPosts/ContractorPostsList";
+import { getContractorPosts } from "@/lib/contractors/contractor-posts.api";
+import { ContractorPost } from "@/lib/contractors/contractor-posts.types";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -73,6 +76,8 @@ const ContractorDetailPage: React.FC = () => {
   const [isFavorited, setIsFavorited] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [showSendQuoteModal, setShowSendQuoteModal] = useState(false);
+  const [posts, setPosts] = useState<ContractorPost[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
 
   const contractorId = params.id as string;
 
@@ -80,6 +85,7 @@ const ContractorDetailPage: React.FC = () => {
     setMounted(true);
     if (contractorId) {
       fetchContractorProfile(contractorId);
+      fetchPosts(); // ✅ Fetch posts when component mounts
     }
   }, [contractorId, fetchContractorProfile]);
 
@@ -115,6 +121,21 @@ const ContractorDetailPage: React.FC = () => {
         );
     }
   }, [currentContractor, mounted]);
+
+  const fetchPosts = async () => {
+    if (!contractorId) return;
+    setPostsLoading(true);
+    try {
+      console.log("Fetching posts for contractorId:", contractorId);
+      const data = await getContractorPosts(contractorId);
+      console.log("Fetched posts data:", data);
+      setPosts(data);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    } finally {
+      setPostsLoading(false);
+    }
+  };
 
   const handleFavorite = () => {
     const favorites = JSON.parse(
@@ -652,6 +673,26 @@ const ContractorDetailPage: React.FC = () => {
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
               )}
+            </TabPane>
+
+            <TabPane tab="Bài đăng" key="posts">
+              <div style={{ marginTop: 8 }}>
+                <ContractorPostsList
+                  posts={posts}
+                  loading={postsLoading}
+                  canManage={false}
+                  contractorName={contractor.companyName}
+                  contractorAvatar={undefined}
+                />
+                {posts.length === 0 && !postsLoading && (
+                  <div style={{ textAlign: "center", padding: "40px 0" }}>
+                    <Text type="secondary">
+                      Nhà thầu này chưa có bài đăng nào. Chỉ nhà thầu mới có thể
+                      tạo bài đăng.
+                    </Text>
+                  </div>
+                )}
+              </div>
             </TabPane>
 
             <TabPane tab="Giấy tờ" key="documents">

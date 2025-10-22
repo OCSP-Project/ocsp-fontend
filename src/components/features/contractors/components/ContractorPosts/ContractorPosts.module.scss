@@ -1,0 +1,51 @@
+.postsContainer {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.postCardWrapper {
+  margin-bottom: 16px;
+}
+
+.skeletonCard {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.emptyContainer {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 60px 20px;
+  text-align: center;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.postForm {
+  :global(.ant-form-item-label > label) {
+    font-weight: 600;
+  }
+}
+
+.postModal {
+  :global(.ant-modal-content) {
+    border-radius: 12px;
+  }
+}
+
+.uploadHint {
+  color: #888;
+}
+
+@media (max-width: 768px) {
+  .postsContainer {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .postCardWrapper {
+    margin-bottom: 8px;
+  }
+}
