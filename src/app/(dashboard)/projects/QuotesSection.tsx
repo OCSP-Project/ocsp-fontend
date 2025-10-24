@@ -15,9 +15,10 @@ import { ProposalDisplay } from '@/components/features/proposals';
 
 type Props = {
   projects: ProjectResponseDto[];
+  onSwitchTab?: (tab: string) => void;
 };
 
-export default function QuotesSection({ projects }: Props) {
+export default function QuotesSection({ projects, onSwitchTab }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -40,9 +41,7 @@ export default function QuotesSection({ projects }: Props) {
   const [proposals, setProposals] = useState<ProposalDto[]>([]);
   const [selectedProposal, setSelectedProposal] = useState<ProposalDto | null>(null);
   const [showProposalModal, setShowProposalModal] = useState(false);
-  const [showContractModal, setShowContractModal] = useState(false);
-  const [contractTerms, setContractTerms] = useState('');
-  const [creatingContract, setCreatingContract] = useState(false);
+  const [acceptingProposal, setAcceptingProposal] = useState(false);
   const [proposalSuccess, setProposalSuccess] = useState<string | null>(null);
   const [proposalError, setProposalError] = useState<string | null>(null);
   
@@ -166,56 +165,45 @@ export default function QuotesSection({ projects }: Props) {
   };
 
   const handleAcceptProposal = async (proposalId: string) => {
+    setAcceptingProposal(true);
     try {
-      setProposalError(null); // Clear previous errors
+      setProposalError(null);
+      
+      // 1. Accept proposal
+      console.log('Step 1: Accepting proposal...');
       await homeownerProposalsApi.accept(proposalId);
-      // Reload proposals
-      setProposals(prev => prev.map(p => 
-        p.id === proposalId ? { ...p, status: 'Accepted' } : p
-      ));
+      console.log('Step 1: Proposal accepted successfully');
+      
+      // 2. Auto-create contract
+      console.log('Step 2: Creating contract...');
+      const contractDto: CreateContractDto = {
+        proposalId: proposalId,
+        terms: '', // Auto-filled from template
+        items: []  // Auto-filled from proposal
+      };
+      console.log('Contract DTO:', contractDto);
+      const contract = await contractsApi.create(contractDto);
+      console.log('Step 2: Contract created successfully:', contract);
+      
+      // 3. Close modal and show success
       setShowProposalModal(false);
-      setProposalSuccess('Chấp nhận proposal thành công!');
+      setProposalSuccess('Chấp nhận proposal và tạo hợp đồng thành công! Chuyển sang tab Hợp đồng...');
+      
+      // 4. Reload and switch to contracts tab
+      await loadQuotes(selectedProjectId);
+      
+      setTimeout(() => {
+        if (onSwitchTab) {
+          onSwitchTab('contracts');
+        }
+      }, 1500);
+      
     } catch (error: any) {
       console.error('Failed to accept proposal:', error);
-      
-      // Parse error message from API response
-      let errorMessage = 'Có lỗi xảy ra khi chấp nhận proposal';
-      if (error?.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      } else if (error?.message) {
-        errorMessage = error.message;
-      }
-      
+      const errorMessage = error?.response?.data?.message || error?.message || 'Có lỗi xảy ra khi chấp nhận proposal';
       setProposalError(errorMessage);
-    }
-  };
-
-  const handleCreateContract = async () => {
-    if (!selectedProposal || !contractTerms.trim()) return;
-    
-    setCreatingContract(true);
-    try {
-      const contractData: CreateContractDto = {
-        proposalId: selectedProposal.id,
-        terms: contractTerms.trim()
-      };
-      
-      const newContract = await contractsApi.create(contractData);
-      setShowContractModal(false);
-      setContractTerms('');
-      setSelectedProposal(null);
-      
-      // Store success message in localStorage for display in contracts tab
-      localStorage.setItem('contractSuccess', 'Tạo hợp đồng thành công!');
-      
-      // Redirect to contracts tab immediately
-      router.push('/projects?tab=contracts');
-      
-    } catch (error) {
-      console.error('Failed to create contract:', error);
-      // TODO: Show error message
     } finally {
-      setCreatingContract(false);
+      setAcceptingProposal(false);
     }
   };
 
@@ -580,25 +568,14 @@ export default function QuotesSection({ projects }: Props) {
                     {(proposal.status === 'Submitted' || proposal.status === 'Resubmitted') && !proposals.some(p => p.status === 'Accepted') && (
                       <button
                         onClick={() => handleAcceptProposal(proposal.id)}
-                        className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                        disabled={acceptingProposal}
+                        className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
                       >
                         <CheckCircleOutlined />
-                        Chấp nhận
+                        {acceptingProposal ? 'Đang xử lý...' : 'Chấp nhận'}
                       </button>
                     )}
                     
-                    {proposal.status === 'Accepted' && (
-                      <button
-                        onClick={() => {
-                          setSelectedProposal(proposal);
-                          setShowContractModal(true);
-                        }}
-                        className="flex items-center gap-2 px-3 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors"
-                      >
-                        <FileTextOutlined />
-                        Tạo hợp đồng
-                      </button>
-                    )}
                   </div>
                 </div>
               </div>
@@ -669,76 +646,6 @@ export default function QuotesSection({ projects }: Props) {
       )}
 
       {/* Create Contract Modal */}
-      {showContractModal && selectedProposal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-stone-800 rounded-xl border border-stone-700 p-6 w-full max-w-2xl mx-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-xl font-semibold text-amber-300">Tạo Hợp đồng</h3>
-              <button
-                onClick={() => {
-                  setShowContractModal(false);
-                  setContractTerms('');
-                  setSelectedProposal(null);
-                }}
-                className="text-stone-400 hover:text-stone-200 text-2xl"
-              >
-                ×
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div className="bg-stone-700 rounded-lg p-4">
-                <h4 className="text-lg font-medium text-amber-300 mb-2">Thông tin Proposal</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <p className="text-stone-500">Nhà thầu</p>
-                    <p className="text-stone-300">{selectedProposal.contractor?.companyName}</p>
-                  </div>
-                  <div>
-                    <p className="text-stone-500">Giá trị</p>
-                    <p className="text-amber-300 font-semibold">
-                      {formatCurrency(selectedProposal.priceTotal)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-stone-300 mb-2">
-                  Điều khoản hợp đồng <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  value={contractTerms}
-                  onChange={(e) => setContractTerms(e.target.value)}
-                  placeholder="Nhập điều khoản hợp đồng..."
-                  className="w-full h-32 px-3 py-2 bg-stone-700 border border-stone-600 rounded-lg text-stone-300 placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-3 pt-4">
-                <button
-                  onClick={() => {
-                    setShowContractModal(false);
-                    setContractTerms('');
-                    setSelectedProposal(null);
-                  }}
-                  className="px-4 py-2 bg-stone-600 hover:bg-stone-500 text-stone-300 rounded-lg transition-colors"
-                >
-                  Hủy
-                </button>
-                <button
-                  onClick={handleCreateContract}
-                  disabled={!contractTerms.trim() || creatingContract}
-                  className="px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-stone-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-                >
-                  {creatingContract ? 'Đang tạo...' : 'Tạo hợp đồng'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }

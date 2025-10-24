@@ -1,64 +1,46 @@
 import apiClient from '@/lib/api/client';
 
-export interface CreateContractDto {
-  proposalId: string;
-  terms: string;
-}
-
 export interface ContractDto {
   id: string;
   proposalId: string;
+  projectId: string;
+  contractorUserId: string;
+  homeownerUserId: string;
   terms: string;
+  totalPrice: number;
+  durationDays: number;
   status: string;
   createdAt: string;
   updatedAt: string;
-  proposal?: {
-    id: string;
-    contractorUserId: string;
-    priceTotal: number;
-    durationDays: number;
-    termsSummary?: string;
-    contractor?: {
-      companyName: string;
-      contactPerson: string;
-      phone: string;
-      email: string;
-    };
-    quoteRequest?: {
-      id: string;
-      project?: {
-        title: string;
-        description: string;
-      };
-    };
-  };
+  homeownerSignatureBase64?: string;
+  contractorSignatureBase64?: string;
+  signedByHomeownerAt?: string;
+  signedByContractorAt?: string;
+  templatePdfUrl?: string;
+  signedPdfUrl?: string;
 }
 
-export interface HomeownerInfoDto {
-  username: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-}
-
-export interface ContractorInfoDto {
-  username: string;
-  email: string;
-  firstName?: string;
-  lastName?: string;
-  companyName: string;
-  contactPhone?: string;
-  contactEmail?: string;
-  address?: string;
-  city?: string;
-  province?: string;
-  yearsOfExperience: number;
-  teamSize: number;
-  averageRating: number;
-  totalReviews: number;
-  completedProjects: number;
-  isVerified: boolean;
-  isPremium: boolean;
+export interface ContractListItemDto {
+  id: string;
+  proposalId: string;
+  projectId: string;
+  contractorUserId: string;
+  homeownerUserId: string;
+  terms: string;
+  totalPrice: number;
+  durationDays: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  homeownerSignatureBase64?: string;
+  contractorSignatureBase64?: string;
+  signedByHomeownerAt?: string;
+  signedByContractorAt?: string;
+  templatePdfUrl?: string;
+  signedPdfUrl?: string;
+  // Additional fields for display
+  projectName?: string;
+  contractorName?: string;
 }
 
 export interface ContractDetailDto {
@@ -67,162 +49,124 @@ export interface ContractDetailDto {
   projectId: string;
   contractorUserId: string;
   homeownerUserId: string;
-  homeowner?: HomeownerInfoDto;
-  contractor?: ContractorInfoDto;
   terms: string;
   totalPrice: number;
+  durationDays: number;
   status: string;
   createdAt: string;
   updatedAt: string;
-  items: ContractItemDto[];
+  homeownerSignatureBase64?: string;
+  contractorSignatureBase64?: string;
+  signedByHomeownerAt?: string;
+  signedByContractorAt?: string;
+  templatePdfUrl?: string;
+  signedPdfUrl?: string;
+  // Additional fields for display
+  items?: ContractItemDto[];
+  homeowner?: UserInfoDto;
+  contractor?: UserInfoDto;
 }
 
 export interface ContractItemDto {
   id: string;
   name: string;
-  qty: number;
-  unit: string;
-  unitPrice: number;
-  total: number;
+  price: number;
+  notes?: string;
+  unit?: string;
+  qty?: number;
+  unitPrice?: number;
+  total?: number;
 }
 
-export interface UpdateContractStatusDto {
-  contractId: string;
-  status: number; // 0: Draft, 1: PendingSignatures, 2: Active, 3: Completed, 4: Cancelled
-}
-
-export interface ContractListItemDto {
+export interface UserInfoDto {
   id: string;
-  projectId: string;
-  projectName: string;
-  contractorName: string;
-  totalPrice: number;
-  status: string;
-  createdAt: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  address?: string;
+  city?: string;
+  username?: string;
+  companyName?: string;
+  isVerified?: boolean;
+  isPremium?: boolean;
+  contactPhone?: string;
+  averageRating?: number;
+  totalReviews?: number;
+  completedProjects?: number;
+  teamSize?: number;
+  yearsOfExperience?: number;
+}
+
+export interface SignContractDto {
+  signatureBase64: string;
+}
+
+export interface CreateContractDto {
+  proposalId: string;
+  terms: string;
+  items?: any[];
 }
 
 export const contractsApi = {
-  // Homeowner: Create contract from proposal
-  create: async (data: CreateContractDto): Promise<ContractDto> => {
-    const res = await apiClient.post('/contracts', data);
-    return res.data;
-  },
-  
-  // Homeowner: Get all contracts
+  // Get all contracts for current user
   getAll: async (): Promise<ContractListItemDto[]> => {
-    const res = await apiClient.get('/contracts/my');
-    return res.data;
-  },
-  
-  // Homeowner: Get contract by ID
-  getById: async (id: string): Promise<ContractDto> => {
-    const res = await apiClient.get(`/contracts/${id}`);
-    return res.data;
+    const { data } = await apiClient.get('/contracts');
+    return data;
   },
 
-  // Homeowner: Get contract detail by ID
-  getDetailById: async (id: string): Promise<ContractDetailDto> => {
-    const res = await apiClient.get(`/contracts/${id}`);
-    return res.data;
+  // Create contract from proposal
+  create: async (dto: CreateContractDto): Promise<ContractDto> => {
+    const { data } = await apiClient.post('/contracts', dto);
+    return data;
   },
 
-  // Update contract status (both homeowner and contractor)
-  updateStatus: async (id: string, status: number): Promise<ContractDto> => {
-    const res = await apiClient.post(`/contracts/${id}/status`, {
-      contractId: id,
-      status: status
+  // Get contract by ID
+  getById: async (contractId: string): Promise<ContractDto> => {
+    const { data } = await apiClient.get(`/contracts/${contractId}`);
+    return data;
+  },
+
+  // Sign by homeowner
+  signByHomeowner: async (contractId: string, dto: SignContractDto): Promise<ContractDto> => {
+    const { data } = await apiClient.post(`/contracts/${contractId}/sign-homeowner`, dto);
+    return data;
+  },
+
+  // Sign by contractor
+  signByContractor: async (contractId: string, dto: SignContractDto): Promise<ContractDto> => {
+    const { data} = await apiClient.post(`/contracts/${contractId}/sign-contractor`, dto);
+    return data;
+  },
+
+  // Generate PDF template
+  generatePdf: async (contractId: string): Promise<ContractDetailDto> => {
+    const { data } = await apiClient.post(`/contracts/${contractId}/generate-pdf`);
+    return data;
+  },
+
+  // Download PDF
+  downloadPdf: async (contractId: string): Promise<Blob> => {
+    const { data } = await apiClient.get(`/contracts/${contractId}/pdf`, {
+      responseType: 'blob',
     });
-    return res.data;
-  },
-};
-
-// Milestones API for homeowner management
-export interface MilestoneDto {
-  id: string;
-  contractId: string;
-  name: string;
-  amount: number;
-  dueDate?: string | null;
-  status: string;
-  note?: string | null;
-  createdAt: string;
-}
-
-export interface CreateMilestoneDto {
-  name: string;
-  amount: number;
-  dueDate?: string | null;
-  note?: string | null;
-}
-
-export interface BulkCreateMilestonesDto {
-  contractId: string;
-  milestones: CreateMilestoneDto[];
-}
-
-export interface UpdateMilestoneDto {
-  name: string;
-  amount: number;
-  dueDate?: string | null;
-  note?: string | null;
-}
-
-export const milestonesApi = {
-  // List milestones by contract
-  listByContract: async (contractId: string): Promise<MilestoneDto[]> => {
-    const res = await apiClient.get(`/milestones/by-contract/${contractId}`);
-    return res.data;
+    return data;
   },
 
-  // Bulk create milestones
-  createBulk: async (data: BulkCreateMilestonesDto): Promise<MilestoneDto[]> => {
-    const res = await apiClient.post(`/milestones/bulk`, data);
-    return res.data;
+  // Get contract detail by ID (alias for getById)
+  getDetailById: async (contractId: string): Promise<ContractDetailDto> => {
+    const { data } = await apiClient.get(`/contracts/${contractId}`);
+    return data;
   },
 
-  // Update milestone
-  update: async (milestoneId: string, data: UpdateMilestoneDto): Promise<MilestoneDto> => {
-    const res = await apiClient.put(`/milestones/${milestoneId}`, data);
-    return res.data;
-  },
-
-  // Delete milestone
-  delete: async (milestoneId: string): Promise<void> => {
-    await apiClient.delete(`/milestones/${milestoneId}`);
-  },
-};
-
-export interface EscrowAccountDto {
-  id: string;
-  contractId: string;
-  provider: number;
-  status: string;
-  balance: number;
-  externalAccountId?: string | null;
-  createdAt: string;
-}
-
-export const escrowApi = {
-  getByContract: async (contractId: string): Promise<EscrowAccountDto> => {
-    const res = await apiClient.get(`/escrow/by-contract/${contractId}`);
-    return res.data;
-  },
-};
-
-// Payments API (MoMo)
-export interface MomoCreatePaymentDto {
-  amount: number;
-  description?: string;
-  contractId?: string;
-}
-export interface MomoCreatePaymentResultDto {
-  payUrl: string;
-  orderId: string;
-  requestId: string;
-}
-export const paymentsApi = {
-  momoCreate: async (data: MomoCreatePaymentDto): Promise<MomoCreatePaymentResultDto> => {
-    const res = await apiClient.post(`/payments/momo/create`, data);
-    return res.data;
+  // Update contract status
+  updateStatus: async (contractId: string, status: string): Promise<ContractDto> => {
+    const payload = { 
+      contractId: contractId,
+      status: parseInt(status) // Convert string to number for enum
+    };
+    console.log('Updating contract status:', payload);
+    const { data } = await apiClient.post(`/contracts/${contractId}/status`, payload);
+    return data;
   },
 };
