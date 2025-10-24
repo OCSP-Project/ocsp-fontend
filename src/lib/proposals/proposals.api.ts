@@ -2,9 +2,8 @@ import apiClient from '@/lib/api/client';
 
 export interface ProposalItemInput {
   name: string;
-  unit: string;
-  qty: number;
-  unitPrice: number;
+  price: number;
+  notes?: string;
 }
 
 export interface CreateProposalDto {
@@ -25,11 +24,23 @@ export interface ProposalDto {
   items: Array<{
     id: string;
     name: string;
-    unit: string;
-    qty: number;
-    unitPrice: number;
+    price: number;
+    notes?: string;
   }>;
+  
+  // Excel-based proposal info
+  isFromExcel: boolean;
+  excelFileName?: string;
+  excelFileUrl?: string;
+  
+  // Project Information from Excel
+  projectTitle?: string;
+  constructionArea?: string;
+  constructionTime?: string;
+  numberOfWorkers?: string;
+  averageSalary?: string;
 }
+
 
 export interface UpdateProposalDto {
   durationDays: number;
@@ -55,6 +66,22 @@ export const proposalsApi = {
   },
   updateDraft: async (proposalId: string, data: UpdateProposalDto): Promise<ProposalDto> => {
     const res = await apiClient.put(`/proposals/${proposalId}`, data);
+    return res.data;
+  },
+
+  // Upload proposal Excel for a quote (contractor)
+  uploadExcel: async (quoteId: string, file: File): Promise<{ message: string; result: string }> => {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await apiClient.post(`/proposals/by-quote/${quoteId}/upload-excel`, form);
+    return res.data;
+  },
+
+  // Download Excel file for proposal (homeowner)
+  downloadExcel: async (proposalId: string): Promise<Blob> => {
+    const res = await apiClient.get(`/proposals/${proposalId}/download-excel`, {
+      responseType: 'blob'
+    });
     return res.data;
   },
 };

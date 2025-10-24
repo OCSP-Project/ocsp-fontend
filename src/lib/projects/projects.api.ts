@@ -53,6 +53,14 @@ export const projectsApi = {
     return res.data;
   },
 
+  // Download any project document by its id
+  downloadDocumentById: async (documentId: string): Promise<Blob> => {
+    const res = await apiClient.get(`/projects/documents/${documentId}/download`, {
+      responseType: 'blob'
+    });
+    return res.data as Blob;
+  },
+
   // Create project with BOTH drawing + permit (OCR data included in DTO)
   createProject: async (
     dto: CreateProjectDto, 
@@ -108,7 +116,6 @@ export const projectsApi = {
 
       // Thử endpoint cũ trước để test kết nối
       const response = await apiClient.post('/projects', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
         timeout: 60000 // Tăng timeout lên 60s
       });
       console.log('✅ API response:', response);
@@ -121,7 +128,6 @@ export const projectsApi = {
         console.log('🔄 Trying new endpoint /projects/create-with-files...');
         try {
           const response = await apiClient.post('/projects/create-with-files', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
             timeout: 60000
           });
           console.log('✅ New endpoint response:', response);

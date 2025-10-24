@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { authApi } from '@/lib/auth/auth.api';
+import { signalRClient } from '@/lib/websocket/signalr-client';
 
 export interface LoginData {
   email: string;
@@ -175,6 +176,13 @@ export const useAuth = () => {
           const newTokens = await authApi.refreshToken(tokens.refreshToken);
           tokenManager.setTokens(newTokens);
           updateAuthState(newTokens.user, true);
+          
+          // Connect to notification hub
+          try {
+            await signalRClient.connectToNotifications(newTokens.user.id);
+          } catch (notificationError) {
+            console.warn('Failed to connect to notification hub:', notificationError);
+          }
         } catch (refreshError) {
           console.error('Token refresh failed:', refreshError);
           tokenManager.clearTokens();
@@ -183,6 +191,13 @@ export const useAuth = () => {
       } else {
         // Token is still valid
         updateAuthState(tokens.user, true);
+        
+        // Connect to notification hub
+        try {
+          await signalRClient.connectToNotifications(tokens.user.id);
+        } catch (notificationError) {
+          console.warn('Failed to connect to notification hub:', notificationError);
+        }
       }
     } catch (error) {
       console.error('Auth initialization failed:', error);
@@ -209,6 +224,18 @@ export const useAuth = () => {
       
       // Update state and broadcast immediately
       updateAuthState(response.user, true);
+      
+      // Connect to notification hub
+      try {
+        await signalRClient.connectToNotifications(response.user.id);
+        
+        // Request notification permission
+        if (Notification.permission === 'default') {
+          await Notification.requestPermission();
+        }
+      } catch (notificationError) {
+        console.warn('Failed to connect to notification hub:', notificationError);
+      }
       
     } catch (error: any) {
       console.error('Login failed:', error);
