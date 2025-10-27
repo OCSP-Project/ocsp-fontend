@@ -1,8 +1,7 @@
 export interface ProposalItemDto {
   name: string;
-  unit: string;
-  qty: number;
-  unitPrice: number;
+  price: number;
+  notes?: string;
 }
 
 export interface ContractorSummaryDto {
@@ -32,6 +31,21 @@ export interface ProposalDto {
       description: string;
     };
   };
+  
+  // Excel-based proposal info
+  isFromExcel?: boolean;
+  excelFileName?: string;
+  excelFileUrl?: string;
+  
+  // Project Information from Excel
+  projectTitle?: string;
+  constructionArea?: string;
+  constructionTime?: string;
+  numberOfWorkers?: string;
+  averageSalary?: string;
+  
+  // Resubmission tracking
+  hasBeenSubmitted?: boolean;
 }
 
 export interface CreateProposalDto {
