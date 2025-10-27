@@ -178,7 +178,7 @@ export default function ProjectsPage() {
           ))}
 
           {activeTab === 'quotes' && (
-            <QuotesSection projects={projects} />
+            <QuotesSection projects={projects} onSwitchTab={setActiveTab} />
           )}
           {activeTab === 'invites' && (
             <InvitesSection />
