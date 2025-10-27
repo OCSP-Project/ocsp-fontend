@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import ModelViewer3D from "@/components/features/projects/ModelViewer3D";
 import ComponentTrackingPanel from "@/components/features/projects/ComponentTrackingPanel";
+import DeviationReportModal from "@/components/features/projects/DeviationReportModal";
 import { modelAnalysisApi } from "@/lib/model-analysis/model-analysis.api";
 import {
   BuildingElement,
   TrackingStatistics,
   TrackingStatus,
+  DeviationType,
 } from "@/types/model-tracking.types";
 import { Button } from "@/components/ui";
 
@@ -32,6 +34,8 @@ export default function Project3DModelPage() {
   >("normal");
   const [explodeFactor, setExplodeFactor] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showDeviationModal, setShowDeviationModal] = useState(false);
+  const [deviationElement, setDeviationElement] = useState<string>("");
 
   // Load data
   useEffect(() => {
@@ -83,6 +87,7 @@ export default function Project3DModelPage() {
       volume_m3: buildingWidth * buildingLength * 0.5,
       floor_level: 1,
       tracking_status: "completed",
+      completion_percentage: 100,
       can_track: true,
     });
 
@@ -101,6 +106,7 @@ export default function Project3DModelPage() {
         floor_level: 1,
         tracking_status:
           i < 4 ? "completed" : i < 7 ? "in_progress" : "not_started",
+        completion_percentage: i < 4 ? 100 : i < 7 ? 50 : 0,
         can_track: true,
       });
     }
@@ -152,6 +158,7 @@ export default function Project3DModelPage() {
         floor_level: 1,
         tracking_status:
           idx < 2 ? "completed" : idx < 3 ? "in_progress" : "not_started",
+        completion_percentage: idx < 2 ? 100 : idx < 3 ? 50 : 25,
         can_track: true,
       });
     });
@@ -166,6 +173,7 @@ export default function Project3DModelPage() {
       volume_m3: buildingWidth * buildingLength * 0.2,
       floor_level: 1,
       tracking_status: "completed",
+      completion_percentage: 60,
       can_track: true,
     });
 
@@ -179,6 +187,7 @@ export default function Project3DModelPage() {
       volume_m3: 0.5,
       floor_level: 2,
       tracking_status: "in_progress",
+      completion_percentage: 45,
       can_track: true,
     });
 
@@ -191,6 +200,7 @@ export default function Project3DModelPage() {
       volume_m3: buildingWidth * floorHeight * 0.2,
       floor_level: 2,
       tracking_status: "in_progress",
+      completion_percentage: 30,
       can_track: true,
     });
 
@@ -204,6 +214,7 @@ export default function Project3DModelPage() {
       volume_m3: buildingWidth * buildingLength * 2,
       floor_level: 2,
       tracking_status: "not_started",
+      completion_percentage: 0,
       can_track: true,
     });
 
@@ -246,32 +257,114 @@ export default function Project3DModelPage() {
     setSelectedElement(element);
   };
 
-  // Handle status update
-  const handleUpdateStatus = async (
+  // Handle completion update with photos
+  const handleUpdateCompletion = async (
     elementId: string,
-    status: TrackingStatus
+    percentage: number,
+    photos: File[]
   ) => {
     try {
+      // Determine status based on percentage
+      const status: TrackingStatus =
+        percentage === 0
+          ? "not_started"
+          : percentage === 100
+          ? "completed"
+          : "in_progress";
+
       // Update local state
-      const updatedElements = elements.map((elem) =>
-        elem.id === elementId ? { ...elem, tracking_status: status } : elem
-      );
+      const updatedElements = elements.map((elem) => {
+        if (elem.id === elementId) {
+          return {
+            ...elem,
+            tracking_status: status,
+            completion_percentage: percentage,
+          };
+        }
+        return elem;
+      });
       setElements(updatedElements);
       updateStatistics(updatedElements);
 
       // Update selected element
       if (selectedElement?.id === elementId) {
-        setSelectedElement({ ...selectedElement, tracking_status: status });
+        setSelectedElement({
+          ...selectedElement,
+          tracking_status: status,
+          completion_percentage: percentage,
+        });
       }
 
       // Try to update via API
       try {
-        await modelAnalysisApi.updateElementStatus(elementId, status);
+        // 1. Upload photos
+        const uploadedPhotos = await modelAnalysisApi.uploadTrackingPhotos(
+          elementId,
+          photos
+        );
+        console.log("Photos uploaded:", uploadedPhotos);
+
+        // 2. Update completion percentage
+        await modelAnalysisApi.updateCompletionPercentage(
+          elementId,
+          percentage
+        );
+        console.log("Completion updated:", percentage);
       } catch (error) {
         console.log("API not ready, only updating local state");
       }
+
+      alert(
+        `✅ Đã lưu tracking: ${selectedElement?.name}\n📊 Hoàn thành: ${percentage}%\n📸 Ảnh: ${photos.length} file`
+      );
     } catch (error) {
-      console.error("Error updating status:", error);
+      console.error("Error updating completion:", error);
+      alert("❌ Lỗi khi lưu tracking!");
+    }
+  };
+
+  // Handle deviation report
+  const handleReportDeviation = (elementId: string) => {
+    setDeviationElement(elementId);
+    setShowDeviationModal(true);
+  };
+
+  const handleSaveDeviation = async (report: {
+    deviation_type: DeviationType;
+    severity: "low" | "medium" | "high" | "critical";
+    description: string;
+    photos: File[];
+    priority: number;
+  }) => {
+    try {
+      const selectedEl = elements.find((e) => e.id === deviationElement);
+      if (!selectedEl) return;
+
+      // Upload photos
+      const uploadedPhotos = await modelAnalysisApi.uploadTrackingPhotos(
+        deviationElement,
+        report.photos
+      );
+
+      // Save deviation report
+      const deviationData = {
+        element_name: selectedEl.name,
+        deviation_type: report.deviation_type,
+        severity: report.severity,
+        description: report.description,
+        photos: uploadedPhotos,
+        priority: report.priority,
+        reported_by: "current-user-id", // TODO: Get from auth
+      };
+
+      await modelAnalysisApi.reportDeviation(deviationElement, deviationData);
+
+      alert("✅ Đã gửi báo cáo sai lệch thành công!");
+      setShowDeviationModal(false);
+      setDeviationElement("");
+    } catch (error) {
+      console.error("Error reporting deviation:", error);
+      alert("❌ Lỗi khi gửi báo cáo!");
     }
   };
 
@@ -289,7 +382,8 @@ export default function Project3DModelPage() {
       <ComponentTrackingPanel
         selectedElement={selectedElement}
         statistics={statistics}
-        onUpdateStatus={handleUpdateStatus}
+        onUpdateCompletion={handleUpdateCompletion}
+        onReportDeviation={handleReportDeviation}
       />
 
       {/* Right Side - 3D Viewer */}
@@ -345,6 +439,19 @@ export default function Project3DModelPage() {
           />
         </div>
       </div>
+
+      {/* Deviation Report Modal */}
+      {showDeviationModal && selectedElement && (
+        <DeviationReportModal
+          elementId={selectedElement.id}
+          elementName={selectedElement.name}
+          onClose={() => {
+            setShowDeviationModal(false);
+            setDeviationElement("");
+          }}
+          onSave={handleSaveDeviation}
+        />
+      )}
     </div>
   );
 }

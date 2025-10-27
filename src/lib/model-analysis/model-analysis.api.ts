@@ -5,7 +5,8 @@ import {
   BuildingElement,
   MeshGroup,
   ComponentTracking,
-  TrackingStatistics
+  TrackingStatistics,
+  DeviationReport
 } from '@/types/model-tracking.types';
 
 const BASE_URL = '/api/model-analysis';
@@ -54,6 +55,36 @@ export const modelAnalysisApi = {
     return response.data;
   },
 
+  // Update element completion percentage
+  updateCompletionPercentage: async (
+    elementId: string,
+    percentage: number
+  ): Promise<BuildingElement> => {
+    const response = await apiClient.patch(`${BASE_URL}/elements/${elementId}/completion`, {
+      completion_percentage: percentage,
+    });
+    return response.data;
+  },
+
+  // Upload tracking photos
+  uploadTrackingPhotos: async (
+    elementId: string,
+    photos: File[]
+  ): Promise<Array<{ url: string; uploaded_at: string }>> => {
+    const formData = new FormData();
+    photos.forEach((photo, index) => {
+      formData.append(`photo_${index}`, photo);
+    });
+    formData.append('elementId', elementId);
+
+    const response = await apiClient.post(`${BASE_URL}/tracking/photos`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
   // Save daily tracking
   saveDailyTracking: async (
     tracking: Omit<ComponentTracking, 'id'>
@@ -79,6 +110,24 @@ export const modelAnalysisApi = {
     const response = await apiClient.put(`${BASE_URL}/models/${modelId}/mesh-groups`, {
       groups,
     });
+    return response.data;
+  },
+
+  // Report deviation
+  reportDeviation: async (
+    elementId: string,
+    report: Omit<DeviationReport, 'id' | 'reported_at' | 'status' | 'element_id'>
+  ): Promise<DeviationReport> => {
+    const response = await apiClient.post(`${BASE_URL}/tracking/deviation`, {
+      element_id: elementId,
+      ...report,
+    });
+    return response.data;
+  },
+
+  // Get deviation reports for project
+  getDeviationReports: async (projectId: string): Promise<DeviationReport[]> => {
+    const response = await apiClient.get(`${BASE_URL}/projects/${projectId}/deviations`);
     return response.data;
   },
 };

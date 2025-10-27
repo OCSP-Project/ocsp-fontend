@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import {
+import { useState, useEffect } from "react";
+import type {
   BuildingElement,
   TrackingStatistics,
 } from "@/types/model-tracking.types";
@@ -10,23 +10,78 @@ import { Button } from "@/components/ui";
 interface ComponentTrackingPanelProps {
   selectedElement?: BuildingElement;
   statistics: TrackingStatistics;
-  onUpdateStatus: (
+  onUpdateCompletion: (
     elementId: string,
-    status: "not_started" | "in_progress" | "completed"
+    percentage: number,
+    photos: File[]
   ) => void;
+  onReportDeviation?: (elementId: string) => void;
 }
 
 export default function ComponentTrackingPanel({
   selectedElement,
   statistics,
-  onUpdateStatus,
+  onUpdateCompletion,
+  onReportDeviation,
 }: ComponentTrackingPanelProps) {
   const [notes, setNotes] = useState("");
+  const [completionPercentage, setCompletionPercentage] = useState(0);
+  const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
+  const [photoPreview, setPhotoPreview] = useState<string[]>([]);
 
-  const statusText = {
-    not_started: "❌ Chưa bắt đầu",
-    in_progress: "⏳ Đang thi công",
-    completed: "✅ Hoàn thành",
+  // Update percentage when selected element changes
+  useEffect(() => {
+    if (selectedElement) {
+      setCompletionPercentage(selectedElement.completion_percentage || 0);
+    }
+  }, [selectedElement]);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setUploadedPhotos(files);
+
+    // Create previews
+    const previews = files.map((file) => URL.createObjectURL(file));
+    setPhotoPreview(previews);
+  };
+
+  const handleSaveTracking = () => {
+    if (!selectedElement) return;
+
+    // Require at least 1 photo for tracking
+    if (uploadedPhotos.length === 0) {
+      alert("Vui lòng upload ít nhất 1 ảnh chụp hiện trường!");
+      return;
+    }
+
+    onUpdateCompletion(
+      selectedElement.id,
+      completionPercentage,
+      uploadedPhotos
+    );
+
+    // Reset
+    setUploadedPhotos([]);
+    setPhotoPreview([]);
+    setNotes("");
+  };
+
+  const getPercentageColor = (percentage: number) => {
+    if (percentage === 0) return "text-red-500";
+    if (percentage <= 25) return "text-orange-600";
+    if (percentage <= 50) return "text-orange-500";
+    if (percentage <= 75) return "text-yellow-500";
+    if (percentage < 100) return "text-green-400";
+    return "text-green-500";
+  };
+
+  const getPercentageLabel = (percentage: number) => {
+    if (percentage === 0) return "🔴 Chưa bắt đầu";
+    if (percentage <= 25) return "🟠 Khởi công";
+    if (percentage <= 50) return "🟠 Đang thi công";
+    if (percentage <= 75) return "🟡 Gần hoàn thành";
+    if (percentage < 100) return "🟢 Sắp xong";
+    return "✅ Hoàn thành";
   };
 
   return (
@@ -40,7 +95,7 @@ export default function ComponentTrackingPanel({
         <div className="text-4xl font-bold mb-1">
           {statistics.total_elements}
         </div>
-        <div className="text-sm opacity-90">Tổng phần tử có thể tracking</div>
+        <div className="text-sm opacity-90">Tổng phần tử tracking</div>
       </div>
 
       {/* Project Info */}
@@ -91,56 +146,132 @@ export default function ComponentTrackingPanel({
         </div>
       </div>
 
-      {/* Selected Element Info */}
+      {/* Selected Element - Tracking Form */}
       {selectedElement && (
         <div className="bg-blue-600 p-4 rounded-lg mb-5">
           <h3 className="text-lg font-bold mb-3">📦 {selectedElement.name}</h3>
-          <div className="space-y-2 text-sm">
+          <div className="space-y-2 text-sm mb-4">
             <div>🏗️ Loại: {selectedElement.element_type}</div>
             <div>
               📏 Kích thước: {selectedElement.dimensions.width.toFixed(2)}m ×{" "}
               {selectedElement.dimensions.length.toFixed(2)}m ×{" "}
               {selectedElement.dimensions.height.toFixed(2)}m
             </div>
-            <div>📦 Khối lượng: {selectedElement.volume_m3} m³</div>
+            <div>📦 Khối lượng: {selectedElement.volume_m3.toFixed(2)} m³</div>
             <div>🏢 Tầng: {selectedElement.floor_level}</div>
-            <div>📊 {statusText[selectedElement.tracking_status]}</div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2 mt-4">
-            <Button
-              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
-              onClick={() => onUpdateStatus(selectedElement.id, "completed")}
+          {/* Completion Percentage Slider */}
+          <div className="bg-blue-700 p-3 rounded-lg mb-4">
+            <label className="text-sm font-bold block mb-2">
+              📊 % Hoàn thành:
+            </label>
+            <div
+              className={`text-3xl font-bold mb-2 ${getPercentageColor(
+                completionPercentage
+              )}`}
             >
-              ✅ Hoàn thành
-            </Button>
-            <Button
-              className="flex-1 bg-orange-500 hover:bg-orange-600 text-white font-bold"
-              onClick={() => onUpdateStatus(selectedElement.id, "in_progress")}
-            >
-              ⏳ Đang làm
-            </Button>
+              {completionPercentage}%
+            </div>
+            <div className="text-sm opacity-90 mb-3">
+              {getPercentageLabel(completionPercentage)}
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              step="5"
+              value={completionPercentage}
+              onChange={(e) =>
+                setCompletionPercentage(parseInt(e.target.value))
+              }
+              className="w-full h-2 bg-blue-800 rounded-lg appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, 
+                  #f44336 0%, 
+                  #ff5722 25%, 
+                  #ffa726 50%, 
+                  #ffeb3b 75%, 
+                  #4caf50 100%)`,
+              }}
+            />
+            <div className="flex justify-between text-xs mt-1 opacity-70">
+              <span>0%</span>
+              <span>25%</span>
+              <span>50%</span>
+              <span>75%</span>
+              <span>100%</span>
+            </div>
           </div>
 
-          <Button
-            className="w-full mt-2 bg-red-600 hover:bg-red-700 text-white font-bold"
-            onClick={() => onUpdateStatus(selectedElement.id, "not_started")}
-          >
-            ❌ Reset
-          </Button>
+          {/* Photo Upload */}
+          <div className="bg-blue-700 p-3 rounded-lg mb-4">
+            <label className="text-sm font-bold block mb-2">
+              📸 Ảnh hiện trường *
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handlePhotoUpload}
+              className="w-full text-sm text-white bg-blue-800 border border-blue-500 rounded p-2"
+            />
+            <div className="text-xs opacity-70 mt-1">
+              * Bắt buộc tải lên ít nhất 1 ảnh
+            </div>
+
+            {/* Photo Previews */}
+            {photoPreview.length > 0 && (
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {photoPreview.map((preview, idx) => (
+                  <div key={idx} className="relative">
+                    <img
+                      src={preview}
+                      alt={`Preview ${idx + 1}`}
+                      className="w-full h-20 object-cover rounded border border-blue-500"
+                    />
+                    <div className="absolute top-1 right-1 bg-black/70 text-white text-xs px-1 rounded">
+                      {idx + 1}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Notes */}
-          <div className="mt-4">
+          <div className="mb-4">
             <label className="text-sm font-bold block mb-2">📝 Ghi chú:</label>
             <textarea
               className="w-full bg-blue-700 border border-blue-500 rounded p-2 text-white text-sm"
               rows={3}
-              placeholder="Nhập ghi chú về tiến độ..."
+              placeholder="Nhập ghi chú về tiến độ, vật liệu..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
           </div>
+
+          {/* Action Buttons */}
+          <div className="flex gap-2 mb-2">
+            <Button
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2"
+              onClick={handleSaveTracking}
+              disabled={uploadedPhotos.length === 0}
+            >
+              💾 Lưu tracking
+            </Button>
+            <Button
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2"
+              onClick={() => onReportDeviation?.(selectedElement.id)}
+            >
+              🚨 Báo cáo sai lệch
+            </Button>
+          </div>
+          {uploadedPhotos.length === 0 && (
+            <div className="text-xs text-yellow-300 mt-2 text-center">
+              ⚠️ Cần upload ảnh để lưu tracking
+            </div>
+          )}
         </div>
       )}
 
@@ -149,9 +280,10 @@ export default function ComponentTrackingPanel({
         <h3 className="text-orange-400 font-bold mb-2">💡 Hướng dẫn</h3>
         <ul className="space-y-1 text-gray-300">
           <li>1️⃣ Click chọn phần tử trên mô hình 3D</li>
-          <li>2️⃣ Xem thông tin chi tiết phần tử</li>
-          <li>3️⃣ Cập nhật trạng thái thi công</li>
-          <li>4️⃣ Thêm ghi chú và lưu tiến độ</li>
+          <li>2️⃣ Upload ảnh chụp hiện trường</li>
+          <li>3️⃣ Kéo thanh % để ước tính hoàn thành</li>
+          <li>4️⃣ Thêm ghi chú nếu cần</li>
+          <li>5️⃣ Click "Lưu tracking"</li>
         </ul>
       </div>
     </div>
