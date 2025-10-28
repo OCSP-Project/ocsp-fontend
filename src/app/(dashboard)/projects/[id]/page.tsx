@@ -438,6 +438,12 @@ export default function ProjectDetailPage() {
                       Theo dõi tiến độ
                     </Link>
                     <Link 
+                      href={`/projects/${project.id}/resources`}
+                      className="block w-full text-center py-2 px-4 bg-orange-600/20 text-orange-300 border border-orange-500/30 rounded-lg hover:bg-orange-600/30 transition"
+                    >
+                      Báo cáo tài nguyên
+                    </Link>
+                    <Link 
                       href={`/projects/${project.id}/chat`}
                       className="block w-full text-center py-2 px-4 bg-green-600/20 text-green-300 border border-green-500/30 rounded-lg hover:bg-green-600/30 transition"
                     >
