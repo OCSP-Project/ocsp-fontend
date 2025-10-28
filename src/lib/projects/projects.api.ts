@@ -53,6 +53,14 @@ export const projectsApi = {
     return res.data;
   },
 
+  // Download any project document by its id
+  downloadDocumentById: async (documentId: string): Promise<Blob> => {
+    const res = await apiClient.get(`/projects/documents/${documentId}/download`, {
+      responseType: 'blob'
+    });
+    return res.data as Blob;
+  },
+
   // Create project with BOTH drawing + permit (OCR data included in DTO)
   createProject: async (
     dto: CreateProjectDto, 

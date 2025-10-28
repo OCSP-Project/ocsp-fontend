@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Row,
   Col,
@@ -37,6 +38,7 @@ import { gsap } from "gsap";
 import RoleBasedRoute from "@/components/shared/RoleBasedRoute";
 import { UserRole } from "@/hooks/useAuth";
 import styles from "./ContractorDashboard.module.scss";
+import { useAuth } from "@/hooks/useAuth";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
@@ -138,11 +140,19 @@ const mockPayments = [
 ];
 
 const ContractorDashboard: React.FC = () => {
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [proposalModalVisible, setProposalModalVisible] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
+    // Check for tab parameter from URL
+    const tabParam = searchParams.get("tab");
+    if (tabParam && ["overview", "leads", "finance"].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+
     setTimeout(() => setLoading(false), 1000);
 
     gsap.fromTo(
@@ -176,7 +186,7 @@ const ContractorDashboard: React.FC = () => {
         delay: 0.4,
       }
     );
-  }, []);
+  }, [searchParams]);
 
   const projectColumns = [
     {
@@ -688,5 +698,3 @@ const ContractorDashboard: React.FC = () => {
 };
 
 export default ContractorDashboard;
-
-
