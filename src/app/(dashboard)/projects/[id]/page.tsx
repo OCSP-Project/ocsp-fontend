@@ -1,23 +1,29 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
+import { paymentsApi } from '@/lib/contracts/contracts.api';
 import { projectsApi, type ProjectDetailDto, type UpdateProjectDto } from '@/lib/projects/projects.api';
 
 export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const search = useSearchParams();
   const projectId = params.id as string;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   const [project, setProject] = useState<ProjectDetailDto | null>(null);
   const [form, setForm] = useState<UpdateProjectDto>({});
+  
+  // Track which orderIds have been processed to prevent duplicate webhook calls
+  const processedOrdersRef = React.useRef<Set<string>>(new Set());
 
   const fetchProject = async () => {
     try {
@@ -44,6 +50,59 @@ export default function ProjectDetailPage() {
   };
 
   useEffect(() => { fetchProject(); }, [projectId]);
+
+  useEffect(() => {
+    // Chỉ xử lý khi có params từ MoMo
+    const orderId = search.get('orderId');
+    const requestId = search.get('requestId');
+    const resultCode = search.get('resultCode');
+    const extraData = search.get('extraData');
+    
+    if (orderId && requestId && extraData && project) {
+      // Check if this order has already been processed
+      if (processedOrdersRef.current.has(orderId)) {
+        console.log('Webhook already processed for orderId:', orderId);
+        return;
+      }
+      
+      // Mark this order as being processed
+      processedOrdersRef.current.add(orderId);
+      
+      // Display payment status
+      const isSuccess = resultCode === '0';
+      if (isSuccess) {
+        setPaymentSuccess(true);
+      }
+      
+      // Gửi webhook về backend để update trạng thái
+      const payload = {
+        PartnerCode: search.get('partnerCode') || "MOMO",
+        OrderId: orderId,
+        RequestId: requestId,
+        Amount: Number(search.get('amount')) || 0,
+        ResponseTime: search.get('responseTime') || Date.now().toString(),
+        Message: search.get('message') || "",
+        ResultCode: Number(resultCode) || 0,
+        PayUrl: search.get('payUrl') || "",
+        ShortLink: search.get('shortLink') || "",
+        OrderInfo: search.get('orderInfo') || "",
+        PayType: search.get('payType') || "",
+        TransId: search.get('transId') || "",
+        ExtraData: extraData,
+        Signature: search.get('signature') || ""
+      };
+      
+      paymentsApi.manualWebhook(payload)
+        .then(() => {
+          console.log('Manual webhook successful');
+          fetchProject(); // Refresh project data
+        })
+        .catch((error) => {
+          console.error('Manual webhook failed:', error);
+          processedOrdersRef.current.delete(orderId); // Allow retry on error
+        });
+    }
+  }, [search, projectId, project]);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -137,6 +196,32 @@ export default function ProjectDetailPage() {
     }
   };
 
+  const canRegisterSupervisor = !!project && !project.supervisorId && project.floorArea <= 400 && project.hasSupervisorsAvailable;
+  const monthlyPrice = !!project ? (project.floorArea <= 200 ? 80000 : 15000000) : 0;
+
+  const onRegisterSupervisor = async () => {
+    if (!project) return;
+    const confirmed = window.confirm(`Đăng ký giám sát viên với giá ${monthlyPrice.toLocaleString('vi-VN')}₫/tháng qua MoMo?`);
+    if (!confirmed) return;
+    try {
+      setSaving(true);
+      const redirectUrl = `${window.location.origin}/projects/${projectId}`;
+      const res = await paymentsApi.momoCreate({
+        amount: monthlyPrice,
+        description: `Supervisor package for project ${projectId}`,
+        redirectUrl,
+        projectId: projectId,
+        purpose: 'supervisor',
+      });
+      
+      window.location.href = res.payUrl;
+    } catch (e: any) {
+      setError(e?.response?.data?.message || e?.message || 'Khởi tạo thanh toán thất bại');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) return (
     <>
       <Header />
@@ -196,11 +281,16 @@ export default function ProjectDetailPage() {
                   {project.status}
                 </span>
                 <span className="text-stone-400 text-sm">
-                  Tạo: {formatDate(project.createdAt)}
+                  Dự án ID: {project.id.slice(0, 8)}...
                 </span>
               </div>
             </div>
             <div className="flex gap-3">
+              {canRegisterSupervisor && (
+                <button onClick={onRegisterSupervisor} disabled={saving} className={btnPrimary}>
+                  Đăng ký giám sát viên ({monthlyPrice.toLocaleString('vi-VN')}₫/tháng)
+                </button>
+              )}
               {!editing && (
                 <button onClick={() => setEditing(true)} className={btnPrimary}>
                   Chỉnh sửa
@@ -208,6 +298,24 @@ export default function ProjectDetailPage() {
               )}
             </div>
           </div>
+
+          {project?.supervisorId && (
+            <div className="mb-4 p-3 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
+              ✓ Dự án đã được đăng ký giám sát viên thành công!
+            </div>
+          )}
+          
+          {search.get('resultCode') !== null && search.get('resultCode') !== '0' && (
+            <div className="mb-4 p-3 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-300">
+              ✗ Thanh toán không thành công. Vui lòng thử lại.
+            </div>
+          )}
+
+          {!project.supervisorId && !project.hasSupervisorsAvailable && project.floorArea <= 400 && (
+            <div className="mb-4 p-3 rounded-md bg-yellow-500/10 border border-yellow-500/30 text-yellow-300">
+              ℹ Hiện tại không có giám sát viên khả dụng. Vui lòng thử lại sau.
+            </div>
+          )}
 
           {editing ? (
             <form onSubmit={onSave} className={cardCls}>
@@ -362,7 +470,7 @@ export default function ProjectDetailPage() {
               {/* Project Info */}
               <div className="lg:col-span-2">
                 <div className={cardCls}>
-                  <h2 className={titleCls} className="mb-4">Thông tin dự án</h2>
+                  <h2 className={`${titleCls} mb-4`}>Thông tin dự án</h2>
                   
                   <div className="space-y-4">
                     <div>
@@ -405,7 +513,7 @@ export default function ProjectDetailPage() {
 
                 {/* Participants */}
                 <div className={`${cardCls} mt-6`}>
-                  <h2 className={titleCls} className="mb-4">Thành viên dự án</h2>
+                  <h2 className={`${titleCls} mb-4`}>Thành viên dự án</h2>
                   
                   {project.participants.length === 0 ? (
                     <div className="text-stone-400">Chưa có thành viên nào</div>
@@ -471,10 +579,6 @@ export default function ProjectDetailPage() {
                     <div className="flex justify-between">
                       <span className="text-stone-400">Thành viên</span>
                       <span className="text-stone-100">{project.participants.length}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-stone-400">Cập nhật</span>
-                      <span className="text-stone-100">{formatDate(project.updatedAt)}</span>
                     </div>
                   </div>
                 </div>
