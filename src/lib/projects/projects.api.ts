@@ -53,6 +53,12 @@ export const projectsApi = {
     return res.data;
   },
 
+  // Register random available supervisor for a project
+  registerSupervisor: async (id: string): Promise<ProjectDetailDto> => {
+    const res = await apiClient.post(`/projects/${id}/register-supervisor`, {});
+    return res.data;
+  },
+
   // Download any project document by its id
   downloadDocumentById: async (documentId: string): Promise<Blob> => {
     const res = await apiClient.get(`/projects/documents/${documentId}/download`, {
