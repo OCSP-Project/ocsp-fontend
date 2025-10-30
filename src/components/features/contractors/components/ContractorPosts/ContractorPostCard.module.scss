@@ -1,0 +1,334 @@
+.postCard {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  margin-bottom: 16px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  :global(.ant-card-body) {
+    padding: 0;
+  }
+}
+
+.postHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.avatar {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  flex-shrink: 0;
+}
+
+.contractorName {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1f2937;
+  display: block;
+  line-height: 1.4;
+}
+
+.postTime {
+  font-size: 13px;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+.moreButton {
+  color: #6b7280;
+  transition: all 0.2s;
+
+  &:hover {
+    color: #1f2937;
+    background: #f3f4f6;
+  }
+}
+
+.postContent {
+  padding: 16px;
+}
+
+.postTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  display: block;
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+.postDescription {
+  font-size: 15px;
+  color: #374151;
+  line-height: 1.6;
+  margin-bottom: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+
+  :global(.ant-typography-expand) {
+    color: #6b7280;
+    font-weight: 500;
+    
+    &:hover {
+      color: #374151;
+    }
+  }
+}
+
+// Image Container
+.imageContainer {
+  width: 100%;
+  position: relative;
+  background: #f9fafb;
+}
+
+// Grid Layouts
+.imageGrid {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+}
+
+.gridSingle .imageGrid {
+  grid-template-columns: 1fr;
+  
+  .imageGridItem {
+    aspect-ratio: 16 / 10;
+  }
+}
+
+.gridTwo .imageGrid {
+  grid-template-columns: repeat(2, 1fr);
+  
+  .imageGridItem {
+    aspect-ratio: 1;
+  }
+}
+
+.gridThree .imageGrid {
+  grid-template-columns: repeat(2, 1fr);
+  
+  .imageGridItem {
+    aspect-ratio: 1;
+    
+    &:first-child {
+      grid-column: 1 / -1;
+      aspect-ratio: 16 / 9;
+    }
+  }
+}
+
+.gridFour .imageGrid {
+  grid-template-columns: repeat(2, 1fr);
+  
+  .imageGridItem {
+    aspect-ratio: 1;
+  }
+}
+
+.gridMultiple .imageGrid {
+  grid-template-columns: repeat(3, 1fr);
+  
+  .imageGridItem {
+    aspect-ratio: 1;
+    
+    &:first-child {
+      grid-column: 1 / -1;
+      aspect-ratio: 16 / 9;
+    }
+  }
+}
+
+.imageGridItem {
+  position: relative;
+  overflow: hidden;
+  background: #e5e7eb;
+  animation: fadeInScale 0.4s ease-out forwards;
+  opacity: 0;
+
+  .postImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  &:hover .postImage {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Carousel for 5+ images
+.carouselWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: #000;
+}
+
+.carouselTrack {
+  display: flex;
+  height: 100%;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carouselSlide {
+  flex: 0 0 100%;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .postImage {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+}
+
+.navButton {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1f2937;
+  font-size: 16px;
+  z-index: 10;
+  opacity: 0;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  &:hover {
+    background: #ffffff;
+    transform: translateY(-50%) scale(1.1);
+    color: #000;
+  }
+
+  &:active {
+    transform: translateY(-50%) scale(0.95);
+  }
+}
+
+.carouselWrapper:hover .navButton {
+  opacity: 1;
+}
+
+.navButtonLeft {
+  left: 12px;
+}
+
+.navButtonRight {
+  right: 12px;
+}
+
+.imageCounter {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 10;
+}
+
+.imageMask {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+// Action Buttons
+.postActions {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-top: 1px solid #f0f0f0;
+  gap: 4px;
+}
+
+.actionButton {
+  flex: 1;
+  height: 36px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6b7280;
+  border-radius: 6px;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #1f2937;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  :global(.anticon) {
+    font-size: 18px;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .postCard {
+    border-radius: 0;
+    margin-bottom: 8px;
+  }
+
+  .postHeader {
+    padding: 12px;
+  }
+
+  .postContent {
+    padding: 12px;
+  }
+
+  .postTitle {
+    font-size: 15px;
+  }
+
+  .postDescription {
+    font-size: 14px;
+  }
+
+  .actionButton {
+    font-size: 13px;
+    height: 32px;
+
+    :global(.anticon) {
+      font-size: 16px;
+    }
+  }
+}

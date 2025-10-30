@@ -85,6 +85,12 @@ export default function DashboardLayout({
                     >
                       📆 Milestones
                     </Link>
+                    <Link
+                      href="/contractor/posts"
+                      className={getActivePathClass("/contractor/posts")}
+                    >
+                      📝 Bài đăng
+                    </Link>
                   </>
                 ) : (
                   <>
@@ -197,12 +203,14 @@ export default function DashboardLayout({
               >
                 🔔 Thông báo
               </Link>
-              <Link href="/settings" className={getActivePathClass("/settings")}>
+              <Link
+                href="/settings"
+                className={getActivePathClass("/settings")}
+              >
                 ⚙️ Cài đặt
               </Link>
             </div>
           </div>
-
         </nav>
 
         {/* User Section */}

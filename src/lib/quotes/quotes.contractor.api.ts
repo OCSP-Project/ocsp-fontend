@@ -18,6 +18,26 @@ export interface ProjectSummaryDto {
   floorArea: number;
   startDate: string;
   estimatedCompletionDate?: string;
+  documents?: ProjectDocumentDto[];
+}
+
+export interface ProjectDocumentDto {
+  id: string;
+  projectId: string;
+  documentType: number; // 1=Drawing, 2=Permit
+  documentTypeName: string;
+  fileName: string;
+  fileUrl: string;
+  fileType: string;
+  fileSize: number;
+  fileSizeFormatted: string;
+  isEncrypted: boolean;
+  fileHash: string;
+  uploadedByUserId: string;
+  uploadedByUsername: string;
+  uploadedAt: string;
+  version: number;
+  isLatest: boolean;
 }
 
 export interface InviteeSummaryDto {

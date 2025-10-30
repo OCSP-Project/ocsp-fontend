@@ -28,6 +28,10 @@ export const quotesApi = {
   sendToContractor: async (quoteId: string, contractorUserId: string): Promise<void> => {
     await apiClient.post(`/quotes/${quoteId}/send-to-contractor`, { contractorUserId });
   },
+  // Update invitees list for a quote
+  updateInvitees: async (quoteId: string, contractorUserIds: string[]): Promise<void> => {
+    await apiClient.put(`/quotes/${quoteId}/invitees`, { contractorUserIds });
+  },
 };
 
 

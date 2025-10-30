@@ -99,6 +99,18 @@ function parsePermitText(text: string, confidence: number): PermitScanResult {
 
 // ═══════════════════ PARSING FUNCTIONS ═══════════════════
 
+// Normalize Vietnamese text to improve OCR robustness
+function normalizeForSearch(input: string): string {
+  // Lowercase, remove accents, collapse spaces and normalize units like m²/m2/m 2
+  const lower = input.toLowerCase();
+  const noAccents = lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return noAccents
+    .replace(/m\s*²/g, 'm2')
+    .replace(/m\s*2/g, 'm2')
+    .replace(/m[ểệêe]\b/g, 'm') // occasional weird OCR for the ²
+    .replace(/\s+/g, ' ');
+}
+
 function extractPermitNumber(text: string): string | null {
   const patterns = [
     // Chính xác: "Số: CCS2075" hoặc "Số: CCS2075/GPXD-UBND"
@@ -186,10 +198,51 @@ function extractFloorArea(text: string): number | null {
       const value = match[1].replace(',', '.');
       const num = parseFloat(value);
       console.log(`✅ Found floor area: ${num} from "${match[0]}"`);
-      if (!isNaN(num) && num > 0) return num;
+      // Ignore obviously wrong tiny matches (like "1 m²" from bullets or stamps)
+      if (!isNaN(num) && num >= 10) return num;
     }
   }
   
+  // Heuristic on normalized text: look for lines containing keywords near numbers
+  const norm = normalizeForSearch(text);
+  // Direct targeted match for "tong(dien) tich (san) xay dung" with merged words tolerance
+  const directNorm = norm.match(/tong\s*die?n\s*tich\s*(?:san\s*)?xay\s*dung[:\-\s]*([\d\.,]+)\s*m?\s*2?/i);
+  if (directNorm) {
+    const cleaned = directNorm[1].replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(cleaned);
+    if (!isNaN(num) && num >= 10) {
+      console.log(`✅ Direct(normalized) floor area: ${num} from`, directNorm[0]);
+      return num;
+    }
+  }
+
+  const lines = norm.split(/\n+/);
+  for (const line of lines) {
+    const hasKeywords = line.includes('tong') && line.includes('dien tich') && (line.includes('san') || line.includes('xay dung'));
+    if (!hasKeywords) continue;
+    const m = line.match(/(\d{1,3}(?:[\.,]\d{3})*[\.,]?\d*)\s*m?\s*2?/i);
+    if (m) {
+      const cleaned = m[1].replace(/\./g, '').replace(',', '.'); // handle 1.234,56
+      const num = parseFloat(cleaned);
+      if (!isNaN(num) && num >= 10) {
+        console.log(`✅ Heuristic(normalized) floor area: ${num} from line:`, line);
+        return num;
+      }
+    }
+  }
+
+  // Final fallback: find all numbers followed by some variant of m2 on normalized text
+  const allNormMatches = norm.match(/(\d{1,3}(?:[\.,]\d{3})*[\.,]?\d*)\s*m2/gi);
+  if (allNormMatches) {
+    const numbers = allNormMatches.map(v => parseFloat(v.replace(/[^\d,\.]/g, '').replace(/\./g, '').replace(',', '.')))
+      .filter(n => !isNaN(n) && n >= 10);
+    if (numbers.length) {
+      const max = Math.max(...numbers);
+      console.log(`✅ Fallback(normalized) floor area: ${max}`);
+      return max;
+    }
+  }
+
   // Fallback: Tìm tất cả số có m², mỂ và chọn số lớn nhất
   console.log('🔍 Fallback: Finding all numbers with m²/mỂ...');
   const allMatches = text.match(/(\d+[,\.]?\d*)\s*m[²2Ể]/gi);
@@ -198,7 +251,7 @@ function extractFloorArea(text: string): number | null {
     const numbers = allMatches.map(match => {
       const value = match.replace(/[^\d,\.]/g, '').replace(',', '.');
       return parseFloat(value);
-    }).filter(num => !isNaN(num) && num > 0);
+    }).filter(num => !isNaN(num) && num >= 10);
     
     if (numbers.length > 0) {
       const maxNumber = Math.max(...numbers);
