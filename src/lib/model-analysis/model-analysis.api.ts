@@ -9,19 +9,19 @@ import {
   DeviationReport
 } from '@/types/model-tracking.types';
 
-const BASE_URL = '/api/model-analysis';
+const BASE_URL = '/model-analysis';
 
 export const modelAnalysisApi = {
   // Upload GLB file
-  uploadGLB: async (projectId: string, file: File): Promise<Project3DModel> => {
+  uploadGLB: async (projectId: string, file: File, description?: string): Promise<Project3DModel> => {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('projectId', projectId);
+    // Match backend [FromForm] UploadGLBRequest properties (case-insensitive, but keep PascalCase)
+    formData.append('ProjectId', projectId);
+    formData.append('File', file);
+    if (description) formData.append('Description', description);
 
     const response = await apiClient.post(`${BASE_URL}/upload`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
   },
@@ -29,13 +29,30 @@ export const modelAnalysisApi = {
   // Get 3D model info
   getModelInfo: async (projectId: string): Promise<Project3DModel> => {
     const response = await apiClient.get(`${BASE_URL}/projects/${projectId}/model`);
-    return response.data;
+    const data = response.data as any;
+    const base = new URL(apiClient.defaults.baseURL || window.location.origin);
+    const origin = `${base.protocol}//${base.hostname}${base.port ? `:${base.port}` : ''}`;
+    const fileUrl: string = data.fileUrl?.startsWith('http') ? data.fileUrl : `${origin}${data.fileUrl}`;
+
+    return {
+      ...data,
+      modelId: data.id,
+      fileUrl,
+    } as Project3DModel;
   },
 
   // Get building elements (parsed from GLB)
   getBuildingElements: async (modelId: string): Promise<BuildingElement[]> => {
-    const response = await apiClient.get(`${BASE_URL}/models/${modelId}/elements`);
-    return response.data;
+    try {
+      const response = await apiClient.get(`${BASE_URL}/models/${modelId}/elements`);
+      return response.data;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        // Backend chưa cung cấp elements → trả về mảng rỗng để không chặn UI
+        return [];
+      }
+      throw error;
+    }
   },
 
   // Get mesh groups (auto-detected components)
@@ -101,8 +118,21 @@ export const modelAnalysisApi = {
 
   // Get statistics
   getStatistics: async (projectId: string): Promise<TrackingStatistics> => {
-    const response = await apiClient.get(`${BASE_URL}/projects/${projectId}/statistics`);
-    return response.data;
+    try {
+      const response = await apiClient.get(`${BASE_URL}/projects/${projectId}/statistics`);
+      return response.data;
+    } catch (error: any) {
+      if (error?.response?.status === 404) {
+        return {
+          total_elements: 0,
+          by_type: { walls: 0, columns: 0, slabs: 0, beams: 0 },
+          total_volume: 0,
+          by_status: { completed: 0, in_progress: 0, not_started: 0 },
+          completion_percentage: 0,
+        };
+      }
+      throw error;
+    }
   },
 
   // Adjust mesh groups (after review)

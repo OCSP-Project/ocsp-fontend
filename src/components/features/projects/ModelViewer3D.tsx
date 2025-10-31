@@ -62,6 +62,13 @@ export default function ModelViewer3D({
       containerRef.current.clientHeight
     );
     renderer.setPixelRatio(window.devicePixelRatio);
+    // Improve output color
+    // @ts-ignore - keep compatible with three versions
+    renderer.outputColorSpace =
+      (THREE as any).SRGBColorSpace || (THREE as any).sRGBEncoding;
+    // @ts-ignore
+    renderer.toneMapping =
+      (THREE as any).ACESFilmicToneMapping || THREE.NoToneMapping;
     renderer.shadowMap.enabled = true;
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
@@ -136,17 +143,47 @@ export default function ModelViewer3D({
     meshToElementRef.current.clear();
 
     if (glbUrl) {
-      // Load GLB file
+      // Resolve absolute URL for GLB (handles relative '/uploads/...')
+      let absoluteUrl = glbUrl;
+      if (!/^https?:\/\//i.test(glbUrl)) {
+        // Prefer NEXT_PUBLIC_API_URL; strip trailing '/api'
+        const apiBase =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
+        const origin = apiBase.replace(/\/$/, "").replace(/\/api\/?$/, "");
+        absoluteUrl = `${origin}${glbUrl.startsWith("/") ? "" : "/"}${glbUrl}`;
+      }
+
       const loader = new GLTFLoader();
       loader.load(
-        glbUrl,
+        absoluteUrl,
         (gltf) => {
-          scene.add(gltf.scene);
+          const root = gltf.scene;
+          // Normalize materials for visibility
+          root.traverse((obj: any) => {
+            if (obj.isMesh) {
+              obj.castShadow = true;
+              obj.receiveShadow = true;
+              if (obj.material) {
+                if (Array.isArray(obj.material)) {
+                  obj.material.forEach((m: any) => (m.side = THREE.DoubleSide));
+                } else {
+                  obj.material.side = THREE.DoubleSide;
+                }
+              }
+            }
+          });
+
+          scene.add(root);
+
+          // Fit camera to the loaded model
+          fitCameraToObject(root);
+
           setLoading(false);
         },
         undefined,
         (error) => {
           console.error("Error loading GLB:", error);
+          console.error("Tried URL:", absoluteUrl);
           setLoading(false);
         }
       );
@@ -504,6 +541,35 @@ export default function ModelViewer3D({
         group.position.copy(originalPos);
       }
     });
+  };
+
+  // Fit camera to any object
+  const fitCameraToObject = (object: THREE.Object3D) => {
+    if (!cameraRef.current || !controlsRef.current) return;
+
+    const camera = cameraRef.current;
+    const controls = controlsRef.current;
+
+    const box = new THREE.Box3().setFromObject(object);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+
+    const maxSize = Math.max(size.x, size.y, size.z);
+    const fitHeightDistance =
+      maxSize / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
+    const fitWidthDistance = fitHeightDistance / camera.aspect;
+    const distance = Math.max(fitHeightDistance, fitWidthDistance) * 1.2; // add some margin
+
+    camera.near = Math.max(0.1, maxSize / 1000);
+    camera.far = distance * 1000;
+    camera.updateProjectionMatrix();
+
+    const direction = new THREE.Vector3(1, 0.75, 1).normalize();
+    camera.position.copy(
+      center.clone().add(direction.multiplyScalar(distance))
+    );
+    controls.target.copy(center);
+    controls.update();
   };
 
   // Handle mouse click

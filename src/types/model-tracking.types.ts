@@ -22,15 +22,27 @@ export interface BuildingElement {
 }
 
 export interface Project3DModel {
-  id: string;
-  project_id: string;
-  file_name: string;
-  file_url: string;
-  file_size_mb: number;
-  total_meshes: number;
-  analysis_completed: boolean;
-  uploaded_at: string;
-  analyzed_at?: string;
+  modelId: string;
+  projectId: string;
+  fileName: string;
+    fileUrl: string;
+  fileSizeMB: number;
+  totalMeshes: number;
+  isValid: boolean;
+  validationMessage?: string;
+  analysisCompleted: boolean;
+  uploadedAt: string;
+  // Additional fields for get model info
+  projectName?: string;
+  analyzedAt?: string;
+  analysisResult?: {
+    estimatedElements: number;
+    meshGroups: number;
+    hasTextures: boolean;
+    notes: string;
+  };
+  createdAt?: string;
+  createdBy?: string;
 }
 
 export interface MeshGroup {

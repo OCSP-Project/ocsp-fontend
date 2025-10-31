@@ -420,9 +420,7 @@ export default function ProjectDetailPage() {
               {/* Project Info */}
               <div className="lg:col-span-2">
                 <div className={cardCls}>
-                  <h2 className={`${titleCls} mb-4`}>
-                    Thông tin dự án
-                  </h2>
+                  <h2 className={`${titleCls} mb-4`}>Thông tin dự án</h2>
 
                   <div className="space-y-4">
                     <div>
@@ -487,9 +485,7 @@ export default function ProjectDetailPage() {
 
                 {/* Participants */}
                 <div className={`${cardCls} mt-6`}>
-                  <h2 className={`${titleCls} mb-4`}>
-                    Thành viên dự án
-                  </h2>
+                  <h2 className={`${titleCls} mb-4`}>Thành viên dự án</h2>
 
                   {project.participants.length === 0 ? (
                     <div className="text-stone-400">Chưa có thành viên nào</div>
@@ -525,6 +521,13 @@ export default function ProjectDetailPage() {
                       className="block w-full text-center py-2 px-4 bg-blue-600/20 text-blue-300 border border-blue-500/30 rounded-lg hover:bg-blue-600/30 transition"
                     >
                       Theo dõi tiến độ
+                    </Link>
+
+                    <Link
+                      href={`/projects/${project.id}/resources`}
+                      className="block w-full text-center py-2 px-4 bg-orange-600/20 text-orange-300 border border-orange-500/30 rounded-lg hover:bg-orange-600/30 transition"
+                    >
+                      Báo cáo tài nguyên
                     </Link>
                     <Link
                       href={`/projects/${project.id}/chat`}

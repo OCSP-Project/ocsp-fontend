@@ -1,23 +1,30 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
+import Header from "@/components/layout/Header";
 import ModelViewer3D from "@/components/features/projects/ModelViewer3D";
 import ComponentTrackingPanel from "@/components/features/projects/ComponentTrackingPanel";
 import DeviationReportModal from "@/components/features/projects/DeviationReportModal";
 import { modelAnalysisApi } from "@/lib/model-analysis/model-analysis.api";
+import { useAuth, UserRole } from "@/hooks/useAuth";
 import {
   BuildingElement,
   TrackingStatistics,
   TrackingStatus,
   DeviationType,
+  Project3DModel,
 } from "@/types/model-tracking.types";
 import { Button } from "@/components/ui";
 
 export default function Project3DModelPage() {
   const params = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
   const projectId = params.id as string;
 
+  const [model, setModel] = useState<Project3DModel | null>(null);
   const [elements, setElements] = useState<BuildingElement[]>([]);
   const [selectedElement, setSelectedElement] = useState<
     BuildingElement | undefined
@@ -43,183 +50,34 @@ export default function Project3DModelPage() {
   }, [projectId]);
 
   const loadProjectData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
+      // 1) Always load model first
+      const modelInfo = await modelAnalysisApi.getModelInfo(projectId);
+      setModel(modelInfo);
 
-      // Try to load from API
-      try {
-        const modelInfo = await modelAnalysisApi.getModelInfo(projectId);
-        const buildingElements = await modelAnalysisApi.getBuildingElements(
-          modelInfo.id
-        );
-        const stats = await modelAnalysisApi.getStatistics(projectId);
-
-        setElements(buildingElements);
-        setStatistics(stats);
-      } catch (error) {
-        console.log("API not ready, loading demo data...");
-        loadDemoData();
-      }
+      // 2) Load elements and stats but don't fail the whole page if 404
+      const [buildingElements, stats] = await Promise.all([
+        modelAnalysisApi.getBuildingElements(modelInfo.modelId),
+        modelAnalysisApi.getStatistics(projectId),
+      ]);
+      setElements(buildingElements);
+      setStatistics(stats);
     } catch (error) {
       console.error("Error loading project data:", error);
-      loadDemoData();
+      // Keep model null to show empty state; avoid crashing viewer
+      setModel(null);
+      setElements([]);
+      setStatistics({
+        total_elements: 0,
+        by_type: { walls: 0, columns: 0, slabs: 0, beams: 0 },
+        total_volume: 0,
+        by_status: { completed: 0, in_progress: 0, not_started: 0 },
+        completion_percentage: 0,
+      });
     } finally {
       setLoading(false);
     }
-  };
-
-  // Load demo data for testing
-  const loadDemoData = () => {
-    const demoElements: BuildingElement[] = [];
-
-    // Create a more realistic building structure
-    const buildingWidth = 10;
-    const buildingLength = 12;
-    const floorHeight = 3;
-
-    // Floor 1 - Foundation and ground floor
-    demoElements.push({
-      id: "foundation-1",
-      name: "Móng tầng 1",
-      element_type: "foundation",
-      dimensions: { width: buildingWidth, length: buildingLength, height: 0.5 },
-      center: [0, 0, 0],
-      volume_m3: buildingWidth * buildingLength * 0.5,
-      floor_level: 1,
-      tracking_status: "completed",
-      completion_percentage: 100,
-      can_track: true,
-    });
-
-    // Columns for support
-    const columns = 9;
-    for (let i = 0; i < columns; i++) {
-      const colX = ((i % 3) - 1) * 4;
-      const colZ = (Math.floor(i / 3) - 1) * 4;
-      demoElements.push({
-        id: `column-1-${i}`,
-        name: `Cột tầng 1 - C${i + 1}`,
-        element_type: "column",
-        dimensions: { width: 0.4, length: 0.4, height: floorHeight },
-        center: [colX, floorHeight / 2, colZ],
-        volume_m3: 0.5,
-        floor_level: 1,
-        tracking_status:
-          i < 4 ? "completed" : i < 7 ? "in_progress" : "not_started",
-        completion_percentage: i < 4 ? 100 : i < 7 ? 50 : 0,
-        can_track: true,
-      });
-    }
-
-    // Walls for floor 1
-    const walls = [
-      {
-        name: "Tường trước",
-        center: [0, floorHeight / 2, buildingLength / 2],
-        width: buildingWidth,
-        height: floorHeight,
-        thickness: 0.2,
-      },
-      {
-        name: "Tường sau",
-        center: [0, floorHeight / 2, -buildingLength / 2],
-        width: buildingWidth,
-        height: floorHeight,
-        thickness: 0.2,
-      },
-      {
-        name: "Tường trái",
-        center: [-buildingWidth / 2, floorHeight / 2, 0],
-        width: buildingLength,
-        height: floorHeight,
-        thickness: 0.2,
-      },
-      {
-        name: "Tường phải",
-        center: [buildingWidth / 2, floorHeight / 2, 0],
-        width: buildingLength,
-        height: floorHeight,
-        thickness: 0.2,
-      },
-    ];
-
-    walls.forEach((wall, idx) => {
-      demoElements.push({
-        id: `wall-1-${idx}`,
-        name: wall.name,
-        element_type: "wall",
-        dimensions: {
-          width: wall.width,
-          length: wall.thickness,
-          height: wall.height,
-        },
-        center: [wall.center[0], wall.center[1], wall.center[2]],
-        volume_m3: wall.width * wall.height * wall.thickness,
-        floor_level: 1,
-        tracking_status:
-          idx < 2 ? "completed" : idx < 3 ? "in_progress" : "not_started",
-        completion_percentage: idx < 2 ? 100 : idx < 3 ? 50 : 25,
-        can_track: true,
-      });
-    });
-
-    // Slab for floor 1 (roof/ceiling)
-    demoElements.push({
-      id: "slab-1",
-      name: "Sàn tầng 1",
-      element_type: "slab",
-      dimensions: { width: buildingWidth, length: buildingLength, height: 0.2 },
-      center: [0, floorHeight, 0],
-      volume_m3: buildingWidth * buildingLength * 0.2,
-      floor_level: 1,
-      tracking_status: "completed",
-      completion_percentage: 60,
-      can_track: true,
-    });
-
-    // Floor 2
-    demoElements.push({
-      id: "column-2-1",
-      name: "Cột tầng 2 - C1",
-      element_type: "column",
-      dimensions: { width: 0.4, length: 0.4, height: floorHeight },
-      center: [-4, floorHeight + floorHeight / 2, -4],
-      volume_m3: 0.5,
-      floor_level: 2,
-      tracking_status: "in_progress",
-      completion_percentage: 45,
-      can_track: true,
-    });
-
-    demoElements.push({
-      id: "wall-2-1",
-      name: "Tường trước tầng 2",
-      element_type: "wall",
-      dimensions: { width: buildingWidth, length: 0.2, height: floorHeight },
-      center: [0, floorHeight + floorHeight / 2, buildingLength / 2],
-      volume_m3: buildingWidth * floorHeight * 0.2,
-      floor_level: 2,
-      tracking_status: "in_progress",
-      completion_percentage: 30,
-      can_track: true,
-    });
-
-    // Roof
-    demoElements.push({
-      id: "roof-1",
-      name: "Mái nhà",
-      element_type: "roof",
-      dimensions: { width: buildingWidth, length: buildingLength, height: 2 },
-      center: [0, floorHeight * 2 + 1, 0],
-      volume_m3: buildingWidth * buildingLength * 2,
-      floor_level: 2,
-      tracking_status: "not_started",
-      completion_percentage: 0,
-      can_track: true,
-    });
-
-    setElements(demoElements);
-    updateStatistics(demoElements);
   };
 
   // Update statistics
@@ -295,14 +153,16 @@ export default function Project3DModelPage() {
         });
       }
 
-      // Try to update via API
+      // Update via API
       try {
         // 1. Upload photos
-        const uploadedPhotos = await modelAnalysisApi.uploadTrackingPhotos(
-          elementId,
-          photos
-        );
-        console.log("Photos uploaded:", uploadedPhotos);
+        if (photos.length > 0) {
+          const uploadedPhotos = await modelAnalysisApi.uploadTrackingPhotos(
+            elementId,
+            photos
+          );
+          console.log("Photos uploaded:", uploadedPhotos);
+        }
 
         // 2. Update completion percentage
         await modelAnalysisApi.updateCompletionPercentage(
@@ -311,7 +171,8 @@ export default function Project3DModelPage() {
         );
         console.log("Completion updated:", percentage);
       } catch (error) {
-        console.log("API not ready, only updating local state");
+        console.error("Error updating via API:", error);
+        throw error; // Re-throw to show error to user
       }
 
       alert(
@@ -370,88 +231,329 @@ export default function Project3DModelPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#1a1a1a] text-white">
-        <div className="text-2xl">⏳ Đang tải dữ liệu...</div>
-      </div>
+      <>
+        <Header />
+        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 to-stone-900 pt-20 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-amber-500 mx-auto mb-4"></div>
+            <p className="text-stone-300">Đang tải mô hình 3D...</p>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Show message if no model uploaded
+  if (!model) {
+    return (
+      <>
+        <Header />
+        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 to-stone-900 pt-20">
+          <div className="max-w-4xl mx-auto px-4 py-10">
+            <div className="bg-stone-800/60 backdrop-blur-xl rounded-xl border border-stone-700 p-8 text-center">
+              <div className="text-6xl mb-4">🏗️</div>
+              <h2 className="text-2xl font-bold text-stone-200 mb-4">
+                Chưa có mô hình 3D
+              </h2>
+              <p className="text-stone-400 mb-6">
+                Dự án này chưa có mô hình 3D nào được upload.
+              </p>
+              <div className="space-y-2 mb-6">
+                <p className="text-sm text-stone-500">
+                  Vui lòng upload file GLB để bắt đầu theo dõi tiến độ.
+                </p>
+              </div>
+
+              <div className="flex gap-3 justify-center">
+                <Button
+                  onClick={() =>
+                    router.push(`/projects/${projectId}/3d-model/upload`)
+                  }
+                  className="bg-amber-600 hover:bg-amber-500 text-stone-900 font-bold px-6 py-3"
+                >
+                  📤 Upload mô hình 3D
+                </Button>
+                <Button
+                  onClick={() => router.push(`/projects/${projectId}`)}
+                  className="bg-stone-700 hover:bg-stone-600 px-6 py-3"
+                >
+                  ← Quay lại dự án
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="flex h-screen bg-[#1a1a1a]">
-      {/* Left Panel - Tracking Info */}
-      <ComponentTrackingPanel
-        selectedElement={selectedElement}
-        statistics={statistics}
-        onUpdateCompletion={handleUpdateCompletion}
-        onReportDeviation={handleReportDeviation}
-      />
-
-      {/* Right Side - 3D Viewer */}
-      <div className="flex-1 flex flex-col">
-        {/* View Mode Controls */}
-        <div className="bg-[#2a2a2a] border-b border-gray-700 p-4 flex gap-4 items-center">
-          <div className="flex gap-2">
-            <Button
-              className={`${
-                viewMode === "normal" ? "bg-blue-600" : "bg-gray-700"
-              } text-white hover:bg-blue-700`}
-              onClick={() => setViewMode("normal")}
+    <>
+      <Header />
+      <div className="h-screen bg-stone-900 pt-16 flex flex-col">
+        {/* Top Bar */}
+        <div className="bg-stone-800/90 backdrop-blur border-b border-stone-700 px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Link
+              href={`/projects/${projectId}`}
+              className="text-stone-400 hover:text-stone-300"
             >
-              🏠 Bình thường
-            </Button>
-            <Button
-              className={`${
-                viewMode === "exploded" ? "bg-blue-600" : "bg-gray-700"
-              } text-white hover:bg-blue-700`}
-              onClick={() => setViewMode("exploded")}
-            >
-              📊 Tách rời
-            </Button>
+              ← Quay lại
+            </Link>
+            <div>
+              <h1 className="text-lg font-bold text-amber-200">
+                🏗️ Mô hình 3D
+              </h1>
+              {model && (
+                <p className="text-xs text-stone-400">
+                  File: {model.fileName} • {model.fileSizeMB.toFixed(2)}MB •{" "}
+                  {model.totalMeshes} meshes
+                </p>
+              )}
+            </div>
           </div>
 
-          {viewMode === "exploded" && (
-            <div className="flex items-center gap-3 flex-1">
-              <span className="text-white text-sm">Mức độ tách rời:</span>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={explodeFactor}
-                onChange={(e) => setExplodeFactor(parseFloat(e.target.value))}
-                className="flex-1 max-w-xs"
-              />
-              <span className="text-white text-sm">
-                {(explodeFactor * 100).toFixed(0)}%
-              </span>
+          <div className="flex items-center gap-3">
+            {/* View Mode Buttons */}
+            <div className="flex gap-2">
+              <Button
+                className={`${
+                  viewMode === "normal"
+                    ? "bg-blue-600 text-white"
+                    : "bg-stone-700 text-stone-300"
+                } hover:bg-blue-500`}
+                onClick={() => setViewMode("normal")}
+              >
+                🏠 Bình thường
+              </Button>
+              <Button
+                className={`${
+                  viewMode === "exploded"
+                    ? "bg-blue-600 text-white"
+                    : "bg-stone-700 text-stone-300"
+                } hover:bg-blue-500`}
+                onClick={() => setViewMode("exploded")}
+              >
+                📊 Tách rời
+              </Button>
             </div>
-          )}
+
+            {/* Upload Button (Supervisor only) */}
+            {user?.role === UserRole.Supervisor && (
+              <>
+                <div className="h-6 w-px bg-stone-600" />
+                <Button
+                  onClick={() =>
+                    router.push(`/projects/${projectId}/3d-model/upload`)
+                  }
+                  className="bg-amber-600 hover:bg-amber-500 text-stone-900 font-bold"
+                >
+                  📤 Upload mới
+                </Button>
+                <Button
+                  onClick={() =>
+                    router.push(`/projects/${projectId}/3d-model/history`)
+                  }
+                  className="bg-stone-700 hover:bg-stone-600"
+                >
+                  📜 Lịch sử
+                </Button>
+              </>
+            )}
+
+            {/* Elements Button */}
+            <Button
+              onClick={() => router.push(`/projects/${projectId}/elements`)}
+              className="bg-green-600 hover:bg-green-500 text-white"
+            >
+              📦 Building Elements ({elements.length})
+            </Button>
+          </div>
         </div>
 
-        {/* 3D Viewer */}
-        <div className="flex-1">
-          <ModelViewer3D
-            elements={elements}
-            onElementSelect={handleElementSelect}
-            selectedElementId={selectedElement?.id}
-            viewMode={viewMode}
-            explodeFactor={explodeFactor}
+        {/* Explode Factor Slider */}
+        {viewMode === "exploded" && (
+          <div className="bg-stone-800/90 backdrop-blur border-b border-stone-700 px-4 py-2 flex items-center gap-4">
+            <span className="text-sm text-stone-300">Mức độ tách rời:</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={explodeFactor}
+              onChange={(e) => setExplodeFactor(parseFloat(e.target.value))}
+              className="flex-1 max-w-md"
+            />
+            <span className="text-sm text-stone-300 w-12">
+              {(explodeFactor * 100).toFixed(0)}%
+            </span>
+          </div>
+        )}
+
+        {/* Main Content: 3D Viewer + Right Sidebar */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* 3D Viewer */}
+          <div className="flex-1 relative">
+            <ModelViewer3D
+              glbUrl={model?.fileUrl}
+              elements={elements}
+              onElementSelect={handleElementSelect}
+              selectedElementId={selectedElement?.id}
+              viewMode={viewMode}
+              explodeFactor={explodeFactor}
+            />
+          </div>
+
+          {/* Right Sidebar - Element Info */}
+          <div className="w-80 bg-stone-800/90 backdrop-blur border-l border-stone-700 overflow-y-auto">
+            {selectedElement ? (
+              <div className="p-4">
+                <h3 className="text-lg font-bold text-amber-200 mb-4">
+                  📦 {selectedElement.name}
+                </h3>
+
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between py-2 border-b border-stone-700">
+                    <span className="text-stone-400">Loại:</span>
+                    <span className="text-white font-semibold">
+                      {selectedElement.element_type}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-stone-700">
+                    <span className="text-stone-400">Tầng:</span>
+                    <span className="text-white font-semibold">
+                      {selectedElement.floor_level}
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-stone-700">
+                    <span className="text-stone-400">Khối lượng:</span>
+                    <span className="text-white font-semibold">
+                      {selectedElement.volume_m3.toFixed(2)} m³
+                    </span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-stone-700">
+                    <span className="text-stone-400">Kích thước:</span>
+                    <span className="text-white font-semibold text-xs">
+                      {selectedElement.dimensions.width.toFixed(2)}m ×{" "}
+                      {selectedElement.dimensions.length.toFixed(2)}m ×{" "}
+                      {selectedElement.dimensions.height.toFixed(2)}m
+                    </span>
+                  </div>
+                </div>
+
+                {/* Progress */}
+                <div className="mt-6 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-stone-300">Tiến độ:</span>
+                    <span className="text-xl font-bold text-blue-400">
+                      {selectedElement.completion_percentage}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-stone-700 rounded-full h-2">
+                    <div
+                      className="bg-blue-500 h-2 rounded-full transition-all"
+                      style={{
+                        width: `${selectedElement.completion_percentage}%`,
+                      }}
+                    />
+                  </div>
+                  <div className="mt-2 text-xs text-stone-400">
+                    Trạng thái:{" "}
+                    <strong>{selectedElement.tracking_status}</strong>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                {user?.role === UserRole.Supervisor && (
+                  <div className="mt-6 space-y-2">
+                    <Button
+                      className="w-full bg-green-600 hover:bg-green-500"
+                      onClick={() =>
+                        router.push(
+                          `/projects/${projectId}/elements/${selectedElement.id}/tracking`
+                        )
+                      }
+                    >
+                      📊 Cập nhật tiến độ
+                    </Button>
+                    <Button
+                      className="w-full bg-amber-600 hover:bg-amber-500 text-stone-900"
+                      onClick={() =>
+                        router.push(
+                          `/projects/${projectId}/elements/${selectedElement.id}`
+                        )
+                      }
+                    >
+                      🔧 Chỉnh sửa element
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="p-4 text-center text-stone-400">
+                <div className="text-4xl mb-3">👆</div>
+                <p className="text-sm">
+                  Click vào phần tử trên mô hình 3D để xem chi tiết
+                </p>
+              </div>
+            )}
+
+            {/* Statistics */}
+            <div className="p-4 border-t border-stone-700">
+              <h4 className="text-sm font-bold text-stone-300 mb-3">
+                📊 Thống kê
+              </h4>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-stone-400">Tổng elements:</span>
+                  <span className="text-white font-semibold">
+                    {statistics.total_elements}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-stone-400">Hoàn thành:</span>
+                  <span className="text-green-400 font-semibold">
+                    {statistics.by_status.completed}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-stone-400">Đang thi công:</span>
+                  <span className="text-orange-400 font-semibold">
+                    {statistics.by_status.in_progress}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-stone-400">Chưa bắt đầu:</span>
+                  <span className="text-red-400 font-semibold">
+                    {statistics.by_status.not_started}
+                  </span>
+                </div>
+                <div className="pt-2 border-t border-stone-700">
+                  <div className="flex justify-between">
+                    <span className="text-stone-400">% Hoàn thành:</span>
+                    <span className="text-blue-400 font-bold">
+                      {statistics.completion_percentage.toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Deviation Report Modal */}
+        {showDeviationModal && selectedElement && (
+          <DeviationReportModal
+            elementId={selectedElement.id}
+            elementName={selectedElement.name}
+            onClose={() => {
+              setShowDeviationModal(false);
+              setDeviationElement("");
+            }}
+            onSave={handleSaveDeviation}
           />
-        </div>
+        )}
       </div>
-
-      {/* Deviation Report Modal */}
-      {showDeviationModal && selectedElement && (
-        <DeviationReportModal
-          elementId={selectedElement.id}
-          elementName={selectedElement.name}
-          onClose={() => {
-            setShowDeviationModal(false);
-            setDeviationElement("");
-          }}
-          onSave={handleSaveDeviation}
-        />
-      )}
-    </div>
+    </>
   );
 }
