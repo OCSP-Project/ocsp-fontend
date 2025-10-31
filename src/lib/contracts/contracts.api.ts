@@ -170,3 +170,52 @@ export const contractsApi = {
     return data;
   },
 };
+
+// Payments (MoMo)
+export interface MomoCreatePaymentDto {
+  amount: number;
+  description?: string;
+  contractId?: string;
+  redirectUrl?: string;
+  projectId?: string;
+  purpose?: string; // 'commission' | 'supervisor'
+  extraData?: string; // base64 JSON chứa projectId, userId... (bổ sung cho BE xử lý chuẩn)
+}
+
+export interface MomoCreatePaymentResultDto {
+  payUrl: string;
+  orderId: string;
+  requestId: string;
+}
+
+export const paymentsApi = {
+  momoCreate: async (dto: MomoCreatePaymentDto): Promise<MomoCreatePaymentResultDto> => {
+    const { data } = await apiClient.post('/payments/momo/create', dto);
+    return data;
+  },
+  manualWebhook: async (payload: any) => {
+    return apiClient.post('/payments/manual-webhook', payload);
+  },
+  getWalletBalance: async (): Promise<{ balance: number }> => {
+    const { data } = await apiClient.get('/payments/wallet/balance');
+    return data;
+  },
+  getCommissionStatus: async (contractId: string): Promise<{ paid: boolean }> => {
+    const { data } = await apiClient.get(`/payments/commission/status`, { params: { contractId } });
+    return data;
+  },
+};
+
+// Escrow
+export interface EscrowAccountDto {
+  id: string;
+  contractId: string;
+  balance: number;
+}
+
+export const escrowApi = {
+  getByContract: async (contractId: string): Promise<EscrowAccountDto> => {
+    const { data } = await apiClient.get(`/escrow/by-contract/${contractId}`);
+    return data;
+  },
+};

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { SignaturePad } from '@/components/common/SignaturePad';
-import { contractsApi, type ContractDto } from '@/lib/contracts/contracts.api';
+import { contractsApi, paymentsApi, type ContractDto } from '@/lib/contracts/contracts.api';
+import { proposalsApi } from '@/lib/proposals/proposals.api';
 import { DownloadOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
 
 interface ContractSigningModalProps {
@@ -19,21 +20,41 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
   onSigned,
 }) => {
   const [contract, setContract] = useState<ContractDto | null>(null);
+  const [proposalPriceTotal, setProposalPriceTotal] = useState<number>(0);
+  const [walletBalance, setWalletBalance] = useState<number>(0);
   const [loading, setLoading] = useState(true);
   const [signing, setSigning] = useState(false);
   const [signatureBase64, setSignatureBase64] = useState<string>('');
   const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string>('');
+  const [commissionPaidServer, setCommissionPaidServer] = useState<boolean | null>(null);
 
   useEffect(() => {
     loadContract();
     loadPdf();
+    loadWalletBalance();
+    checkCommissionStatus();
   }, [contractId]);
 
   const loadContract = async () => {
     try {
       const data = await contractsApi.getById(contractId);
       setContract(data);
+      
+      // Load proposal to get priceTotal for commission calculation
+      if (data.proposalId) {
+        try {
+          const proposal = await proposalsApi.getMineById(data.proposalId);
+          setProposalPriceTotal(proposal.priceTotal);
+        } catch (proposalError: any) {
+          console.error('Failed to load proposal:', proposalError);
+          // Fallback to contract totalPrice
+          setProposalPriceTotal(data.totalPrice);
+        }
+      } else {
+        // Fallback to contract totalPrice
+        setProposalPriceTotal(data.totalPrice);
+      }
     } catch (error: any) {
       alert('Lỗi tải hợp đồng: ' + (error.response?.data?.message || error.message));
     } finally {
@@ -66,6 +87,35 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
     }
   };
 
+  const loadWalletBalance = async () => {
+    try {
+      if (userRole === 'contractor') {
+        const data = await paymentsApi.getWalletBalance();
+        setWalletBalance(data.balance);
+      }
+    } catch (error) {
+      console.error('Failed to load wallet balance:', error);
+      setWalletBalance(0);
+    }
+  };
+
+  const checkCommissionStatus = async () => {
+    try {
+      if (userRole === 'contractor') {
+        const res = await paymentsApi.getCommissionStatus(contractId);
+        setCommissionPaidServer(!!res?.paid);
+      }
+    } catch (e) {
+      setCommissionPaidServer(null);
+    }
+  };
+
+  // Helpers
+  const commissionRequiredRaw = Math.round((proposalPriceTotal || 0) * 0.01);
+  const commissionRequired = Math.max(1000, Math.ceil((commissionRequiredRaw || 0) / 1000) * 1000);
+  // Strict gating: rely on server-paid flag; if unknown or false -> treat as NOT paid
+  const commissionPaid = userRole !== 'contractor' ? true : (commissionPaidServer === true);
+
   const handleSaveSignature = (signature: string) => {
     setSignatureBase64(signature);
     setShowSignaturePad(false);
@@ -75,6 +125,18 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
     if (!signatureBase64) {
       alert('Vui lòng ký tên trước!');
       return;
+    }
+
+    // Enforce commission payment for contractor before signing
+    if (userRole === 'contractor') {
+      if (commissionRequired <= 0) {
+        alert('Không xác định được phí môi giới. Vui lòng thử lại sau.');
+        return;
+      }
+      if (!commissionPaid) {
+        alert('Bạn cần thanh toán phí môi giới trước khi ký hợp đồng.');
+        return;
+      }
     }
 
     setSigning(true);
@@ -158,7 +220,7 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
               </div>
               <div>
                 <p className="text-sm text-stone-400">Tổng giá trị</p>
-                <p className="text-amber-400 font-semibold">{contract.totalPrice.toLocaleString('vi-VN')} đồng</p>
+                <p className="text-amber-400 font-semibold">{(proposalPriceTotal || 0).toLocaleString('vi-VN')} đồng</p>
               </div>
               <div>
                 <p className="text-sm text-stone-400">Thời gian thi công</p>
@@ -195,6 +257,55 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
             </div>
           </div>
 
+          {/* Contractor commission payment requirement - show until paid and not already signed */}
+          {userRole === 'contractor' && !alreadySigned && !commissionPaid && (
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-amber-300 font-semibold">Yêu cầu thanh toán phí môi giới</p>
+                  <p className="text-sm text-amber-200/80 mt-1">
+                    Để ký hợp đồng, nhà thầu cần thanh toán phí hoa hồng 1% trên tổng giá trị dự án (đã bao gồm VAT).
+                  </p>
+                  <p className="text-sm text-amber-200 mt-2">
+                    Số tiền cần thanh toán: <span className="font-semibold">{commissionRequired.toLocaleString('vi-VN')} đồng</span>
+                  </p>
+                </div>
+                <div className="shrink-0">
+                  <button
+                    className="px-4 py-2 bg-fuchsia-600 hover:bg-fuchsia-500 text-white rounded-md"
+                    onClick={async () => {
+                      try {
+                        const amount = commissionRequired;
+                        if (!amount || amount <= 0) {
+                          alert('Không xác định được số tiền phí môi giới');
+                          return;
+                        }
+                        const redirectUrl = `${window.location.origin}/projects?tab=contracts`;
+                        const res = await paymentsApi.momoCreate({ 
+                          amount, 
+                          description: 'Phí môi giới ký hợp đồng', 
+                          contractId,
+                          redirectUrl,
+                          purpose: 'commission'
+                        });
+                        if (res?.payUrl) {
+                          window.location.href = res.payUrl;
+                        } else {
+                          alert('Không lấy được liên kết thanh toán');
+                        }
+                      } catch (e: any) {
+                        alert(e?.response?.data || e?.message || 'Khởi tạo thanh toán MoMo thất bại');
+                      }
+                    }}
+                  >
+                    Thanh toán qua MoMo
+                  </button>
+                </div>
+              </div>
+              <p className="text-xs text-amber-200/70 mt-2">Sau khi thanh toán thành công, vui lòng quay lại và tiến hành ký hợp đồng.</p>
+            </div>
+          )}
+
           {/* PDF Preview */}
           {pdfUrl && (
             <div className="bg-stone-800 p-4 rounded-lg">
@@ -223,8 +334,17 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
               
               {!showSignaturePad && !signatureBase64 && (
                 <button
-                  onClick={() => setShowSignaturePad(true)}
-                  className="w-full px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors"
+                  onClick={() => {
+                    if (userRole === 'contractor' && !commissionPaid) return;
+                    setShowSignaturePad(true);
+                  }}
+                  disabled={userRole === 'contractor' && !commissionPaid}
+                  className={`w-full px-4 py-3 rounded-lg transition-colors ${
+                    userRole === 'contractor' && !commissionPaid
+                      ? 'bg-stone-700 text-stone-300 opacity-60 cursor-not-allowed'
+                      : 'bg-blue-600 hover:bg-blue-500 text-white'
+                  }`}
+                  title={userRole === 'contractor' && !commissionPaid ? 'Vui lòng thanh toán phí môi giới trước' : undefined}
                 >
                   Bắt đầu ký tên
                 </button>
@@ -286,7 +406,7 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
             {alreadySigned ? 'Đóng' : 'Quay lại'}
           </button>
           
-          {canSign && !alreadySigned && signatureBase64 && (
+          {canSign && !alreadySigned && signatureBase64 && (userRole !== 'contractor' || commissionPaid) && (
             <button
               onClick={handleSign}
               disabled={signing}

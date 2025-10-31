@@ -92,6 +92,29 @@ export default function InvitesSection({}: Props) {
   const [editingProposal, setEditingProposal] = useState<ProposalDto | null>(null);
   const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
 
+  // Color helpers for highlighting status
+  const statusColorClass = (status?: string) => {
+    switch (status) {
+      case 'Sent':
+        return 'text-blue-400';
+      case 'Closed':
+      case 'Accepted':
+        return 'text-green-400';
+      case 'Rejected':
+        return 'text-rose-400';
+      case 'Submitted':
+        return 'text-amber-400';
+      case 'Resubmitted':
+        return 'text-purple-400';
+      case 'RevisionRequested':
+        return 'text-orange-400';
+      case 'Draft':
+        return 'text-stone-300';
+      default:
+        return 'text-stone-300';
+    }
+  };
+
   const loadInvites = async () => {
     try {
       setLoading(true);
@@ -328,7 +351,7 @@ export default function InvitesSection({}: Props) {
                         <span className="text-purple-300 text-xs">Proposal đã được cập nhật và gửi lại cho chủ nhà</span>
                       </div>
                     ) : (
-                      <span className="text-xs text-stone-400">Proposal: {q.myProposal.status}</span>
+                      <span className={`text-xs font-medium ${statusColorClass(q.myProposal.status)}`}>Proposal: {q.myProposal.status}</span>
                     )}
                     
                     {/* Action Buttons */}
