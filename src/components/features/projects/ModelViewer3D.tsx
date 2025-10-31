@@ -35,6 +35,7 @@ export default function ModelViewer3D({
     new Map()
   );
   const [loading, setLoading] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Initialize Three.js scene
   useEffect(() => {
@@ -116,6 +117,11 @@ export default function ModelViewer3D({
       );
     };
     window.addEventListener("resize", handleResize);
+    const onFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+      setTimeout(handleResize, 50);
+    };
+    document.addEventListener("fullscreenchange", onFullscreenChange);
 
     // Cleanup
     return () => {
@@ -124,6 +130,7 @@ export default function ModelViewer3D({
       if (containerRef.current && renderer.domElement) {
         containerRef.current.removeChild(renderer.domElement);
       }
+      document.removeEventListener("fullscreenchange", onFullscreenChange);
     };
   }, []);
 
@@ -169,6 +176,28 @@ export default function ModelViewer3D({
                 } else {
                   obj.material.side = THREE.DoubleSide;
                 }
+              }
+
+              // Apply color based on tracking data
+              const element = findElementByMeshIndex(obj.name, elements);
+              if (element) {
+                const color = getStatusColor(
+                  (element as any).trackingStatus || element.tracking_status
+                );
+                if (obj.material) {
+                  if (Array.isArray(obj.material)) {
+                    obj.material.forEach((m: any) => {
+                      m.color?.setHex?.(color);
+                      m.transparent = true;
+                      m.opacity = 0.9;
+                    });
+                  } else {
+                    (obj.material as any).color?.setHex?.(color);
+                    (obj.material as any).transparent = true;
+                    (obj.material as any).opacity = 0.9;
+                  }
+                }
+                meshToElementRef.current.set(obj, element);
               }
             }
           });
@@ -237,6 +266,17 @@ export default function ModelViewer3D({
       }
     });
   }, [selectedElementId]);
+
+  // Keyboard shortcut: 'M' to move forward
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "m" || e.key === "M") {
+        moveForward(1);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   // Create mesh for building element
   const createElementMesh = (element: BuildingElement) => {
@@ -513,14 +553,30 @@ export default function ModelViewer3D({
   };
 
   // Get color based on tracking status
-  const getStatusColor = (status: TrackingStatus): number => {
-    const colors: Record<TrackingStatus, number> = {
-      not_started: 0xf44336, // Red
-      in_progress: 0xffa726, // Orange
-      completed: 0x4caf50, // Green
+  const getStatusColor = (status: TrackingStatus | string): number => {
+    const colors: Record<string, number> = {
+      not_started: 0xcccccc,
+      in_progress: 0xffa726,
+      completed: 0x4caf50,
+      on_hold: 0xf44336,
     };
     return colors[status] || 0xcccccc;
   };
+
+  // Helper: match mesh name like "Mesh_0" to elements.meshIndices
+  function findElementByMeshIndex(
+    meshName: string,
+    elementsList: BuildingElement[]
+  ) {
+    const match = meshName?.match?.(/Mesh_(\d+)/);
+    if (!match) return null as any;
+    const meshIndex = parseInt(match[1], 10);
+    return elementsList.find((e: any) =>
+      Array.isArray((e as any).meshIndices)
+        ? (e as any).meshIndices.includes(meshIndex)
+        : false
+    ) as any;
+  }
 
   // Apply exploded view
   const applyExplodedView = (factor: number) => {
@@ -572,6 +628,28 @@ export default function ModelViewer3D({
     controls.update();
   };
 
+  // Move camera forward along its view direction
+  const moveForward = (distance: number) => {
+    if (!cameraRef.current || !controlsRef.current) return;
+    const camera = cameraRef.current;
+    const controls = controlsRef.current;
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    camera.position.addScaledVector(dir, distance);
+    controls.target.addScaledVector(dir, distance);
+    controls.update();
+  };
+
+  const toggleFullscreen = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (!document.fullscreenElement) {
+      el.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+  };
+
   // Handle mouse click
   const handleClick = (event: React.MouseEvent) => {
     if (!cameraRef.current || !sceneRef.current || !containerRef.current)
@@ -618,6 +696,24 @@ export default function ModelViewer3D({
         </div>
       )}
 
+      {/* Viewer controls */}
+      <div className="absolute top-4 left-4 flex gap-2">
+        <button
+          onClick={toggleFullscreen}
+          className="px-3 py-2 rounded-md bg-stone-800/80 text-stone-100 border border-stone-600 hover:bg-stone-700/80 text-sm"
+          title={isFullscreen ? "Thoát toàn màn hình" : "Toàn màn hình"}
+        >
+          {isFullscreen ? "⤢ Thoát" : "⤢ Toàn màn hình"}
+        </button>
+        <button
+          onClick={() => moveForward(1)}
+          className="px-3 py-2 rounded-md bg-stone-800/80 text-stone-100 border border-stone-600 hover:bg-stone-700/80 text-sm"
+          title="Tiến lên (phím M)"
+        >
+          ⏩ Tiến lên
+        </button>
+      </div>
+
       {/* Controls info */}
       <div className="absolute top-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm">
         <h4 className="text-green-400 font-bold mb-2">⌨️ Điều khiển</h4>
@@ -626,6 +722,7 @@ export default function ModelViewer3D({
           <div>🖱️ Chuột phải: Di chuyển</div>
           <div>🔍 Lăn chuột: Zoom</div>
           <div>👆 Click: Chọn phần tử</div>
+          <div>🅼: Tiến lên</div>
         </div>
       </div>
 

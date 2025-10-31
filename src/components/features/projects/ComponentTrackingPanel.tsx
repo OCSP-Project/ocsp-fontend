@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { buildingElementsApi } from "@/lib/building-elements/building-elements.api";
 import type {
   BuildingElement,
   TrackingStatistics,
@@ -45,26 +46,57 @@ export default function ComponentTrackingPanel({
     setPhotoPreview(previews);
   };
 
-  const handleSaveTracking = () => {
+  const handleSaveTracking = async () => {
     if (!selectedElement) return;
-
-    // Require at least 1 photo for tracking
     if (uploadedPhotos.length === 0) {
-      alert("Vui lòng upload ít nhất 1 ảnh chụp hiện trường!");
+      alert("Vui lòng upload ít nhất 1 ảnh!");
       return;
     }
 
-    onUpdateCompletion(
-      selectedElement.id,
-      completionPercentage,
-      uploadedPhotos
-    );
+    try {
+      const newStatus = mapStatusToNumber(
+        completionPercentage === 100
+          ? "completed"
+          : completionPercentage > 0
+          ? "in_progress"
+          : "not_started"
+      );
 
-    // Reset
-    setUploadedPhotos([]);
-    setPhotoPreview([]);
-    setNotes("");
+      const history = await buildingElementsApi.addTracking(selectedElement.id, {
+        newStatus,
+        newPercentage: completionPercentage,
+        notes,
+      });
+
+      for (const file of uploadedPhotos) {
+        await buildingElementsApi.addPhoto(
+          history.id,
+          file,
+          `Progress at ${completionPercentage}%`
+        );
+      }
+
+      onUpdateCompletion(selectedElement.id, completionPercentage, uploadedPhotos);
+
+      setUploadedPhotos([]);
+      setPhotoPreview([]);
+      setNotes("");
+      alert("✅ Đã lưu tracking thành công!");
+    } catch (error: any) {
+      console.error("Save tracking error:", error);
+      alert("❌ Lỗi: " + (error?.response?.data?.message || error?.message));
+    }
   };
+
+  function mapStatusToNumber(status: string): number {
+    const map: Record<string, number> = {
+      not_started: 0,
+      in_progress: 1,
+      completed: 2,
+      on_hold: 3,
+    };
+    return map[status] ?? 0;
+  }
 
   const getPercentageColor = (percentage: number) => {
     if (percentage === 0) return "text-red-500";

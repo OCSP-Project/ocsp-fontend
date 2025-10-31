@@ -41,6 +41,33 @@ export const modelAnalysisApi = {
     } as Project3DModel;
   },
 
+  // List models of a project (latest first)
+  listProjectModels: async (projectId: string): Promise<Project3DModel[]> => {
+    const response = await apiClient.get(`${BASE_URL}/projects/${projectId}/models`);
+    const base = new URL(apiClient.defaults.baseURL || window.location.origin);
+    const origin = `${base.protocol}//${base.hostname}${base.port ? `:${base.port}` : ''}`;
+    const list = (response.data as any[]).map((m) => ({
+      ...m,
+      modelId: m.id,
+      fileUrl: m.fileUrl?.startsWith('http') ? m.fileUrl : `${origin}${m.fileUrl}`,
+    })) as Project3DModel[];
+    return list;
+  },
+
+  // Get model by ID
+  getModelById: async (modelId: string): Promise<Project3DModel> => {
+    const response = await apiClient.get(`${BASE_URL}/models/${modelId}`);
+    const data = response.data as any;
+    const base = new URL(apiClient.defaults.baseURL || window.location.origin);
+    const origin = `${base.protocol}//${base.hostname}${base.port ? `:${base.port}` : ''}`;
+    const fileUrl: string = data.fileUrl?.startsWith('http') ? data.fileUrl : `${origin}${data.fileUrl}`;
+    return {
+      ...data,
+      modelId: data.id,
+      fileUrl,
+    } as Project3DModel;
+  },
+
   // Get building elements (parsed from GLB)
   getBuildingElements: async (modelId: string): Promise<BuildingElement[]> => {
     try {

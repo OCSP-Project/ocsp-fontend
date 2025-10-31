@@ -1,6 +1,6 @@
 // 3D Model Tracking Types
 
-export type TrackingStatus = 'not_started' | 'in_progress' | 'completed';
+export type TrackingStatus = 'not_started' | 'in_progress' | 'completed' | 'on_hold';
 
 export type ComponentType = 'wall' | 'column' | 'slab' | 'beam' | 'foundation' | 'roof';
 
@@ -19,6 +19,14 @@ export interface BuildingElement {
   tracking_status: TrackingStatus;
   completion_percentage: number; // 0-100
   can_track: boolean;
+  // New fields from building-elements API (camelCase)
+  modelId?: string;
+  elementType?: string;
+  floorLevel?: number;
+  meshIndices?: number[];
+  trackingStatus?: TrackingStatus;
+  completionPercentage?: number; // 0-100
+  createdAt?: string;
 }
 
 export interface Project3DModel {
@@ -127,4 +135,37 @@ export interface ComponentFilter {
   show_slabs: boolean;
   show_beams: boolean;
   show_roof: boolean;
+}
+
+// New tracking-related types for building-elements tracking feature
+export interface TrackingHistory {
+  id: string;
+  buildingElementId: string;
+  trackingDate: string;
+  previousPercentage: number;
+  newPercentage: number;
+  previousStatus: number | null;
+  newStatus: number;
+  notes?: string;
+}
+
+export interface TrackingPhoto {
+  id: string;
+  trackingHistoryId: string;
+  photoUrl: string;
+  caption?: string;
+  fileSizeMB: number;
+  fileType?: string;
+  width?: number;
+  height?: number;
+  uploadedAt: string;
+}
+
+export interface ModelSummary {
+  totalElements: number;
+  notStarted: number;
+  inProgress: number;
+  completed: number;
+  onHold: number;
+  averageCompletion: number;
 }
