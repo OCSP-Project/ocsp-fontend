@@ -1,4 +1,3 @@
-// src/app/chat/page.tsx
 "use client";
 
 import dynamic from "next/dynamic";
@@ -13,13 +12,13 @@ const ChatMessengerList = dynamic(
   { ssr: false }
 );
 
-export default function ChatPage() {
+export default function ContractorChatPage() {
   const { user, isLoading } = useAuthContext();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== UserRole.Homeowner)) {
-      // Redirect non-homeowner users
+    if (!isLoading && (!user || user.role !== UserRole.Contractor)) {
+      // Redirect non-contractor users
       router.push("/");
     }
   }, [user, isLoading, router]);
@@ -33,8 +32,8 @@ export default function ChatPage() {
     );
   }
 
-  // If not authenticated or not homeowner, show access denied
-  if (!user || user.role !== UserRole.Homeowner) {
+  // If not authenticated or not contractor, show access denied
+  if (!user || user.role !== UserRole.Contractor) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-900">
         <div className="text-center">
@@ -42,7 +41,7 @@ export default function ChatPage() {
             Không có quyền truy cập
           </h1>
           <p className="text-stone-400 mb-6">
-            Chỉ chủ nhà mới có thể sử dụng tính năng chat này.
+            Chỉ nhà thầu mới có thể sử dụng tính năng chat này.
           </p>
           <button
             onClick={() => router.push("/")}

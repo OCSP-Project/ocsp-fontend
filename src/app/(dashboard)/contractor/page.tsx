@@ -35,11 +35,9 @@ import {
   AlertOutlined,
 } from "@ant-design/icons";
 import { gsap } from "gsap";
-import RoleBasedRoute from "@/components/shared/RoleBasedRoute";
-import { UserRole } from "@/hooks/useAuth";
 import styles from "./ContractorDashboard.module.scss";
-import { useAuth } from "@/hooks/useAuth";
-
+import { useAuth, UserRole } from "@/hooks/useAuth";
+import RoleBasedRoute from "@/components/shared/RoleBasedRoute";
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
