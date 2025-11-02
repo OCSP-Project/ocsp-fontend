@@ -230,7 +230,7 @@ export default function ProjectDetailPage() {
     project.hasSupervisorsAvailable;
   const monthlyPrice = !!project
     ? project.floorArea <= 200
-      ? 80000
+      ? 8000000
       : 15000000
     : 0;
 

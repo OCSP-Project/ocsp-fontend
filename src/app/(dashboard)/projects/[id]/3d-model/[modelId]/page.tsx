@@ -106,6 +106,14 @@ export default function ProjectModelDetailPage() {
               </p>
             </div>
           </div>
+          <Button
+            onClick={() =>
+              router.push(`/projects/${projectId}/3d-model/${modelId}/tracking`)
+            }
+            className="bg-blue-600 hover:bg-blue-500 text-white font-bold"
+          >
+            📊 Tracking & Quản lý Elements
+          </Button>
         </div>
 
         <div className="flex-1 flex overflow-hidden">

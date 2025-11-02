@@ -24,8 +24,10 @@ export interface BuildingElement {
   elementType?: string;
   floorLevel?: number;
   meshIndices?: number[];
+  meshIndicesJson?: string; // JSON string from API
   trackingStatus?: TrackingStatus;
   completionPercentage?: number; // 0-100
+  color?: string; // Hex color from DB
   createdAt?: string;
 }
 
