@@ -1,8 +1,11 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { contractorQuotesApi, type QuoteRequestDetailDto } from '@/lib/quotes/quotes.contractor.api';
-import { proposalsApi, type CreateProposalDto, type UpdateProposalDto } from '@/lib/proposals/proposals.api';
+import { contractorQuotesApi, type QuoteRequestDetailDto, type ProjectDocumentDto } from '@/lib/quotes/quotes.contractor.api';
+import { projectsApi } from '@/lib/projects/projects.api';
+import { proposalsApi, type CreateProposalDto, type UpdateProposalDto, type ProposalDto as ApiProposalDto } from '@/lib/proposals/proposals.api';
+import { ProposalDisplay, EditProposalModal } from '@/components/features/proposals';
+import type { ProposalDto } from '@/lib/proposals/proposal.types';
 
 interface Props {}
 
@@ -10,57 +13,107 @@ export default function InvitesSection({}: Props) {
   const cardCls = 'bg-stone-800/60 backdrop-blur-xl rounded-xl border border-stone-700 shadow-lg p-5 text-stone-100';
   const titleCls = 'text-xl font-semibold text-amber-300 tracking-wide';
 
+  // Convert API ProposalDto to Display ProposalDto
+  const convertApiProposalToDisplay = (apiProposal: ApiProposalDto): ProposalDto => {
+    return {
+      id: apiProposal.id,
+      quoteRequestId: apiProposal.quoteRequestId,
+      contractorUserId: apiProposal.contractorUserId,
+      priceTotal: apiProposal.priceTotal,
+      durationDays: apiProposal.durationDays,
+      termsSummary: apiProposal.termsSummary,
+      status: apiProposal.status,
+      createdAt: new Date().toISOString(), // Default value
+      updatedAt: new Date().toISOString(), // Default value
+      items: apiProposal.items.map(item => ({
+        name: item.name,
+        price: item.price,
+        notes: item.notes
+      })),
+      contractor: undefined, // Not available in API
+      quoteRequest: undefined, // Not available in API
+      isFromExcel: apiProposal.isFromExcel,
+      excelFileName: apiProposal.excelFileName,
+      excelFileUrl: apiProposal.excelFileUrl,
+      projectTitle: apiProposal.projectTitle,
+      constructionArea: apiProposal.constructionArea,
+      constructionTime: apiProposal.constructionTime,
+      numberOfWorkers: apiProposal.numberOfWorkers,
+      averageSalary: apiProposal.averageSalary
+    };
+  };
+
+  // Convert Display ProposalDto back to API ProposalDto
+  const convertDisplayProposalToApi = (displayProposal: ProposalDto): ApiProposalDto => {
+    return {
+      id: displayProposal.id,
+      quoteRequestId: displayProposal.quoteRequestId,
+      contractorUserId: displayProposal.contractorUserId,
+      priceTotal: displayProposal.priceTotal,
+      durationDays: displayProposal.durationDays,
+      termsSummary: displayProposal.termsSummary,
+      status: displayProposal.status,
+      items: displayProposal.items.map(item => ({
+        id: '', // Generate new ID if needed
+        name: item.name,
+        price: item.price,
+        notes: item.notes
+      })),
+      isFromExcel: displayProposal.isFromExcel || false,
+      excelFileName: displayProposal.excelFileName,
+      excelFileUrl: displayProposal.excelFileUrl,
+      projectTitle: displayProposal.projectTitle,
+      constructionArea: displayProposal.constructionArea,
+      constructionTime: displayProposal.constructionTime,
+      numberOfWorkers: displayProposal.numberOfWorkers,
+      averageSalary: displayProposal.averageSalary
+    };
+  };
+
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [invites, setInvites] = useState<QuoteRequestDetailDto[]>([]);
 
   // Proposal form state
   const [showFormFor, setShowFormFor] = useState<string | null>(null);
-  const [durationDays, setDurationDays] = useState<number>(30);
-  const [termsSummary, setTermsSummary] = useState<string>('');
-  const [items, setItems] = useState<Array<{ name: string; unit: string; qty: number; unitPrice: number }>>([
-    { name: '', unit: '', qty: 1, unitPrice: 0 },
-  ]);
-  const [submitting, setSubmitting] = useState<boolean>(false);
-  const priceTotal = useMemo(() => items.reduce((s, i) => s + (i.qty || 0) * (i.unitPrice || 0), 0), [items]);
+  const [uploading, setUploading] = useState<boolean>(false);
+  const [excelFile, setExcelFile] = useState<File | null>(null);
+  const [showProposalDetail, setShowProposalDetail] = useState<string | null>(null);
+  const [proposalDetail, setProposalDetail] = useState<ProposalDto | null>(null);
   const [expandedProject, setExpandedProject] = useState<string | null>(null);
-  const [previewFor, setPreviewFor] = useState<string | null>(null);
-  const [previewLoading, setPreviewLoading] = useState(false);
-  const [previewData, setPreviewData] = useState<{priceTotal: number; durationDays: number; termsSummary?: string; items: {name:string; unit:string; qty:number; unitPrice:number}[]}|null>(null);
   const [showProjectDetail, setShowProjectDetail] = useState<string | null>(null);
   const [projectDetailData, setProjectDetailData] = useState<QuoteRequestDetailDto | null>(null);
   const [showQuoteDetailFor, setShowQuoteDetailFor] = useState<string | null>(null);
   const [quoteDetailLoading, setQuoteDetailLoading] = useState<boolean>(false);
   const [quoteDetailData, setQuoteDetailData] = useState<QuoteRequestDetailDto | null>(null);
+  
+  // Edit proposal modal state
+  const [editProposalModalVisible, setEditProposalModalVisible] = useState(false);
+  const [editingProposal, setEditingProposal] = useState<ProposalDto | null>(null);
+  const [editingQuoteId, setEditingQuoteId] = useState<string | null>(null);
 
-  // Load proposal detail once when previewFor changes
-  useEffect(() => {
-    const fetchPreview = async () => {
-      if (!previewFor) return;
-      const q = invites.find(i => i.id === previewFor);
-      const mp = q?.myProposal;
-      if (!mp?.id) return;
-      try {
-        setPreviewLoading(true);
-        const full = await proposalsApi.getMineById(mp.id);
-        setPreviewData({
-          priceTotal: full.priceTotal,
-          durationDays: full.durationDays,
-          termsSummary: full.termsSummary,
-          items: full.items.map(i => ({ name: i.name, unit: i.unit, qty: i.qty, unitPrice: i.unitPrice }))
-        });
-      } catch {
-        // ignore
-      } finally {
-        setPreviewLoading(false);
-      }
-    };
-    // reset data on open
-    if (previewFor) {
-      setPreviewData(null);
-      void fetchPreview();
+  // Color helpers for highlighting status
+  const statusColorClass = (status?: string) => {
+    switch (status) {
+      case 'Sent':
+        return 'text-blue-400';
+      case 'Closed':
+      case 'Accepted':
+        return 'text-green-400';
+      case 'Rejected':
+        return 'text-rose-400';
+      case 'Submitted':
+        return 'text-amber-400';
+      case 'Resubmitted':
+        return 'text-purple-400';
+      case 'RevisionRequested':
+        return 'text-orange-400';
+      case 'Draft':
+        return 'text-stone-300';
+      default:
+        return 'text-stone-300';
     }
-  }, [previewFor, invites]);
+  };
 
   const loadInvites = async () => {
     try {
@@ -77,85 +130,74 @@ export default function InvitesSection({}: Props) {
 
   useEffect(() => { loadInvites(); }, []);
 
-  const resetForm = () => {
-    setDurationDays(30);
-    setTermsSummary('');
-    setItems([{ name: '', unit: 'gói', qty: 1, unitPrice: 0 }]);
-  };
+  const resetForm = () => { setExcelFile(null); };
 
-  const addItem = () => setItems(prev => [...prev, { name: '', unit: 'gói', qty: 1, unitPrice: 0 }]);
-  const removeItem = (idx: number) => setItems(prev => prev.filter((_, i) => i !== idx));
-  const updateItem = (idx: number, key: 'name'|'unit'|'qty'|'unitPrice', value: string) => {
-    setItems(prev => prev.map((it, i) => i === idx ? { ...it, [key]: key === 'qty' || key === 'unitPrice' ? Number(value) : value } : it));
-  };
-
-  const onCreateProposal = async (quoteId: string) => {
+  const onUploadExcel = async (quoteId: string) => {
+    if (!excelFile) { alert('Vui lòng chọn file .xlsx'); return; }
     try {
-      setSubmitting(true);
-      const payload: CreateProposalDto = {
-        quoteRequestId: quoteId,
-        durationDays,
-        termsSummary: termsSummary || undefined,
-        items: items.map(i => ({ name: i.name.trim(), unit: i.unit.trim(), qty: i.qty, unitPrice: i.unitPrice })),
-      };
-      await proposalsApi.create(payload);
+      setUploading(true);
+      await proposalsApi.uploadExcel(quoteId, excelFile);
       setShowFormFor(null);
       resetForm();
       await loadInvites();
-      alert('Đã tạo Proposal (Draft). Bạn có thể Submit để nộp.');
+      alert('Đã tải file Excel. Hệ thống sẽ xử lý và sinh proposal.');
     } catch (e: any) {
-      alert(e?.response?.data || e?.message || 'Tạo Proposal thất bại');
+      alert(e?.response?.data || e?.message || 'Tải file thất bại');
     } finally {
-      setSubmitting(false);
+      setUploading(false);
     }
+  };
+
+  const onViewProposalDetail = async (quoteId: string) => {
+    try {
+      const apiProposal = await proposalsApi.getMineByQuote(quoteId);
+      const proposal = convertApiProposalToDisplay(apiProposal);
+      setProposalDetail(proposal);
+      setShowProposalDetail(quoteId);
+    } catch (e: any) {
+      alert(e?.response?.data || e?.message || 'Không thể tải proposal');
+    }
+  };
+
+  const onCreateProposal = async (_quoteId: string) => {
+    alert('Tạo proposal trực tiếp đã được thay bằng upload Excel.');
   };
 
   const onSubmitProposal = async (proposalId: string) => {
     try {
-      setSubmitting(true);
       await proposalsApi.submit(proposalId);
       await loadInvites();
       alert('Đã nộp Proposal');
     } catch (e: any) {
       alert(e?.response?.data || e?.message || 'Submit Proposal thất bại');
-    } finally {
-      setSubmitting(false);
     }
   };
 
   const onEditProposal = async (quoteId: string) => {
     try {
-      setSubmitting(true);
-      const draft = await proposalsApi.getMineByQuote(quoteId);
-      // Pre-fill form
-      setDurationDays(draft.durationDays);
-      setTermsSummary(draft.termsSummary || '');
-      setItems(draft.items.map(i => ({ name: i.name, unit: i.unit, qty: i.qty, unitPrice: i.unitPrice })));
-      setShowFormFor(quoteId);
+      const apiProposal = await proposalsApi.getMineByQuote(quoteId);
+      const proposal = convertApiProposalToDisplay(apiProposal);
+      setEditingProposal(proposal);
+      setEditingQuoteId(quoteId);
+      setEditProposalModalVisible(true);
     } catch (e: any) {
-      alert(e?.response?.data || e?.message || 'Không tải được proposal');
-    } finally {
-      setSubmitting(false);
+      alert(e?.response?.data || e?.message || 'Không thể tải proposal để chỉnh sửa');
     }
   };
 
-  const onSaveDraft = async (quoteId: string) => {
-    try {
-      setSubmitting(true);
-      const draft = await proposalsApi.getMineByQuote(quoteId);
-      const payload: UpdateProposalDto = {
-        durationDays,
-        termsSummary: termsSummary || undefined,
-        items: items.map(i => ({ name: i.name.trim(), unit: i.unit.trim(), qty: i.qty, unitPrice: i.unitPrice })),
-      };
-      await proposalsApi.updateDraft(draft.id, payload);
-      alert('Đã lưu bản nháp');
-      await loadInvites();
-    } catch (e: any) {
-      alert(e?.response?.data || e?.message || 'Lưu nháp thất bại');
-    } finally {
-      setSubmitting(false);
-    }
+  const onSaveDraft = async (_quoteId: string) => {
+    alert('Lưu nháp trực tiếp đã được thay bằng upload Excel.');
+  };
+
+  const handleEditProposalSuccess = async () => {
+    // Refresh invites data to show updated proposal
+    await loadInvites();
+  };
+
+  const handleCloseEditModal = () => {
+    setEditProposalModalVisible(false);
+    setEditingProposal(null);
+    setEditingQuoteId(null);
   };
 
   const handleViewProjectDetail = (quoteId: string) => {
@@ -197,11 +239,68 @@ export default function InvitesSection({}: Props) {
     });
   };
 
+  const downloadBlob = (blob: Blob, fileName: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName || 'document';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  };
+
+  const onDownloadTemplate = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/templates/proposal-excel', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to download template');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'proposal-template.xlsx';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      
+      alert('Đã tải template Excel thành công!');
+    } catch (e: any) {
+      alert('Tải template thất bại: ' + (e?.message || 'Lỗi không xác định'));
+    }
+  };
+
+  const onDownloadDocument = async (doc: ProjectDocumentDto, projectId: string) => {
+    try {
+      const blob = await projectsApi.downloadDocumentById(doc.id);
+      downloadBlob(blob, doc.fileName);
+    } catch (e: any) {
+      alert(e?.response?.data?.message || e?.message || 'Không thể tải tài liệu');
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 gap-6">
       <div className="flex items-center justify-between">
         <h3 className="text-2xl font-extrabold tracking-tight text-amber-200">Lời mời báo giá</h3>
-        <button className="px-3 py-2 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-200" onClick={loadInvites}>Tải lại</button>
+        <div className="flex items-center gap-3">
+          <button 
+            className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white"
+            onClick={onDownloadTemplate}
+          >
+            📥 Tải Template Excel
+          </button>
+          <button className="px-3 py-2 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-200" onClick={loadInvites}>Tải lại</button>
+        </div>
       </div>
 
       {loading ? (
@@ -218,7 +317,7 @@ export default function InvitesSection({}: Props) {
                 <div>
                   <div className="text-stone-100 font-medium mb-1">{q.scope || 'Không có mô tả'}</div>
                   <div className="text-xs text-stone-400">Dự án: {q.project?.name} • {q.project?.address}</div>
-                  <div className="text-xs text-stone-400">Trạng thái: {q.status}{q.dueDate ? ` • Hạn: ${new Date(q.dueDate).toLocaleDateString('vi-VN')}` : ''}</div>
+                  <div className="text-xs text-stone-400">Trạng thái: {q.status}</div>
                 </div>
                 <div className="text-xs text-stone-500">#{q.id.slice(0,8)}</div>
               </div>
@@ -228,26 +327,48 @@ export default function InvitesSection({}: Props) {
                   className="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-white"
                   onClick={() => handleViewProjectDetail(q.id)}
                 >
-                  Xem chi tiết dự án
+                   chi tiết dự án
                 </button>
                 <button
                   className="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white"
                   onClick={() => void handleViewQuoteDetail(q.id)}
                 >
-                  Xem chi tiết yêu cầu báo giá
+                  chi tiết yêu cầu báo giá
                 </button>
                 {!q.myProposal?.id ? (
                   <button className="px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-stone-900" onClick={() => setShowFormFor(q.id)}>Tạo Proposal</button>
                 ) : (
                   <>
-                    <span className="text-xs text-stone-400">Proposal: {q.myProposal.status}</span>
-                    {q.myProposal.status === 'Draft' ? (
-                      <button className="px-3 py-1.5 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-200" onClick={() => onEditProposal(q.id)}>Sửa Proposal</button>
+                    {/* Status Display */}
+                    {q.myProposal.status === 'RevisionRequested' ? (
+                      <div className="flex items-center gap-2 px-3 py-2 bg-orange-600/20 border border-orange-500/30 rounded-lg">
+                        <span className="text-orange-400 text-sm font-medium">⚠️ Yêu cầu chỉnh sửa đề xuất báo giá từ chủ nhà</span>
+                        <span className="text-orange-300 text-xs">Vui lòng liên hệ với chủ nhà để thảo luận vấn đề cần chỉnh sửa . Sau đó vui lòng chỉnh sửa Proposal và nộp lại</span>
+                      </div>
+                    ) : q.myProposal.status === 'Resubmitted' ? (
+                      <div className="flex items-center gap-2 px-3 py-2 bg-purple-600/20 border border-purple-500/30 rounded-lg">
+                        <span className="text-purple-400 text-sm font-medium">✅ Đã chỉnh sửa và gửi lại</span>
+                        <span className="text-purple-300 text-xs">Proposal đã được cập nhật và gửi lại cho chủ nhà</span>
+                      </div>
                     ) : (
-                      <button className="px-3 py-1.5 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-200" onClick={() => setPreviewFor(q.id)}>Xem Proposal</button>
+                      <span className={`text-xs font-medium ${statusColorClass(q.myProposal.status)}`}>Proposal: {q.myProposal.status}</span>
+                    )}
+                    
+                    {/* Action Buttons */}
+                    {q.myProposal.status === 'Draft' && (
+                      <button className="px-3 py-1.5 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-200" onClick={() => onEditProposal(q.id)}>Sửa Proposal</button>
                     )}
                     {q.myProposal.status === 'Draft' && (
-                      <button disabled={submitting} className="px-3 py-1.5 rounded-md bg-green-600 hover:bg-green-500 text-stone-900 disabled:opacity-50" onClick={() => onSubmitProposal(q.myProposal!.id!)}>Nộp Proposal</button>
+                      <button className="px-3 py-1.5 rounded-md bg-green-600 hover:bg-green-500 text-stone-900 disabled:opacity-50" onClick={() => onSubmitProposal(q.myProposal!.id!)}>Nộp Proposal</button>
+                    )}
+                    {q.myProposal.status === 'RevisionRequested' && (
+                      <button className="px-3 py-1.5 rounded-md bg-orange-600 hover:bg-orange-500 text-white" onClick={() => onEditProposal(q.id)}>Chỉnh sửa Proposal</button>
+                    )}
+                    {q.myProposal.status === 'RevisionRequested' && (
+                      <button className="px-3 py-1.5 rounded-md bg-green-600 hover:bg-green-500 text-stone-900 disabled:opacity-50" onClick={() => onSubmitProposal(q.myProposal!.id!)}>Nộp Proposal</button>
+                    )}
+                    {q.myProposal && (
+                      <button className="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-stone-100" onClick={() => onViewProposalDetail(q.id)}>Xem Proposal</button>
                     )}
                   </>
                 )}
@@ -256,65 +377,30 @@ export default function InvitesSection({}: Props) {
 
               {showFormFor === q.id && (
                 <div className="mt-4 border-t border-stone-700/60 pt-4">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm text-stone-300 mb-1">Thời gian thi công (ngày)</label>
-                      <input type="number" value={durationDays} onChange={e => setDurationDays(Number(e.target.value))} className="w-full bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100" />
-                    </div>
-                    <div className="lg:col-span-2">
-                      <label className="block text-sm text-stone-300 mb-1">Điều khoản tóm tắt</label>
-                      <input value={termsSummary} onChange={e => setTermsSummary(e.target.value)} className="w-full bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100" />
-                    </div>
+                  <div className="mb-4 p-3 bg-blue-900/20 border border-blue-700/30 rounded-lg">
+                    <h4 className="text-blue-300 font-semibold mb-2">📋 Hướng dẫn tạo Proposal:</h4>
+                    <ol className="text-sm text-blue-200 space-y-1">
+                      <li>1. Nhấn "📥 Tải Template Excel" để tải file mẫu</li>
+                      <li>2. Mở file Excel và chỉnh sửa sao cho phù hợp với dự án</li>             
+                      <li>3. Upload file Excel đã hoàn thành ở bên dưới</li>
+                    </ol>
                   </div>
-
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="block text-sm text-stone-300">Hạng mục</label>
-                      <button className="px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 text-stone-200" onClick={addItem}>Thêm</button>
-                    </div>
-                    <div className="space-y-2">
-                      {items.map((it, idx) => (
-                        <div key={idx} className="grid grid-cols-12 gap-2 items-center">
-                          <input placeholder="Tên" className="col-span-4 bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100" value={it.name} onChange={e => updateItem(idx, 'name', e.target.value)} />
-                          <input placeholder="Đơn vị:bao,gói,..." className="col-span-2 bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100" value={it.unit} onChange={e => updateItem(idx, 'unit', e.target.value)} />
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            placeholder="Số lượng (Ví dụ :1)"
-                            className="col-span-2 bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100"
-                            value={it.qty ? it.qty.toLocaleString('vi-VN') : ''}
-                            onChange={e => {
-                              const digits = e.target.value.replace(/[^\d]/g, '');
-                              updateItem(idx, 'qty', digits);
-                            }}
-                          />
-                          <input
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            placeholder="Đơn Giá (Ví dụ: 250.000)"
-                            className="col-span-3 bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100"
-                            value={it.unitPrice ? it.unitPrice.toLocaleString('vi-VN') : ''}
-                            onChange={e => {
-                              const digits = e.target.value.replace(/[^\d]/g, '');
-                              updateItem(idx, 'unitPrice', digits);
-                            }}
-                          />
-                          <button className="col-span-1 px-2 py-2 rounded bg-rose-700/70 hover:bg-rose-600/80 text-stone-50" onClick={() => removeItem(idx)}>Xoá</button>
-                        </div>
-                      ))}
-                    </div>
+                  
+                  <div>
+                    <label className="block text-sm text-stone-300 mb-1">Upload Proposal (.xlsx)</label>
+                    <input
+                      type="file"
+                      accept=".xlsx"
+                      className="w-full bg-stone-900/50 border border-stone-700 rounded-md px-3 py-2 text-stone-100"
+                      onChange={(e) => setExcelFile(e.target.files?.[0] || null)}
+                    />
+                    <p className="text-xs text-stone-400 mt-2">Chỉ chấp nhận tệp Excel (.xlsx). Hệ thống sẽ xử lý và sinh proposal.</p>
                   </div>
-
-                  <div className="mt-3 text-sm text-stone-400">Tổng tạm tính: <span className="text-amber-300 font-semibold">{priceTotal.toLocaleString('vi-VN')}</span></div>
 
                   <div className="mt-4 flex items-center gap-3">
-                    {!q.myProposal?.id ? (
-                      <button disabled={submitting} className="px-4 py-2 rounded-md bg-amber-600 hover:bg-amber-500 text-stone-900 disabled:opacity-50" onClick={() => onCreateProposal(q.id)}>Tạo Proposal</button>
-                    ) : (
-                      <button disabled={submitting} className="px-4 py-2 rounded-md bg-amber-600 hover:bg-amber-500 text-stone-900 disabled:opacity-50" onClick={() => onSaveDraft(q.id)}>Lưu bản nháp</button>
-                    )}
+                    <button disabled={uploading || !excelFile} className="px-4 py-2 rounded-md bg-amber-600 hover:bg-amber-500 text-stone-900 disabled:opacity-50" onClick={() => onUploadExcel(q.id)}>
+                      {uploading ? 'Đang tải...' : 'Tải lên Excel'}
+                    </button>
                     <button className="px-4 py-2 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-200" onClick={() => { setShowFormFor(null); resetForm(); }}>Huỷ</button>
                   </div>
                 </div>
@@ -369,18 +455,8 @@ export default function InvitesSection({}: Props) {
                       {projectDetailData.project.budget ? formatCurrency(projectDetailData.project.budget) : 'Chưa xác định'}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-stone-500 text-sm mb-2">Ngày bắt đầu</p>
-                    <p className="text-stone-100 text-lg">
-                      {projectDetailData.project.startDate ? formatDate(projectDetailData.project.startDate) : 'Chưa cập nhật'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-stone-500 text-sm mb-2">Ngày hoàn thành dự kiến</p>
-                    <p className="text-stone-100 text-lg">
-                      {projectDetailData.project.estimatedCompletionDate ? formatDate(projectDetailData.project.estimatedCompletionDate) : 'Chưa cập nhật'}
-                    </p>
-                  </div>
+                  {/* Ngừng hiển thị ngày bắt đầu theo flow mới */}
+                  {/* Ngừng hiển thị ngày hoàn thành dự kiến theo flow mới */}
                   <div>
                     <p className="text-stone-500 text-sm mb-2">Trạng thái dự án</p>
                     <p className="text-green-400 font-medium text-lg">Active</p>
@@ -402,71 +478,6 @@ export default function InvitesSection({}: Props) {
         </div>
       )}
 
-      {/* Proposal Preview Modal */}
-      {previewFor && (() => {
-        const q = invites.find(i => i.id === previewFor);
-        const mp = q?.myProposal;
-        return (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-stone-800 rounded-xl border border-stone-700 p-6 w-full max-w-5xl mx-auto max-h-[90vh] overflow-auto">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-xl font-semibold text-amber-300">Proposal của bạn</h3>
-                <button className="text-stone-400 hover:text-stone-200 text-2xl" onClick={() => { setPreviewFor(null); setPreviewData(null); }}>×</button>
-              </div>
-              {!mp ? (
-                <div className="text-stone-300">Chưa có proposal</div>
-              ) : previewLoading || !previewData ? (
-                <div className="text-stone-300">Đang tải chi tiết...</div>
-              ) : (
-                <div className="space-y-4 text-sm">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div><span className="text-stone-400">Trạng thái:</span> <span className="text-stone-100 font-medium">{mp.status}</span></div>
-                    <div><span className="text-stone-400">Tổng giá:</span> <span className="text-amber-300 font-semibold">{previewData.priceTotal.toLocaleString('vi-VN')}</span></div>
-                    <div><span className="text-stone-400">Thời gian thi công:</span> <span className="text-stone-100">{previewData.durationDays} ngày</span></div>
-                  </div>
-                  {previewData.termsSummary && (
-                    <div>
-                      <div className="text-stone-400">Điều khoản tóm tắt</div>
-                      <div className="text-stone-100">{previewData.termsSummary}</div>
-                    </div>
-                  )}
-                  <div>
-                    <div className="text-stone-400 mb-2">Danh sách hạng mục</div>
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full text-left text-sm">
-                        <thead className="text-stone-300">
-                          <tr>
-                            <th className="px-2 py-1">Hạng mục</th>
-                            <th className="px-2 py-1">Đơn vị</th>
-                            <th className="px-2 py-1">Số lượng</th>
-                            <th className="px-2 py-1">Đơn giá</th>
-                            <th className="px-2 py-1">Thành tiền</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {previewData.items.map((it, idx) => (
-                            <tr key={idx} className="border-t border-stone-700/60 text-stone-200">
-                              <td className="px-2 py-1">{it.name}</td>
-                              <td className="px-2 py-1">{it.unit}</td>
-                              <td className="px-2 py-1">{it.qty}</td>
-                              <td className="px-2 py-1">{it.unitPrice.toLocaleString('vi-VN')}</td>
-                              <td className="px-2 py-1">{(it.qty * it.unitPrice).toLocaleString('vi-VN')}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div className="mt-6 text-right">
-                <button className="px-4 py-2 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-200" onClick={() => { setPreviewFor(null); setPreviewData(null); }}>Đóng</button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
       {/* Quote Request Detail Modal */}
       {showQuoteDetailFor && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -483,8 +494,6 @@ export default function InvitesSection({}: Props) {
                   <div><span className="text-stone-400">Mô tả phạm vi:</span> <span className="text-stone-100">{quoteDetailData.scope || '—'}</span></div>
                  
                   <div><span className="text-stone-400">Trạng thái:</span> <span className="text-stone-100">{quoteDetailData.status}</span></div>
-                 
-                  <div><span className="text-stone-400">Hạn chót:</span> <span className="text-stone-100">{quoteDetailData.dueDate ? new Date(quoteDetailData.dueDate).toLocaleDateString('vi-VN') : '—'}</span></div>
                 </div>
                 <div className="border-t border-stone-700/60 pt-3">
                   <div className="text-stone-400 mb-2">Chủ nhà</div>
@@ -494,6 +503,26 @@ export default function InvitesSection({}: Props) {
                 <div className="border-t border-stone-700/60 pt-3">
                   <div className="text-stone-400 mb-2">Dự án</div>
                   <div className="text-stone-100">{quoteDetailData.project.name} • {quoteDetailData.project.address}</div>
+                  {quoteDetailData.project.documents && quoteDetailData.project.documents.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-stone-400 mb-2">Tài liệu đính kèm</div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {quoteDetailData.project.documents
+                          .filter((d: ProjectDocumentDto) => d.documentType === 1 || d.documentType === 2)
+                          .slice(0, 2)
+                          .map((doc: ProjectDocumentDto) => (
+                            <button
+                              key={doc.id}
+                              onClick={() => onDownloadDocument(doc, quoteDetailData.project.id)}
+                              className="text-left p-3 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-100 border border-stone-600"
+                            >
+                              <div className="text-sm font-medium">{doc.documentTypeName}</div>
+                              <div className="text-xs text-stone-300 truncate">{doc.fileName}</div>
+                            </button>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -503,8 +532,36 @@ export default function InvitesSection({}: Props) {
           </div>
         </div>
       )}
+      {/* Proposal Detail Modal */}
+      {showProposalDetail && proposalDetail && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-stone-900 rounded-xl border border-stone-700 max-w-6xl w-full max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b border-stone-700">
+              <h2 className="text-xl font-bold text-stone-100">ĐỀ XUẤT BÁO GIÁ</h2>
+              <button 
+                onClick={() => { setShowProposalDetail(null); setProposalDetail(null); }}
+                className="text-stone-400 hover:text-stone-200 text-2xl"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <ProposalDisplay proposal={proposalDetail} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Proposal Modal */}
+      {editingProposal && editingQuoteId && (
+        <EditProposalModal
+          proposal={convertDisplayProposalToApi(editingProposal)}
+          quoteId={editingQuoteId}
+          visible={editProposalModalVisible}
+          onClose={handleCloseEditModal}
+          onSuccess={handleEditProposalSuccess}
+        />
+      )}
     </div>
   );
 }
-
-
