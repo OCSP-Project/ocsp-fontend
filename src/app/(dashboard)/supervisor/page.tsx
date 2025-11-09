@@ -35,7 +35,6 @@ import {
   UploadOutlined,
 } from "@ant-design/icons";
 import { gsap } from "gsap";
-import RoleBasedRoute from "@/components/shared/RoleBasedRoute";
 import { UserRole } from "@/hooks/useAuth";
 import styles from "./SupervisorDashboard.module.scss";
 
@@ -280,228 +279,221 @@ const SupervisorDashboard: React.FC = () => {
   ];
 
   return (
-    <RoleBasedRoute allowedRoles={[UserRole.Supervisor]}>
-      <div className={styles.supervisorDashboard}>
-        {/* Header */}
-        <div className={`${styles.dashboardHeader} supervisor-header`}>
-          <div className={styles.headerContent}>
-            <div>
-              <Title level={2} className={styles.pageTitle}>
-                Dashboard Giám sát viên
-              </Title>
-              <Text className={styles.pageSubtitle}>
-                Giám sát chất lượng và an toàn công trình
-              </Text>
-            </div>
-            <div className={styles.headerActions}>
-              <Button icon={<FileTextOutlined />}>Báo cáo mới</Button>
-              <Button type="primary" icon={<CameraOutlined />}>
-                Kiểm tra hiện trường
-              </Button>
-            </div>
+    <div className={styles.supervisorDashboard}>
+      {/* Header */}
+      <div className={`${styles.dashboardHeader} supervisor-header`}>
+        <div className={styles.headerContent}>
+          <div>
+            <Title level={2} className={styles.pageTitle}>
+              Dashboard Giám sát viên
+            </Title>
+            <Text className={styles.pageSubtitle}>
+              Giám sát chất lượng và an toàn công trình
+            </Text>
+          </div>
+          <div className={styles.headerActions}>
+            <Button icon={<FileTextOutlined />}>Báo cáo mới</Button>
+            <Button type="primary" icon={<CameraOutlined />}>
+              Kiểm tra hiện trường
+            </Button>
           </div>
         </div>
-
-        {/* Statistics Cards */}
-        <Row gutter={[24, 24]} className={styles.statsSection}>
-          <Col xs={24} sm={12} lg={6}>
-            <Card
-              className={`${styles.statCard} supervisor-stat-card`}
-              loading={loading}
-            >
-              <Statistic
-                title="Dự án đang giám sát"
-                value={mockStats.activeProjects}
-                valueStyle={{ color: "#1890ff" }}
-                prefix={<SafetyCertificateOutlined />}
-                suffix={
-                  <span className={styles.growthIndicator}>
-                    <RiseOutlined style={{ color: "#52c41a" }} />
-                    {mockStats.projectsGrowth}%
-                  </span>
-                }
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card
-              className={`${styles.statCard} supervisor-stat-card`}
-              loading={loading}
-            >
-              <Statistic
-                title="Kiểm tra hoàn thành"
-                value={mockStats.completedInspections}
-                valueStyle={{ color: "#52c41a" }}
-                prefix={<CheckCircleOutlined />}
-                suffix={
-                  <span className={styles.growthIndicator}>
-                    <RiseOutlined style={{ color: "#52c41a" }} />
-                    {mockStats.inspectionsGrowth}%
-                  </span>
-                }
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card
-              className={`${styles.statCard} supervisor-stat-card`}
-              loading={loading}
-            >
-              <Statistic
-                title="Báo cáo chờ xử lý"
-                value={mockStats.pendingReports}
-                valueStyle={{ color: "#faad14" }}
-                prefix={<ClockCircleOutlined />}
-              />
-            </Card>
-          </Col>
-          <Col xs={24} sm={12} lg={6}>
-            <Card
-              className={`${styles.statCard} supervisor-stat-card`}
-              loading={loading}
-            >
-              <Statistic
-                title="Vi phạm an toàn"
-                value={mockStats.safetyViolations}
-                valueStyle={{ color: "#ff4d4f" }}
-                prefix={<ExclamationCircleOutlined />}
-                suffix={
-                  <span className={styles.growthIndicator}>
-                    <RiseOutlined
-                      style={{
-                        color: "#52c41a",
-                        transform: "rotate(180deg)",
-                      }}
-                    />
-                    {Math.abs(mockStats.violationsChange)}%
-                  </span>
-                }
-              />
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Safety Alert */}
-        <div className={`${styles.alertSection} supervisor-content`}>
-          <Alert
-            message="Cảnh báo an toàn"
-            description="Dự án 'Nhà cấp 4' có mức độ rủi ro cao. Cần kiểm tra đặc biệt vào ngày 22/01."
-            type="warning"
-            showIcon
-            action={
-              <Button size="small" type="primary">
-                Xem chi tiết
-              </Button>
-            }
-          />
-        </div>
-
-        {/* Main Content Tabs */}
-        <div className={`${styles.mainContent} supervisor-content`}>
-          <Tabs activeKey={activeTab} onChange={setActiveTab} type="card">
-            <TabPane tab="Tổng quan" key="overview">
-              <Row gutter={[24, 24]}>
-                <Col xs={24} xl={16}>
-                  <Card
-                    title="Dự án đang giám sát"
-                    className={styles.contentCard}
-                  >
-                    <Table
-                      columns={projectColumns}
-                      dataSource={mockProjects}
-                      pagination={false}
-                      rowKey="id"
-                    />
-                  </Card>
-                </Col>
-                <Col xs={24} xl={8}>
-                  <Card title="Lịch kiểm tra" className={styles.contentCard}>
-                    <Timeline>
-                      <Timeline.Item color="blue" dot={<CalendarOutlined />}>
-                        <div>
-                          <strong>18/01 - Villa 2 tầng</strong>
-                          <br />
-                          <Text type="secondary">Kiểm tra nền móng</Text>
-                        </div>
-                      </Timeline.Item>
-                      <Timeline.Item
-                        color="orange"
-                        dot={<ClockCircleOutlined />}
-                      >
-                        <div>
-                          <strong>20/01 - Nhà phố 3 tầng</strong>
-                          <br />
-                          <Text type="secondary">An toàn lao động</Text>
-                        </div>
-                      </Timeline.Item>
-                      <Timeline.Item color="red" dot={<AlertOutlined />}>
-                        <div>
-                          <strong>22/01 - Nhà cấp 4</strong>
-                          <br />
-                          <Text type="secondary">Kiểm tra đặc biệt</Text>
-                        </div>
-                      </Timeline.Item>
-                    </Timeline>
-                  </Card>
-                </Col>
-              </Row>
-            </TabPane>
-
-            <TabPane tab="Kiểm tra & Báo cáo" key="inspections">
-              <Row gutter={[24, 24]}>
-                <Col xs={24}>
-                  <Card
-                    title="Lịch sử kiểm tra"
-                    className={styles.contentCard}
-                    extra={
-                      <Space>
-                        <Button icon={<UploadOutlined />}>Tải báo cáo</Button>
-                        <Button type="primary" icon={<FileTextOutlined />}>
-                          Tạo báo cáo mới
-                        </Button>
-                      </Space>
-                    }
-                  >
-                    <Table
-                      columns={inspectionColumns}
-                      dataSource={mockInspections}
-                      pagination={{ pageSize: 10 }}
-                      rowKey="id"
-                    />
-                  </Card>
-                </Col>
-              </Row>
-            </TabPane>
-
-            <TabPane tab="Lịch làm việc" key="calendar">
-              <Card
-                title="Lịch kiểm tra tháng này"
-                className={styles.contentCard}
-              >
-                <Calendar
-                  mode="month"
-                  dateCellRender={(value) => {
-                    const dateStr = value.format("YYYY-MM-DD");
-                    if (dateStr === "2024-01-18") {
-                      return (
-                        <Badge status="processing" text="Villa kiểm tra" />
-                      );
-                    }
-                    if (dateStr === "2024-01-20") {
-                      return <Badge status="warning" text="Nhà phố kiểm tra" />;
-                    }
-                    if (dateStr === "2024-01-22") {
-                      return <Badge status="error" text="Kiểm tra đặc biệt" />;
-                    }
-                    return null;
-                  }}
-                />
-              </Card>
-            </TabPane>
-          </Tabs>
-        </div>
       </div>
-    </RoleBasedRoute>
+
+      {/* Statistics Cards */}
+      <Row gutter={[24, 24]} className={styles.statsSection}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            className={`${styles.statCard} supervisor-stat-card`}
+            loading={loading}
+          >
+            <Statistic
+              title="Dự án đang giám sát"
+              value={mockStats.activeProjects}
+              valueStyle={{ color: "#1890ff" }}
+              prefix={<SafetyCertificateOutlined />}
+              suffix={
+                <span className={styles.growthIndicator}>
+                  <RiseOutlined style={{ color: "#52c41a" }} />
+                  {mockStats.projectsGrowth}%
+                </span>
+              }
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            className={`${styles.statCard} supervisor-stat-card`}
+            loading={loading}
+          >
+            <Statistic
+              title="Kiểm tra hoàn thành"
+              value={mockStats.completedInspections}
+              valueStyle={{ color: "#52c41a" }}
+              prefix={<CheckCircleOutlined />}
+              suffix={
+                <span className={styles.growthIndicator}>
+                  <RiseOutlined style={{ color: "#52c41a" }} />
+                  {mockStats.inspectionsGrowth}%
+                </span>
+              }
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            className={`${styles.statCard} supervisor-stat-card`}
+            loading={loading}
+          >
+            <Statistic
+              title="Báo cáo chờ xử lý"
+              value={mockStats.pendingReports}
+              valueStyle={{ color: "#faad14" }}
+              prefix={<ClockCircleOutlined />}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card
+            className={`${styles.statCard} supervisor-stat-card`}
+            loading={loading}
+          >
+            <Statistic
+              title="Vi phạm an toàn"
+              value={mockStats.safetyViolations}
+              valueStyle={{ color: "#ff4d4f" }}
+              prefix={<ExclamationCircleOutlined />}
+              suffix={
+                <span className={styles.growthIndicator}>
+                  <RiseOutlined
+                    style={{
+                      color: "#52c41a",
+                      transform: "rotate(180deg)",
+                    }}
+                  />
+                  {Math.abs(mockStats.violationsChange)}%
+                </span>
+              }
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Safety Alert */}
+      <div className={`${styles.alertSection} supervisor-content`}>
+        <Alert
+          message="Cảnh báo an toàn"
+          description="Dự án 'Nhà cấp 4' có mức độ rủi ro cao. Cần kiểm tra đặc biệt vào ngày 22/01."
+          type="warning"
+          showIcon
+          action={
+            <Button size="small" type="primary">
+              Xem chi tiết
+            </Button>
+          }
+        />
+      </div>
+
+      {/* Main Content Tabs */}
+      <div className={`${styles.mainContent} supervisor-content`}>
+        <Tabs activeKey={activeTab} onChange={setActiveTab} type="card">
+          <TabPane tab="Tổng quan" key="overview">
+            <Row gutter={[24, 24]}>
+              <Col xs={24} xl={16}>
+                <Card
+                  title="Dự án đang giám sát"
+                  className={styles.contentCard}
+                >
+                  <Table
+                    columns={projectColumns}
+                    dataSource={mockProjects}
+                    pagination={false}
+                    rowKey="id"
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} xl={8}>
+                <Card title="Lịch kiểm tra" className={styles.contentCard}>
+                  <Timeline>
+                    <Timeline.Item color="blue" dot={<CalendarOutlined />}>
+                      <div>
+                        <strong>18/01 - Villa 2 tầng</strong>
+                        <br />
+                        <Text type="secondary">Kiểm tra nền móng</Text>
+                      </div>
+                    </Timeline.Item>
+                    <Timeline.Item color="orange" dot={<ClockCircleOutlined />}>
+                      <div>
+                        <strong>20/01 - Nhà phố 3 tầng</strong>
+                        <br />
+                        <Text type="secondary">An toàn lao động</Text>
+                      </div>
+                    </Timeline.Item>
+                    <Timeline.Item color="red" dot={<AlertOutlined />}>
+                      <div>
+                        <strong>22/01 - Nhà cấp 4</strong>
+                        <br />
+                        <Text type="secondary">Kiểm tra đặc biệt</Text>
+                      </div>
+                    </Timeline.Item>
+                  </Timeline>
+                </Card>
+              </Col>
+            </Row>
+          </TabPane>
+
+          <TabPane tab="Kiểm tra & Báo cáo" key="inspections">
+            <Row gutter={[24, 24]}>
+              <Col xs={24}>
+                <Card
+                  title="Lịch sử kiểm tra"
+                  className={styles.contentCard}
+                  extra={
+                    <Space>
+                      <Button icon={<UploadOutlined />}>Tải báo cáo</Button>
+                      <Button type="primary" icon={<FileTextOutlined />}>
+                        Tạo báo cáo mới
+                      </Button>
+                    </Space>
+                  }
+                >
+                  <Table
+                    columns={inspectionColumns}
+                    dataSource={mockInspections}
+                    pagination={{ pageSize: 10 }}
+                    rowKey="id"
+                  />
+                </Card>
+              </Col>
+            </Row>
+          </TabPane>
+
+          <TabPane tab="Lịch làm việc" key="calendar">
+            <Card
+              title="Lịch kiểm tra tháng này"
+              className={styles.contentCard}
+            >
+              <Calendar
+                mode="month"
+                dateCellRender={(value) => {
+                  const dateStr = value.format("YYYY-MM-DD");
+                  if (dateStr === "2024-01-18") {
+                    return <Badge status="processing" text="Villa kiểm tra" />;
+                  }
+                  if (dateStr === "2024-01-20") {
+                    return <Badge status="warning" text="Nhà phố kiểm tra" />;
+                  }
+                  if (dateStr === "2024-01-22") {
+                    return <Badge status="error" text="Kiểm tra đặc biệt" />;
+                  }
+                  return null;
+                }}
+              />
+            </Card>
+          </TabPane>
+        </Tabs>
+      </div>
+    </div>
   );
 };
 

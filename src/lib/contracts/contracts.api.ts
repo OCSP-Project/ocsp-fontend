@@ -224,6 +224,75 @@ export const escrowApi = {
   },
 };
 
+// Milestones
+export interface MilestoneDto {
+  id: string;
+  contractId: string;
+  name: string;
+  amount: number;
+  dueDate?: string | null;
+  note?: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMilestoneDto {
+  contractId: string;
+  name: string;
+  amount: number;
+  dueDate?: string | null;
+  note?: string | null;
+}
+
+export interface BulkCreateMilestonesDto {
+  contractId: string;
+  milestones: Array<{
+    name: string;
+    amount: number;
+    dueDate?: string | null;
+    note?: string | null;
+  }>;
+}
+
+export interface UpdateMilestoneDto {
+  name: string;
+  amount: number;
+  dueDate?: string | null;
+  note?: string | null;
+}
+
+export const milestonesApi = {
+  // List milestones by contract
+  listByContract: async (contractId: string): Promise<MilestoneDto[]> => {
+    const { data } = await apiClient.get(`/milestones/contract/${contractId}`);
+    return data;
+  },
+
+  // Create milestone
+  create: async (dto: CreateMilestoneDto): Promise<MilestoneDto> => {
+    const { data } = await apiClient.post('/milestones', dto);
+    return data;
+  },
+
+  // Bulk create milestones
+  createBulk: async (dto: BulkCreateMilestonesDto): Promise<MilestoneDto[]> => {
+    const { data } = await apiClient.post('/milestones/bulk', dto);
+    return data;
+  },
+
+  // Update milestone
+  update: async (milestoneId: string, dto: UpdateMilestoneDto): Promise<MilestoneDto> => {
+    const { data } = await apiClient.put(`/milestones/${milestoneId}`, dto);
+    return data;
+  },
+
+  // Delete milestone
+  delete: async (milestoneId: string): Promise<void> => {
+    await apiClient.delete(`/milestones/${milestoneId}`);
+  },
+};
+
 // Supervisor Contracts
 export interface SupervisorContractDto {
   id: string;

@@ -118,6 +118,23 @@ export default function DashboardLayout({
             </div>
           )}
 
+          {/* Chat - For Contractor */}
+          {isContractor && (
+            <div>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Liên hệ
+              </div>
+              <div className="space-y-1">
+                <Link
+                  href="/contractor/chat"
+                  className={getActivePathClass("/contractor/chat")}
+                >
+                  💬 Tin nhắn
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* Admin giữ nguyên route */}
           {isAdmin && (
             <div>
@@ -189,6 +206,20 @@ export default function DashboardLayout({
                   className={getActivePathClass("/supervisor/schedule")}
                 >
                   📅 Lịch làm việc
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Chat - Only for Homeowner */}
+          {isHomeowner && (
+            <div>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Liên hệ
+              </div>
+              <div className="space-y-1">
+                <Link href="/chat" className={getActivePathClass("/chat")}>
+                  💬 Tin nhắn
                 </Link>
               </div>
             </div>
