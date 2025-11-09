@@ -20,9 +20,21 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"],
+      "@/components/*": ["./src/components/*"],
+      "@/lib/*": ["./src/lib/*"],
+      "@/hooks/*": ["./src/hooks/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/constants/*": ["./src/constants/*"],
+      "@/config/*": ["./src/config/*"],
+      "@/validators/*": ["./src/validators/*"],
+      "@/contexts/*": ["./src/contexts/*"],
+      "@/features/*": ["./src/features/*"],
+      "@/store/*": ["./src/store/*"],
+      "@/providers/*": ["./src/providers/*"],
+      "@/styles/*": ["./src/styles/*"]
     },
     "typeRoots": [
       "./node_modules/@types",
