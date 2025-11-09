@@ -3,11 +3,12 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FileTextOutlined, EyeOutlined, CalendarOutlined, UserOutlined, CheckCircleOutlined, EditOutlined, ProjectOutlined } from '@ant-design/icons';
-import { contractsApi, paymentsApi, escrowApi, type ContractListItemDto, type ContractDetailDto, type ContractItemDto } from '@/lib/contracts/contracts.api';
+import { contractsApi, paymentsApi, escrowApi, supervisorContractsApi, type ContractListItemDto, type ContractDetailDto, type ContractItemDto, type SupervisorContractListItemDto, type SupervisorContractDto } from '@/lib/contracts/contracts.api';
 import { proposalsApi } from '@/lib/proposals/proposals.api';
 import { type ProposalDto } from '@/lib/proposals/proposal.types';
 import { useAuth, UserRole } from '@/hooks/useAuth';
 import { ContractSigningModal } from '@/components/features/contracts';
+import { SupervisorContractSigningModal } from '@/components/features/contracts/SupervisorContractSigningModal';
 import ProposalDisplay from '@/components/features/proposals/components/ProposalDisplay';
 
 interface ContractsSectionProps {
@@ -18,6 +19,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
   const { user } = useAuth();
   const searchParams = useSearchParams();
   const [contracts, setContracts] = useState<ContractListItemDto[]>([]);
+  const [supervisorContracts, setSupervisorContracts] = useState<SupervisorContractListItemDto[]>([]);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
@@ -29,6 +31,16 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
   // Contract signing modal state
   const [showSigningModal, setShowSigningModal] = useState(false);
   const [signingContract, setSigningContract] = useState<ContractListItemDto | null>(null);
+  
+  // Supervisor contract signing modal state
+  const [showSupervisorSigningModal, setShowSupervisorSigningModal] = useState(false);
+  const [signingSupervisorContract, setSigningSupervisorContract] = useState<SupervisorContractDto | null>(null);
+  
+  // Ref for scrolling to supervisor contract section
+  const supervisorContractRef = React.useRef<HTMLDivElement>(null);
+  // Refs for individual contract items
+  const contractItemRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
+  const [highlightedContractId, setHighlightedContractId] = useState<string | null>(null);
   
   // Proposal detail modal state
   const [showProposalModal, setShowProposalModal] = useState(false);
@@ -75,11 +87,26 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
       
       paymentsApi.manualWebhook(payload)
         .then(() => {
-          console.log('Commission payment webhook successful');
+          console.log('Payment webhook successful');
           if (resultCode === '0') {
-            setSuccessMessage('✓ Thanh toán phí môi giới thành công! Bạn có thể tiếp tục ký hợp đồng.');
+            // Check if this is supervisor payment
+            const purpose = extraData ? (() => {
+              try {
+                const decoded = atob(extraData);
+                const parsed = JSON.parse(decoded);
+                return parsed.purpose;
+              } catch {
+                return null;
+              }
+            })() : null;
+            
+            if (purpose === 'supervisor') {
+              setSuccessMessage('✓ Thanh toán đăng ký giám sát viên thành công! Bạn có thể ký hợp đồng ngay bây giờ.');
+            } else {
+              setSuccessMessage('✓ Thanh toán phí môi giới thành công! Bạn có thể tiếp tục ký hợp đồng.');
+            }
             setTimeout(() => setSuccessMessage(null), 10000);
-            // Trigger contracts reload to update commission status
+            // Trigger contracts reload
             setRefreshTrigger(prev => prev + 1);
           }
         })
@@ -100,10 +127,50 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
       setLoading(true);
       try {
         console.log('Loading contracts...');
-        // Call actual API to get contracts
-        const data = await contractsApi.getAll();
-        console.log('Contracts loaded:', data);
-        setContracts(data);
+        // Load both contractor and supervisor contracts
+        const [contractorData, supervisorData] = await Promise.all([
+          contractsApi.getAll(),
+          supervisorContractsApi.getAll().catch(() => []) // Ignore errors for supervisor contracts
+        ]);
+        console.log('Contracts loaded:', contractorData);
+        console.log('Supervisor contracts loaded:', supervisorData);
+        setContracts(contractorData);
+        setSupervisorContracts(supervisorData);
+        
+        // Check if we need to scroll to a specific supervisor contract
+        const supervisorContractId = searchParams.get('supervisorContractId');
+        if (supervisorContractId && supervisorData.length > 0) {
+          // Find the contract in the list
+          const contractExists = supervisorData.some(c => c.id === supervisorContractId);
+          if (contractExists) {
+            setHighlightedContractId(supervisorContractId);
+            // Scroll after a short delay to ensure DOM is updated
+            setTimeout(() => {
+              // Try to scroll to the specific contract item first
+              const contractElement = contractItemRefs.current[supervisorContractId];
+              if (contractElement) {
+                contractElement.scrollIntoView({ 
+                  behavior: 'smooth', 
+                  block: 'center' 
+                });
+              } else {
+                // Fallback: scroll to section
+                supervisorContractRef.current?.scrollIntoView({ 
+                  behavior: 'smooth', 
+                  block: 'start' 
+                });
+              }
+              // Remove query param after scrolling
+              const url = new URL(window.location.href);
+              url.searchParams.delete('supervisorContractId');
+              window.history.replaceState({}, '', url.toString());
+              // Remove highlight after 3 seconds
+              setTimeout(() => {
+                setHighlightedContractId(null);
+              }, 3000);
+            }, 300);
+          }
+        }
       } catch (error) {
         console.error('Failed to load contracts:', error);
         // Show error message to user
@@ -128,7 +195,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
       };
       loadWalletBalance();
     }
-  }, [user?.role, refreshTrigger]);
+  }, [user?.role, refreshTrigger, searchParams]);
 
   // Load escrow balances per contract
   useEffect(() => {
@@ -332,15 +399,20 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
         <h2 className="text-2xl font-bold text-amber-300">Hợp đồng</h2>
       </div>
 
-      {contracts.length === 0 ? (
+      {contracts.length === 0 && supervisorContracts.length === 0 ? (
         <div className="text-center py-12">
           <FileTextOutlined className="text-6xl text-stone-600 mb-4" />
           <p className="text-stone-400 text-lg">Chưa có hợp đồng nào</p>
-          <p className="text-stone-500 text-sm">Hợp đồng sẽ được tạo sau khi bạn chấp nhận proposal</p>
+          <p className="text-stone-500 text-sm">Hợp đồng sẽ được tạo sau khi bạn chấp nhận proposal hoặc đăng ký giám sát viên</p>
         </div>
       ) : (
-        <div className="grid gap-4">
-          {contracts.map((contract) => (
+        <div className="space-y-6">
+          {/* Contractor Contracts */}
+          {contracts.length > 0 && (
+            <div>
+              <h3 className="text-xl font-semibold text-amber-300 mb-4">Hợp đồng nhà thầu</h3>
+              <div className="grid gap-4">
+                {contracts.map((contract) => (
             <div key={contract.id} className="bg-stone-800 rounded-lg border border-stone-700 p-6">
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -417,7 +489,94 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                 </div>
               </div>
             </div>
-          ))}
+              ))}
+              </div>
+            </div>
+          )}
+
+          {/* Supervisor Contracts */}
+          {supervisorContracts.length > 0 && (
+            <div ref={supervisorContractRef}>
+              <h3 className="text-xl font-semibold text-amber-300 mb-4">Hợp đồng giám sát viên</h3>
+              <div className="grid gap-4">
+                {supervisorContracts.map((contract) => (
+                  <div 
+                    key={contract.id}
+                    ref={(el) => {
+                      contractItemRefs.current[contract.id] = el;
+                    }}
+                    className={`bg-stone-800 rounded-lg border p-6 transition-all duration-500 ${
+                      highlightedContractId === contract.id
+                        ? 'border-amber-500 shadow-lg shadow-amber-500/20 bg-amber-900/10 ring-2 ring-amber-500/50'
+                        : 'border-stone-700'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-3">
+                          <FileTextOutlined className="text-amber-400" />
+                          <div>
+                            <h3 className="text-lg font-semibold text-amber-300">
+                              Hợp đồng giám sát #{contract.id.slice(-8)}
+                            </h3>
+                            <p className="text-stone-400 text-sm">
+                              Dự án: {contract.projectName}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                          <div>
+                            <p className="text-stone-500 text-sm">Giám sát viên</p>
+                            <p className="text-stone-300">
+                              {contract.supervisorName}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-stone-500 text-sm">Giá hàng tháng</p>
+                            <p className="text-amber-300 font-semibold text-lg">
+                              {formatCurrency(contract.monthlyPrice)}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-stone-500 text-sm">Trạng thái</p>
+                            <p className={`font-medium ${getStatusColor(contract.status)}`}>
+                              {getStatusDisplayName(contract.status)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="mb-4">
+                          <p className="text-stone-500 text-sm">Ngày tạo</p>
+                          <p className="text-stone-300">{formatDate(contract.createdAt)}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 ml-4">
+                        {(user?.role === UserRole.Homeowner || user?.role === UserRole.Supervisor) && (
+                          <button
+                            onClick={async () => {
+                              try {
+                                const contractDetail = await supervisorContractsApi.getById(contract.id);
+                                setSigningSupervisorContract(contractDetail);
+                                setShowSupervisorSigningModal(true);
+                              } catch (error) {
+                                alert('Lỗi tải hợp đồng: ' + (error instanceof Error ? error.message : 'Unknown error'));
+                              }
+                            }}
+                            className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                          >
+                            <EditOutlined />
+                            Ký hợp đồng
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -428,6 +587,31 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
           userRole={user?.role === UserRole.Homeowner ? 'homeowner' : 'contractor'}
           onClose={() => setShowSigningModal(false)}
           onSigned={handleSigningComplete}
+        />
+      )}
+
+      {/* Supervisor Contract Signing Modal */}
+      {showSupervisorSigningModal && signingSupervisorContract && (
+        <SupervisorContractSigningModal
+          contract={signingSupervisorContract}
+          onClose={() => {
+            setShowSupervisorSigningModal(false);
+            setSigningSupervisorContract(null);
+          }}
+          onSigned={async () => {
+            setShowSupervisorSigningModal(false);
+            setSigningSupervisorContract(null);
+            
+            // Reload contracts
+            const [contractorData, supervisorData] = await Promise.all([
+              contractsApi.getAll(),
+              supervisorContractsApi.getAll().catch(() => [])
+            ]);
+            setContracts(contractorData);
+            setSupervisorContracts(supervisorData);
+            
+            setSuccessMessage('Ký hợp đồng giám sát viên thành công!');
+          }}
         />
       )}
 

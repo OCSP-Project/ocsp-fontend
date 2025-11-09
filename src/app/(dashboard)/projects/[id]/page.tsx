@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
-import { paymentsApi } from '@/lib/contracts/contracts.api';
+import { paymentsApi, supervisorContractsApi } from '@/lib/contracts/contracts.api';
 import { projectsApi, type ProjectDetailDto, type UpdateProjectDto } from '@/lib/projects/projects.api';
 
 export default function ProjectDetailPage() {
@@ -21,6 +21,7 @@ export default function ProjectDetailPage() {
 
   const [project, setProject] = useState<ProjectDetailDto | null>(null);
   const [form, setForm] = useState<UpdateProjectDto>({});
+  const [supervisorContract, setSupervisorContract] = useState<{ status: string } | null>(null);
   
   // Track which orderIds have been processed to prevent duplicate webhook calls
   const processedOrdersRef = React.useRef<Set<string>>(new Set());
@@ -42,6 +43,14 @@ export default function ProjectDetailPage() {
         estimatedCompletionDate: data.estimatedCompletionDate?.split('T')[0],
         status: data.status,
       });
+
+      // Fetch supervisor contract if exists
+      try {
+        const contract = await supervisorContractsApi.getByProjectId(projectId);
+        setSupervisorContract(contract ? { status: contract.status } : null);
+      } catch (e) {
+        setSupervisorContract(null);
+      }
     } catch (e: any) {
       setError(e?.response?.data?.message || e?.message || 'Failed to load project');
     } finally {
@@ -201,22 +210,21 @@ export default function ProjectDetailPage() {
 
   const onRegisterSupervisor = async () => {
     if (!project) return;
-    const confirmed = window.confirm(`Đăng ký giám sát viên với giá ${monthlyPrice.toLocaleString('vi-VN')}₫/tháng qua MoMo?`);
+    const confirmed = window.confirm(`Đăng ký giám sát viên với giá ${monthlyPrice.toLocaleString('vi-VN')}₫/tháng?`);
     if (!confirmed) return;
     try {
       setSaving(true);
-      const redirectUrl = `${window.location.origin}/projects/${projectId}`;
-      const res = await paymentsApi.momoCreate({
-        amount: monthlyPrice,
-        description: `Supervisor package for project ${projectId}`,
-        redirectUrl,
+      
+      // Tạo supervisor contract trước
+      const newContract = await supervisorContractsApi.create({
         projectId: projectId,
-        purpose: 'supervisor',
+        monthlyPrice: monthlyPrice,
       });
       
-      window.location.href = res.payUrl;
+      // Redirect đến tab contracts với contractId để highlight
+      router.push(`/projects?tab=contracts&supervisorContractId=${newContract.id}`);
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || 'Khởi tạo thanh toán thất bại');
+      setError(e?.response?.data?.message || e?.message || 'Đăng ký giám sát viên thất bại');
     } finally {
       setSaving(false);
     }
@@ -299,7 +307,7 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          {project?.supervisorId && (
+          {supervisorContract && supervisorContract.status === 'Completed' && (
             <div className="mb-4 p-3 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
               ✓ Dự án đã được đăng ký giám sát viên thành công!
             </div>

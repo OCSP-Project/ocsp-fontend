@@ -167,6 +167,12 @@ export default function DashboardLayout({
                   🏗️ Dự án giám sát
                 </Link>
                 <Link
+                  href="/projects?tab=contracts"
+                  className={getActiveTabClass("contracts")}
+                >
+                  📋 Contracts
+                </Link>
+                <Link
                   href="/supervisor/inspections"
                   className={getActivePathClass("/supervisor/inspections")}
                 >
@@ -176,7 +182,7 @@ export default function DashboardLayout({
                   href="/supervisor/reports"
                   className={getActivePathClass("/supervisor/reports")}
                 >
-                  📋 Báo cáo
+                  📊 Báo cáo
                 </Link>
                 <Link
                   href="/supervisor/schedule"
