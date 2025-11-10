@@ -263,9 +263,16 @@ export const useAuth = () => {
     }
   };
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
+      
+      // Disconnect SignalR connections
+      try {
+        await signalRClient.disconnect();
+      } catch (signalRError) {
+        console.warn('Failed to disconnect SignalR:', signalRError);
+      }
       
       // Clear tokens
       tokenManager.clearTokens();
