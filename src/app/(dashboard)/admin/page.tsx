@@ -32,10 +32,15 @@ import {
   EditOutlined,
   DeleteOutlined,
   MoreOutlined,
+  FileTextOutlined,
+  FileSearchOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import { gsap } from "gsap";
 import RoleBasedRoute from "@/components/shared/RoleBasedRoute";
 import { UserRole } from "@/hooks/useAuth";
+import { adminApi, type AdminDashboardStatsDto, type RecentProjectDto, type RecentUserDto } from "@/lib/admin/admin.api";
+import { useRouter } from "next/navigation";
 import styles from "./AdminDashboard.module.scss";
 
 const { Title, Text } = Typography;
@@ -118,11 +123,32 @@ const mockRecentProjects = [
 ];
 
 const AdminDashboard: React.FC = () => {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<AdminDashboardStatsDto | null>(null);
+  const [recentProjects, setRecentProjects] = useState<RecentProjectDto[]>([]);
+  const [recentUsers, setRecentUsers] = useState<RecentUserDto[]>([]);
+
+  const fetchDashboardStats = async () => {
+    try {
+      setLoading(true);
+      const [statsData, projectsData, usersData] = await Promise.all([
+        adminApi.getDashboardStats(),
+        adminApi.getRecentProjects(10),
+        adminApi.getRecentUsers(10)
+      ]);
+      setStats(statsData);
+      setRecentProjects(projectsData);
+      setRecentUsers(usersData);
+    } catch (error: any) {
+      console.error("Failed to fetch dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => setLoading(false), 1000);
+    fetchDashboardStats();
 
     // GSAP Animations
     gsap.fromTo(
@@ -158,12 +184,26 @@ const AdminDashboard: React.FC = () => {
     );
   }, []);
 
+  const getRoleTag = (role: number) => {
+    const roles: Record<number, { label: string; color: string }> = {
+      0: { label: "Admin", color: "red" },
+      1: { label: "Supervisor", color: "orange" },
+      2: { label: "Contractor", color: "blue" },
+      3: { label: "Homeowner", color: "green" },
+    };
+    const roleInfo = roles[role] || {
+      label: "Unknown",
+      color: "default",
+    };
+    return <Tag color={roleInfo.color}>{roleInfo.label}</Tag>;
+  };
+
   const userColumns = [
     {
       title: "Tên",
-      dataIndex: "name",
-      key: "name",
-      render: (text: string, record: any) => (
+      dataIndex: "username",
+      key: "username",
+      render: (text: string, record: RecentUserDto) => (
         <Space>
           <Avatar icon={<UserOutlined />} />
           <div>
@@ -179,54 +219,42 @@ const AdminDashboard: React.FC = () => {
       title: "Vai trò",
       dataIndex: "role",
       key: "role",
-      render: (role: string) => {
-        const colors = {
-          Homeowner: "green",
-          Contractor: "blue",
-          Supervisor: "orange",
-          Admin: "red",
-        };
-        return <Tag color={colors[role as keyof typeof colors]}>{role}</Tag>;
-      },
+      render: (role: number) => getRoleTag(role),
     },
     {
       title: "Trạng thái",
-      dataIndex: "status",
-      key: "status",
-      render: (status: string) => {
-        const colors = {
-          Active: "success",
-          Pending: "warning",
-          Suspended: "error",
-        };
-        return (
-          <Tag color={colors[status as keyof typeof colors]}>{status}</Tag>
+      dataIndex: "isEmailVerified",
+      key: "isEmailVerified",
+      render: (verified: boolean) => {
+        return verified ? (
+          <Tag color="success">Đã xác thực</Tag>
+        ) : (
+          <Tag color="default">Chưa xác thực</Tag>
         );
       },
     },
     {
       title: "Ngày tham gia",
-      dataIndex: "joinDate",
-      key: "joinDate",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) =>
+        new Date(date).toLocaleDateString("vi-VN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }),
     },
     {
       title: "Hành động",
       key: "actions",
-      render: (record: any) => (
-        <Dropdown
-          overlay={
-            <Menu>
-              <Menu.Item icon={<EyeOutlined />}>Xem chi tiết</Menu.Item>
-              <Menu.Item icon={<EditOutlined />}>Chỉnh sửa</Menu.Item>
-              <Menu.Divider />
-              <Menu.Item icon={<DeleteOutlined />} danger>
-                Vô hiệu hóa
-              </Menu.Item>
-            </Menu>
-          }
+      render: (_: any, record: RecentUserDto) => (
+        <Button
+          type="link"
+          icon={<EyeOutlined />}
+          onClick={() => router.push(`/admin/users`)}
         >
-          <Button type="text" icon={<MoreOutlined />} />
-        </Dropdown>
+          Xem chi tiết
+        </Button>
       ),
     },
   ];
@@ -234,13 +262,14 @@ const AdminDashboard: React.FC = () => {
   const projectColumns = [
     {
       title: "Dự án",
-      dataIndex: "title",
-      key: "title",
-      render: (text: string, record: any) => (
+      dataIndex: "name",
+      key: "name",
+      render: (text: string, record: RecentProjectDto) => (
         <div>
           <div style={{ fontWeight: 500 }}>{text}</div>
           <div style={{ fontSize: "12px", color: "#666" }}>
-            {record.homeowner} • {record.contractor}
+            Chủ nhà: {record.homeownerName}
+            {record.contractorName && ` • Thầu: ${record.contractorName}`}
           </div>
         </div>
       ),
@@ -259,28 +288,52 @@ const AdminDashboard: React.FC = () => {
       ),
     },
     {
-      title: "Tiến độ",
-      dataIndex: "completion",
-      key: "completion",
-      render: (completion: number) => (
-        <Progress percent={completion} size="small" />
-      ),
-    },
-    {
       title: "Trạng thái",
       dataIndex: "status",
       key: "status",
       render: (status: string) => {
-        const colors = {
-          Planning: "processing",
-          "In Progress": "success",
-          Completed: "default",
-          "On Hold": "warning",
+        const statusColors: Record<string, string> = {
+          Draft: "default",
+          Active: "success",
+          Completed: "processing",
+          OnHold: "warning",
+        };
+        const statusLabels: Record<string, string> = {
+          Draft: "Nháp",
+          Active: "Đang hoạt động",
+          Completed: "Hoàn thành",
+          OnHold: "Tạm dừng",
         };
         return (
-          <Tag color={colors[status as keyof typeof colors]}>{status}</Tag>
+          <Tag color={statusColors[status] || "default"}>
+            {statusLabels[status] || status}
+          </Tag>
         );
       },
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) =>
+        new Date(date).toLocaleDateString("vi-VN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }),
+    },
+    {
+      title: "Hành động",
+      key: "actions",
+      render: (_: any, record: RecentProjectDto) => (
+        <Button
+          type="link"
+          icon={<EyeOutlined />}
+          onClick={() => router.push(`/projects/${record.id}`)}
+        >
+          Xem chi tiết
+        </Button>
+      ),
     },
   ];
 
@@ -291,14 +344,18 @@ const AdminDashboard: React.FC = () => {
         <div className={`${styles.dashboardHeader} dashboard-header`}>
           <div className={styles.headerContent}>
             <div>
-              <Title level={2} className={styles.pageTitle}>
-                Dashboard Quản trị viên
-              </Title>
               <Text className={styles.pageSubtitle}>
                 Tổng quan hoạt động nền tảng OCSP Construction
               </Text>
             </div>
             <div className={styles.headerActions}>
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={fetchDashboardStats}
+                loading={loading}
+              >
+                Làm mới
+              </Button>
               <Button
                 icon={<BellOutlined />}
                 className={styles.notificationBtn}
@@ -318,16 +375,10 @@ const AdminDashboard: React.FC = () => {
             <Card className={`${styles.statCard} stat-card`} loading={loading}>
               <Statistic
                 title="Tổng người dùng"
-                value={mockStats.totalUsers}
+                value={stats?.totalUsers || 0}
                 precision={0}
                 valueStyle={{ color: "#1890ff" }}
                 prefix={<UserOutlined />}
-                suffix={
-                  <span className={styles.growthIndicator}>
-                    <RiseOutlined style={{ color: "#52c41a" }} />
-                    {mockStats.userGrowth}%
-                  </span>
-                }
               />
             </Card>
           </Col>
@@ -335,24 +386,18 @@ const AdminDashboard: React.FC = () => {
             <Card className={`${styles.statCard} stat-card`} loading={loading}>
               <Statistic
                 title="Tổng dự án"
-                value={mockStats.totalProjects}
+                value={stats?.totalProjects || 0}
                 precision={0}
                 valueStyle={{ color: "#52c41a" }}
                 prefix={<ProjectOutlined />}
-                suffix={
-                  <span className={styles.growthIndicator}>
-                    <RiseOutlined style={{ color: "#52c41a" }} />
-                    {mockStats.projectGrowth}%
-                  </span>
-                }
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <Card className={`${styles.statCard} stat-card`} loading={loading}>
               <Statistic
-                title="Doanh thu tháng"
-                value={mockStats.totalRevenue}
+                title="Tổng giá trị giao dịch"
+                value={stats?.totalTransactionValue || 0}
                 precision={0}
                 valueStyle={{ color: "#faad14" }}
                 prefix={<DollarOutlined />}
@@ -363,38 +408,70 @@ const AdminDashboard: React.FC = () => {
                     notation: "compact",
                   }).format(Number(value))
                 }
-                suffix={
-                  <span className={styles.growthIndicator}>
-                    <RiseOutlined style={{ color: "#52c41a" }} />
-                    {mockStats.revenueGrowth}%
-                  </span>
-                }
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} lg={6}>
             <Card className={`${styles.statCard} stat-card`} loading={loading}>
               <Statistic
-                title="Tranh chấp"
-                value={mockStats.activeDisputes}
+                title="Tiền hoa hồng"
+                value={stats?.totalCommission || 0}
                 precision={0}
-                valueStyle={{ color: "#ff4d4f" }}
-                prefix={<WarningOutlined />}
-                suffix={
-                  <span className={styles.growthIndicator}>
-                    <RiseOutlined
-                      style={{
-                        color:
-                          mockStats.disputeChange > 0 ? "#ff4d4f" : "#52c41a",
-                        transform:
-                          mockStats.disputeChange < 0
-                            ? "rotate(180deg)"
-                            : "none",
-                      }}
-                    />
-                    {Math.abs(mockStats.disputeChange)}%
-                  </span>
+                valueStyle={{ color: "#722ed1" }}
+                prefix={<DollarOutlined />}
+                formatter={(value) =>
+                  new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                    notation: "compact",
+                  }).format(Number(value))
                 }
+              />
+            </Card>
+          </Col>
+          
+          {/* Additional Stats Row */}
+          <Col xs={24} sm={12} lg={6}>
+            <Card className={`${styles.statCard} stat-card`} loading={loading}>
+              <Statistic
+                title="Tổng đề xuất (Proposals)"
+                value={stats?.totalProposals || 0}
+                precision={0}
+                valueStyle={{ color: "#13c2c2" }}
+                prefix={<FileTextOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className={`${styles.statCard} stat-card`} loading={loading}>
+              <Statistic
+                title="Yêu cầu báo giá"
+                value={stats?.totalQuoteRequests || 0}
+                precision={0}
+                valueStyle={{ color: "#eb2f96" }}
+                prefix={<FileSearchOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className={`${styles.statCard} stat-card`} loading={loading}>
+              <Statistic
+                title="Tổng hợp đồng"
+                value={stats?.totalContracts || 0}
+                precision={0}
+                valueStyle={{ color: "#fa8c16" }}
+                prefix={<FileTextOutlined />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} lg={6}>
+            <Card className={`${styles.statCard} stat-card`} loading={loading}>
+              <Statistic
+                title="Dự án đang hoạt động"
+                value={stats?.activeProjects || 0}
+                precision={0}
+                valueStyle={{ color: "#52c41a" }}
+                prefix={<ProjectOutlined />}
               />
             </Card>
           </Col>
@@ -418,14 +495,22 @@ const AdminDashboard: React.FC = () => {
             <Card
               title="Người dùng mới nhất"
               className={`${styles.contentCard} content-section`}
-              extra={<Button type="link">Xem tất cả</Button>}
+              extra={
+                <Button type="link" onClick={() => router.push('/admin/users')}>
+                  Xem tất cả
+                </Button>
+              }
+              loading={loading}
             >
               <Table
                 columns={userColumns}
-                dataSource={mockRecentUsers}
+                dataSource={recentUsers}
                 pagination={false}
                 rowKey="id"
                 size="small"
+                locale={{
+                  emptyText: "Chưa có người dùng nào",
+                }}
               />
             </Card>
           </Col>
@@ -443,6 +528,7 @@ const AdminDashboard: React.FC = () => {
                   block
                   icon={<UserOutlined />}
                   className={styles.actionButton}
+                  onClick={() => router.push('/admin/users')}
                 >
                   Quản lý người dùng
                 </Button>
@@ -451,6 +537,7 @@ const AdminDashboard: React.FC = () => {
                   block
                   icon={<ProjectOutlined />}
                   className={styles.actionButton}
+                  onClick={() => router.push('/admin/projects')}
                 >
                   Quản lý dự án
                 </Button>
@@ -459,6 +546,7 @@ const AdminDashboard: React.FC = () => {
                   block
                   icon={<DollarOutlined />}
                   className={styles.actionButton}
+                  onClick={() => router.push('/admin/reports')}
                 >
                   Báo cáo tài chính
                 </Button>
@@ -479,13 +567,21 @@ const AdminDashboard: React.FC = () => {
             <Card
               title="Dự án gần đây"
               className={`${styles.contentCard} content-section`}
-              extra={<Button type="link">Xem tất cả</Button>}
+              extra={
+                <Button type="link" onClick={() => router.push('/admin/projects')}>
+                  Xem tất cả
+                </Button>
+              }
+              loading={loading}
             >
               <Table
                 columns={projectColumns}
-                dataSource={mockRecentProjects}
+                dataSource={recentProjects}
                 pagination={false}
                 rowKey="id"
+                locale={{
+                  emptyText: "Chưa có dự án nào",
+                }}
               />
             </Card>
           </Col>
