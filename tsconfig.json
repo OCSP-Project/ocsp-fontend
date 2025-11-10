@@ -22,12 +22,6 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
-      "@/types/*": [
-        "./types/*"
-      ],
-      "@/styles/*": [
-        "./src/styles/*"
       ]
     },
     "typeRoots": [

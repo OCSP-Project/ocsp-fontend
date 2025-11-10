@@ -204,6 +204,10 @@ export const paymentsApi = {
     const { data } = await apiClient.get(`/payments/commission/status`, { params: { contractId } });
     return data;
   },
+  getSupervisorPaymentStatus: async (projectId: string): Promise<{ paid: boolean }> => {
+    const { data } = await apiClient.get(`/payments/supervisor/status`, { params: { projectId } });
+    return data;
+  },
 };
 
 // Escrow
@@ -216,6 +220,166 @@ export interface EscrowAccountDto {
 export const escrowApi = {
   getByContract: async (contractId: string): Promise<EscrowAccountDto> => {
     const { data } = await apiClient.get(`/escrow/by-contract/${contractId}`);
+    return data;
+  },
+};
+
+// Milestones
+export interface MilestoneDto {
+  id: string;
+  contractId: string;
+  name: string;
+  amount: number;
+  dueDate?: string | null;
+  note?: string | null;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMilestoneDto {
+  contractId: string;
+  name: string;
+  amount: number;
+  dueDate?: string | null;
+  note?: string | null;
+}
+
+export interface BulkCreateMilestonesDto {
+  contractId: string;
+  milestones: Array<{
+    name: string;
+    amount: number;
+    dueDate?: string | null;
+    note?: string | null;
+  }>;
+}
+
+export interface UpdateMilestoneDto {
+  name: string;
+  amount: number;
+  dueDate?: string | null;
+  note?: string | null;
+}
+
+export const milestonesApi = {
+  // List milestones by contract
+  listByContract: async (contractId: string): Promise<MilestoneDto[]> => {
+    const { data } = await apiClient.get(`/milestones/contract/${contractId}`);
+    return data;
+  },
+
+  // Create milestone
+  create: async (dto: CreateMilestoneDto): Promise<MilestoneDto> => {
+    const { data } = await apiClient.post('/milestones', dto);
+    return data;
+  },
+
+  // Bulk create milestones
+  createBulk: async (dto: BulkCreateMilestonesDto): Promise<MilestoneDto[]> => {
+    const { data } = await apiClient.post('/milestones/bulk', dto);
+    return data;
+  },
+
+  // Update milestone
+  update: async (milestoneId: string, dto: UpdateMilestoneDto): Promise<MilestoneDto> => {
+    const { data } = await apiClient.put(`/milestones/${milestoneId}`, dto);
+    return data;
+  },
+
+  // Delete milestone
+  delete: async (milestoneId: string): Promise<void> => {
+    await apiClient.delete(`/milestones/${milestoneId}`);
+  },
+};
+
+// Supervisor Contracts
+export interface SupervisorContractDto {
+  id: string;
+  projectId: string;
+  projectName: string;
+  supervisorId: string;
+  supervisorUserId: string;
+  supervisorName: string;
+  homeownerUserId: string;
+  homeownerName: string;
+  monthlyPrice: number;
+  terms: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  homeownerSignatureBase64?: string;
+  supervisorSignatureBase64?: string;
+  signedByHomeownerAt?: string;
+  signedBySupervisorAt?: string;
+  templatePdfUrl?: string;
+  signedPdfUrl?: string;
+}
+
+export interface SupervisorContractListItemDto {
+  id: string;
+  projectId: string;
+  projectName: string;
+  supervisorName: string;
+  monthlyPrice: number;
+  status: string;
+  createdAt: string;
+}
+
+export interface SignSupervisorContractDto {
+  signatureBase64: string;
+}
+
+export interface CreateSupervisorContractDto {
+  projectId: string;
+  monthlyPrice: number;
+}
+
+export const supervisorContractsApi = {
+  create: async (dto: CreateSupervisorContractDto): Promise<SupervisorContractDto> => {
+    const { data } = await apiClient.post('/supervisor-contracts', dto);
+    return data;
+  },
+
+  getAll: async (): Promise<SupervisorContractListItemDto[]> => {
+    const { data } = await apiClient.get('/supervisor-contracts');
+    return data;
+  },
+
+  getByProjectId: async (projectId: string): Promise<SupervisorContractDto | null> => {
+    try {
+      const { data } = await apiClient.get(`/supervisor-contracts/by-project/${projectId}`);
+      return data;
+    } catch (e: any) {
+      if (e?.response?.status === 404) return null;
+      throw e;
+    }
+  },
+
+  getById: async (contractId: string): Promise<SupervisorContractDto> => {
+    const { data } = await apiClient.get(`/supervisor-contracts/${contractId}`);
+    return data;
+  },
+
+  signByHomeowner: async (contractId: string, dto: SignSupervisorContractDto): Promise<SupervisorContractDto> => {
+    const { data } = await apiClient.post(`/supervisor-contracts/${contractId}/sign-homeowner`, dto);
+    return data;
+  },
+
+  signBySupervisor: async (contractId: string, dto: SignSupervisorContractDto): Promise<SupervisorContractDto> => {
+    const { data } = await apiClient.post(`/supervisor-contracts/${contractId}/sign-supervisor`, dto);
+    return data;
+  },
+
+  generatePdf: async (contractId: string): Promise<SupervisorContractDto> => {
+    const { data } = await apiClient.post(`/supervisor-contracts/${contractId}/generate-pdf`);
+    return data;
+  },
+
+  downloadPdf: async (contractId: string): Promise<Blob> => {
+    const { data } = await apiClient.get(`/supervisor-contracts/${contractId}/pdf`, {
+      responseType: 'blob',
+    });
     return data;
   },
 };

@@ -145,6 +145,23 @@ export default function DashboardLayout({
             </div>
           )}
 
+          {/* Chat - For Contractor */}
+          {isContractor && (
+            <div>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Liên hệ
+              </div>
+              <div className="space-y-1">
+                <Link
+                  href="/contractor/chat"
+                  className={getActivePathClass("/contractor/chat")}
+                >
+                  💬 Tin nhắn
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* Admin giữ nguyên route */}
           {isAdmin && (
             <div>
@@ -200,6 +217,12 @@ export default function DashboardLayout({
                   🏗️ Dự án giám sát
                 </Link>
                 <Link
+                  href="/projects?tab=contracts"
+                  className={getActiveTabClass("contracts")}
+                >
+                  📋 Contracts
+                </Link>
+                <Link
                   href="/supervisor/inspections"
                   className={getActivePathClass("/supervisor/inspections")}
                 >
@@ -209,13 +232,27 @@ export default function DashboardLayout({
                   href="/supervisor/reports"
                   className={getActivePathClass("/supervisor/reports")}
                 >
-                  📋 Báo cáo
+                  📊 Báo cáo
                 </Link>
                 <Link
                   href="/supervisor/schedule"
                   className={getActivePathClass("/supervisor/schedule")}
                 >
                   📅 Lịch làm việc
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Chat - Only for Homeowner */}
+          {isHomeowner && (
+            <div>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Liên hệ
+              </div>
+              <div className="space-y-1">
+                <Link href="/chat" className={getActivePathClass("/chat")}>
+                  💬 Tin nhắn
                 </Link>
               </div>
             </div>

@@ -571,6 +571,14 @@
   width: fit-content;
   min-width: 88px;
   max-width: 70%;
+
+  .senderName {
+    font-size: 12px;
+    font-weight: 600;
+    color: #667eea;
+    margin-bottom: 4px;
+    line-height: 1.2;
+  }
   
   .messageText {
     font-size: 15px;
