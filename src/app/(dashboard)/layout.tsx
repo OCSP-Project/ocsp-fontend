@@ -2,7 +2,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import Header from "@/components/layout/Header";
 import { useAuthContext } from "@/providers";
 import { UserRole } from "@/hooks/useAuth";
 
@@ -14,6 +15,7 @@ export default function DashboardLayout({
   const { user, logout } = useAuthContext();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   if (!user) return null;
 
@@ -22,8 +24,31 @@ export default function DashboardLayout({
   const isContractor = user.role === UserRole.Contractor;
   const isHomeowner = user.role === UserRole.Homeowner;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
+    // Redirect to login page after logout
+    router.push("/login");
+  };
+
+  const getPageTitle = () => {
+    if (pathname.startsWith("/admin")) {
+      if (pathname === "/admin") return "Dashboard";
+      if (pathname === "/admin/users") return "Quản lý người dùng";
+      if (pathname === "/admin/projects") return "Quản lý dự án";
+      if (pathname.startsWith("/admin/reports")) return "Báo cáo";
+      if (pathname.startsWith("/admin/settings")) return "Cài đặt";
+      return "Quản lý hệ thống";
+    }
+    if (pathname.startsWith("/supervisor")) {
+      return "Giám sát & Kiểm tra";
+    }
+    if (pathname.startsWith("/contractor")) {
+      return "Thầu xây dựng";
+    }
+    if (pathname.startsWith("/projects")) {
+      return "Dự án";
+    }
+    return "Dashboard";
   };
 
   // Active cho ?tab=
@@ -41,13 +66,15 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-[240px_1fr] bg-gray-50">
-      <aside className="bg-white border-r p-4 flex flex-col">
-        {/* Header */}
-        <div className="mb-6">
-          <h2 className="font-bold text-gray-900">OCSP Construction</h2>
-          <p className="text-xs text-gray-500">{user.username}</p>
-        </div>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      <Header />
+      <div className="flex-1 grid grid-cols-[240px_1fr] mt-24">
+        <aside className="bg-white border-r p-4 flex flex-col">
+          {/* Sidebar Header */}
+          <div className="mb-6">
+            <h2 className="font-bold text-gray-900">OCSP Construction</h2>
+            <p className="text-xs text-gray-500">{user.username}</p>
+          </div>
 
         {/* Navigation */}
         <nav className="space-y-6 flex-1">
@@ -143,6 +170,12 @@ export default function DashboardLayout({
               </div>
               <div className="space-y-1">
                 <Link
+                  href="/admin"
+                  className={getActivePathClass("/admin")}
+                >
+                  📊 Dashboard
+                </Link>
+                <Link
                   href="/admin/users"
                   className={getActivePathClass("/admin/users")}
                 >
@@ -184,6 +217,12 @@ export default function DashboardLayout({
                   🏗️ Dự án giám sát
                 </Link>
                 <Link
+                  href="/projects?tab=contracts"
+                  className={getActiveTabClass("contracts")}
+                >
+                  📋 Contracts
+                </Link>
+                <Link
                   href="/supervisor/inspections"
                   className={getActivePathClass("/supervisor/inspections")}
                 >
@@ -193,7 +232,7 @@ export default function DashboardLayout({
                   href="/supervisor/reports"
                   className={getActivePathClass("/supervisor/reports")}
                 >
-                  📋 Báo cáo
+                  📊 Báo cáo
                 </Link>
                 <Link
                   href="/supervisor/schedule"
@@ -269,11 +308,12 @@ export default function DashboardLayout({
             </button>
           </div>
         </div>
-      </aside>
+        </aside>
 
-      <main className="overflow-auto">
-        <div className="p-8">{children}</div>
-      </main>
+        <main className="overflow-auto">
+          <div className="p-8">{children}</div>
+        </main>
+      </div>
     </div>
   );
 }
