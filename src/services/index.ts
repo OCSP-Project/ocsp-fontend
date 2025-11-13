@@ -7,3 +7,4 @@ export * from './contract.service';
 export * from './chat.service';
 export * from './model.service';
 export * from './supervisor.service';
+export * from './work-item.service';

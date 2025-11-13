@@ -10,6 +10,8 @@ import {
   type ProjectDetailDto,
   type UpdateProjectDto,
 } from "@/lib/projects/projects.api";
+import { MembersSection } from "@/components/features/project-invitations/MembersSection";
+import { ProjectParticipantRole } from "@/types/project-invitation.types";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -618,30 +620,12 @@ export default function ProjectDetailPage() {
                   </div>
                 </div>
 
-                {/* Participants */}
+                {/* Participants - Replaced with MembersSection */}
                 <div className={`${cardCls} mt-6`}>
-                  <h2 className={`${titleCls} mb-4`}>Thành viên dự án</h2>
-                  {project.participants.length === 0 ? (
-                    <div className="text-stone-400">Chưa có thành viên nào</div>
-                  ) : (
-                    <div className="space-y-3">
-                      {project.participants.map((participant, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 bg-stone-700/30 rounded-lg"
-                        >
-                          <div>
-                            <div className="text-stone-100 font-medium">
-                              {participant.userName}
-                            </div>
-                            <div className="text-sm text-stone-400">
-                              {participant.role} • {participant.status}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <MembersSection
+                    projectId={projectId}
+                    currentUserRole={ProjectParticipantRole.Homeowner}
+                  />
                 </div>
               </div>
 
@@ -655,6 +639,13 @@ export default function ProjectDetailPage() {
                       className="block w-full text-center py-2 px-4 bg-blue-600/20 text-blue-300 border border-blue-500/30 rounded-lg hover:bg-blue-600/30 transition"
                     >
                       Theo dõi tiến độ
+                    </Link>
+
+                    <Link
+                      href={`/projects/${project.id}/budget`}
+                      className="block w-full text-center py-2 px-4 bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 rounded-lg hover:bg-emerald-600/30 transition"
+                    >
+                      Dự toán & Gantt Chart
                     </Link>
 
                     <Link
