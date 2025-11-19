@@ -1,1 +1,4 @@
-sửa lại cho tôi tôi cấu trúc của project
+giờ tôi muốn làm chức năng khối lượng vật tư , nhà thầu chính sẽ import một file vật tư tư vào project, sau khi import, homeowner là chủ đầu tư của project sẽ nhận đc mail, mail đó sẽ thông báo về vật liệu đã được nhà thầu đẩy lên và cần homeoner kiểm tra và acp,giám sát chính cũng tương tự homeowner cũng nhận dc mail và acp , khi homeowner và giám sát chính đẫ acp thì vật liệu sẽ dc import vào db của project đó
+mấu chốt của vật tư này là giám sát công trình trong quá trình thi công thì sẽ ghi lại vật liệu tiêu hao thực tế ngoài công trường có khác gì với vật liệu dự toán của nahf thầu import ,
+STT Id Mã số Hạng mục Đơn vị Đơn giá Khối lượng theo hợp đồng Thành tiền theo hợp đồng Khối lượng theo NKTC Thành tiền theo NKTC Khối lượng nghiệm thu Thành tiền nghiệm thu Khối lượng thanh toán Thành tiền thanh toán Khối lượng thanh toán còn lại Thành tiền thanh toán còn lại
+![alt text](image.png)
