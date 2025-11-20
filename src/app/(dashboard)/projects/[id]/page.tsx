@@ -671,6 +671,13 @@ export default function ProjectDetailPage() {
                     >
                       Mô hình 3D
                     </Link>
+
+                    <Link
+                      href={`/projects/${project.id}/materials`}
+                      className="block w-full text-center py-2 px-4 bg-amber-600/20 text-amber-300 border border-amber-500/30 rounded-lg hover:bg-amber-600/30 transition"
+                    >
+                      Quản lý vật tư
+                    </Link>
                   </div>
                 </div>
 

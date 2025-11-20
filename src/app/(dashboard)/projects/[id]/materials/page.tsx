@@ -15,11 +15,14 @@ import { ActualQuantityModal } from './components/ActualQuantityModal';
 import { MaterialRequestList } from './components/MaterialRequestList';
 import { ImportMaterialModal } from './components/ImportMaterialModal';
 import { ApprovalModal } from './components/ApprovalModal';
+import { RequestDetailModal } from './components/RequestDetailModal';
 import { Plus, RefreshCw, Package } from 'lucide-react';
+import { useAuth, UserRole } from '@/hooks/useAuth';
 
 export default function MaterialsPage() {
   const params = useParams();
   const projectId = params.id as string;
+  const { user } = useAuth();
 
   // State management
   const [materials, setMaterials] = useState<MaterialDto[]>([]);
@@ -37,15 +40,14 @@ export default function MaterialsPage() {
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
   const [approvalRequest, setApprovalRequest] = useState<MaterialRequestDetailDto | null>(null);
   const [approvalMode, setApprovalMode] = useState<'approve' | 'reject'>('approve');
+  const [isRequestDetailModalOpen, setIsRequestDetailModalOpen] = useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
 
-  // User role (TODO: Get from auth context)
-  const [userRole, setUserRole] = useState<string>('MainContractor'); // For demo
-
-  // Permissions
-  const canCreateRequest = userRole === 'MainContractor';
-  const canApproveAsHomeowner = userRole === 'Homeowner';
-  const canApproveAsSupervisor = userRole === 'MainSupervisor';
-  const canUpdateActual = userRole === 'MainSupervisor';
+  // Permissions based on user role
+  const canCreateRequest = user?.role === UserRole.Contractor;
+  const canApproveAsHomeowner = user?.role === UserRole.Homeowner;
+  const canApproveAsSupervisor = user?.role === UserRole.Supervisor;
+  const canUpdateActual = user?.role === UserRole.Supervisor;
 
   // Load data
   useEffect(() => {

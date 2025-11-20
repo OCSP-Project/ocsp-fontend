@@ -17,7 +17,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 // Helper function to get auth token
 const getAuthToken = (): string | null => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token');
+  return localStorage.getItem('accessToken');
 };
 
 // Helper function to create headers
@@ -41,7 +41,7 @@ export const materialService = {
   // ==================== Material Requests ====================
 
   async createRequest(dto: CreateMaterialRequestDto): Promise<MaterialRequestDetailDto> {
-    const response = await fetch(`${API_BASE_URL}/api/material/requests`, {
+    const response = await fetch(`${API_BASE_URL}/Material/requests`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(dto),
@@ -57,7 +57,7 @@ export const materialService = {
 
   async getRequestsByProject(projectId: string): Promise<MaterialRequestDto[]> {
     const response = await fetch(
-      `${API_BASE_URL}/api/material/requests/project/${projectId}`,
+      `${API_BASE_URL}/Material/requests/project/${projectId}`,
       {
         headers: getHeaders(),
       }
@@ -71,7 +71,7 @@ export const materialService = {
   },
 
   async getRequestById(id: string): Promise<MaterialRequestDetailDto> {
-    const response = await fetch(`${API_BASE_URL}/api/material/requests/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/Material/requests/${id}`, {
       headers: getHeaders(),
     });
 
@@ -88,7 +88,7 @@ export const materialService = {
     formData.append('file', file);
 
     const response = await fetch(
-      `${API_BASE_URL}/api/material/requests/${requestId}/import`,
+      `${API_BASE_URL}/Material/requests/${requestId}/import`,
       {
         method: 'POST',
         headers: getHeaders(true),
@@ -111,7 +111,7 @@ export const materialService = {
     dto: ApproveMaterialRequestDto
   ): Promise<MaterialRequestDetailDto> {
     const response = await fetch(
-      `${API_BASE_URL}/api/material/requests/${requestId}/approve/homeowner`,
+      `${API_BASE_URL}/Material/requests/${requestId}/approve/homeowner`,
       {
         method: 'POST',
         headers: getHeaders(),
@@ -132,7 +132,7 @@ export const materialService = {
     dto: ApproveMaterialRequestDto
   ): Promise<MaterialRequestDetailDto> {
     const response = await fetch(
-      `${API_BASE_URL}/api/material/requests/${requestId}/approve/supervisor`,
+      `${API_BASE_URL}/Material/requests/${requestId}/approve/supervisor`,
       {
         method: 'POST',
         headers: getHeaders(),
@@ -153,7 +153,7 @@ export const materialService = {
     dto: RejectMaterialRequestDto
   ): Promise<MaterialRequestDetailDto> {
     const response = await fetch(
-      `${API_BASE_URL}/api/material/requests/${requestId}/reject`,
+      `${API_BASE_URL}/Material/requests/${requestId}/reject`,
       {
         method: 'POST',
         headers: getHeaders(),
@@ -173,7 +173,7 @@ export const materialService = {
 
   async getMaterialsByProject(projectId: string): Promise<MaterialDto[]> {
     const response = await fetch(
-      `${API_BASE_URL}/api/material/project/${projectId}`,
+      `${API_BASE_URL}/Material/project/${projectId}`,
       {
         headers: getHeaders(),
       }
@@ -187,7 +187,7 @@ export const materialService = {
   },
 
   async getMaterialById(id: string): Promise<MaterialDetailDto> {
-    const response = await fetch(`${API_BASE_URL}/api/material/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/Material/${id}`, {
       headers: getHeaders(),
     });
 
@@ -200,7 +200,7 @@ export const materialService = {
   },
 
   async updateMaterial(id: string, dto: UpdateMaterialDto): Promise<MaterialDto> {
-    const response = await fetch(`${API_BASE_URL}/api/material/${id}`, {
+    const response = await fetch(`${API_BASE_URL}/Material/${id}`, {
       method: 'PUT',
       headers: getHeaders(),
       body: JSON.stringify(dto),
@@ -219,7 +219,7 @@ export const materialService = {
     dto: UpdateActualQuantityDto
   ): Promise<MaterialDto> {
     const response = await fetch(
-      `${API_BASE_URL}/api/material/${id}/actual-quantity`,
+      `${API_BASE_URL}/Material/${id}/actual-quantity`,
       {
         method: 'PUT',
         headers: getHeaders(),
@@ -238,7 +238,7 @@ export const materialService = {
   // ==================== Payments ====================
 
   async createPayment(dto: CreateMaterialPaymentDto): Promise<MaterialPaymentDto> {
-    const response = await fetch(`${API_BASE_URL}/api/material/payments`, {
+    const response = await fetch(`${API_BASE_URL}/Material/payments`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(dto),
@@ -254,7 +254,7 @@ export const materialService = {
 
   async getPaymentsByMaterial(materialId: string): Promise<MaterialPaymentDto[]> {
     const response = await fetch(
-      `${API_BASE_URL}/api/material/${materialId}/payments`,
+      `${API_BASE_URL}/Material/${materialId}/payments`,
       {
         headers: getHeaders(),
       }
@@ -269,7 +269,7 @@ export const materialService = {
 
   async getPaymentsByProject(projectId: string): Promise<MaterialPaymentDto[]> {
     const response = await fetch(
-      `${API_BASE_URL}/api/material/payments/project/${projectId}`,
+      `${API_BASE_URL}/Material/payments/project/${projectId}`,
       {
         headers: getHeaders(),
       }
