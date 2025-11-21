@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Header from '@/components/layout/Header';
@@ -8,12 +8,14 @@ import { paymentsApi, supervisorContractsApi } from '@/lib/contracts/contracts.a
 import { projectsApi, type ProjectDetailDto, type UpdateProjectDto } from '@/lib/projects/projects.api';
 import { MembersSection } from "@/components/features/project-invitations/MembersSection";
 import { ProjectParticipantRole } from "@/types/project-invitation.types";
+import { useAuth } from '@/hooks/useAuth';
 
 export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
   const search = useSearchParams();
   const projectId = params.id as string;
+  const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -22,6 +24,11 @@ export default function ProjectDetailPage() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   const [project, setProject] = useState<ProjectDetailDto | null>(null);
+
+  // Check if current user is the project homeowner
+  const isHomeowner = useMemo(() => {
+    return user?.id === project?.homeownerId;
+  }, [user?.id, project?.homeownerId]);
   const [form, setForm] = useState<UpdateProjectDto>({});
   const [supervisorContract, setSupervisorContract] = useState<{ status: string } | null>(null);
 
@@ -678,6 +685,15 @@ export default function ProjectDetailPage() {
                     >
                       Quản lý vật tư
                     </Link>
+
+                    {isHomeowner && (
+                      <Link
+                        href={`/projects/${project.id}/settings`}
+                        className="block w-full text-center py-2 px-4 bg-gray-600/20 text-gray-300 border border-gray-500/30 rounded-lg hover:bg-gray-600/30 transition"
+                      >
+                        Cài đặt dự án
+                      </Link>
+                    )}
                   </div>
                 </div>
 

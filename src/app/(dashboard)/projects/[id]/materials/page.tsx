@@ -96,15 +96,8 @@ export default function MaterialsPage() {
   };
 
   const handleViewRequestDetail = async (request: MaterialRequestDto) => {
-    try {
-      const detail = await materialService.getRequestById(request.id);
-      setApprovalRequest(detail);
-      // Just view, no approval action
-      // You can create a separate "View Request Detail Modal" if needed
-      alert(`Request ID: ${detail.id}\nMaterials: ${detail.materialCount}`);
-    } catch (err: any) {
-      alert(err.message || 'Không thể tải chi tiết');
-    }
+    setSelectedRequestId(request.id);
+    setIsRequestDetailModalOpen(true);
   };
 
   const handleApproveRequest = async (request: MaterialRequestDto) => {
@@ -263,6 +256,15 @@ export default function MaterialsPage() {
         }}
         onSuccess={() => {
           loadData();
+        }}
+      />
+
+      <RequestDetailModal
+        isOpen={isRequestDetailModalOpen}
+        requestId={selectedRequestId}
+        onClose={() => {
+          setIsRequestDetailModalOpen(false);
+          setSelectedRequestId(null);
         }}
       />
     </div>

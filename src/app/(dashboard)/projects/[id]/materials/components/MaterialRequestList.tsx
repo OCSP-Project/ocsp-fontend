@@ -59,19 +59,40 @@ export function MaterialRequestList({
   ];
 
   const canApprove = (request: MaterialRequestDto): boolean => {
+    console.log('canApprove check:', {
+      requestId: request.id,
+      status: request.status,
+      canApproveAsHomeowner,
+      canApproveAsSupervisor,
+      approvedByHomeowner: request.approvedByHomeowner,
+      approvedBySupervisor: request.approvedBySupervisor,
+      projectDelegatesApprovalToSupervisor: request.projectDelegatesApprovalToSupervisor
+    });
+
     if (request.status === MaterialRequestStatus.Approved ||
         request.status === MaterialRequestStatus.Rejected) {
       return false;
     }
 
     // Homeowner can approve if not yet approved by homeowner
-    if (canApproveAsHomeowner && !request.homeownerApproved) {
+    if (canApproveAsHomeowner && !request.approvedByHomeowner) {
+      console.log('-> Homeowner can approve');
       return true;
     }
 
-    // Supervisor can approve if homeowner already approved
-    if (canApproveAsSupervisor && request.homeownerApproved && !request.supervisorApproved) {
-      return true;
+    // Supervisor approval logic
+    if (canApproveAsSupervisor && !request.approvedBySupervisor) {
+      // If project has delegation enabled, supervisor can approve directly
+      if (request.projectDelegatesApprovalToSupervisor) {
+        console.log('-> Supervisor can approve (delegation enabled)');
+        return true;
+      }
+      // Otherwise, supervisor can only approve after homeowner
+      if (request.approvedByHomeowner) {
+        console.log('-> Supervisor can approve (after homeowner)');
+        return true;
+      }
+      console.log('-> Supervisor CANNOT approve yet (homeowner not approved, no delegation)');
     }
 
     return false;
@@ -169,15 +190,21 @@ export function MaterialRequestList({
 
                     {/* Approval Status */}
                     <div className="flex items-center gap-4 text-sm">
-                      <div className="flex items-center gap-1.5">
-                        {request.homeownerApproved ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <Clock className="w-4 h-4 text-gray-400" />
-                        )}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`flex items-center justify-center w-5 h-5 rounded-full border-2 ${
+                            request.approvedByHomeowner
+                              ? 'bg-green-500 border-green-500'
+                              : 'bg-white border-gray-300'
+                          }`}
+                        >
+                          {request.approvedByHomeowner && (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                          )}
+                        </div>
                         <span
                           className={
-                            request.homeownerApproved
+                            request.approvedByHomeowner
                               ? 'text-green-700 font-medium'
                               : 'text-gray-500'
                           }
@@ -185,15 +212,21 @@ export function MaterialRequestList({
                           Chủ đầu tư
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        {request.supervisorApproved ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <Clock className="w-4 h-4 text-gray-400" />
-                        )}
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`flex items-center justify-center w-5 h-5 rounded-full border-2 ${
+                            request.approvedBySupervisor
+                              ? 'bg-green-500 border-green-500'
+                              : 'bg-white border-gray-300'
+                          }`}
+                        >
+                          {request.approvedBySupervisor && (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                          )}
+                        </div>
                         <span
                           className={
-                            request.supervisorApproved
+                            request.approvedBySupervisor
                               ? 'text-green-700 font-medium'
                               : 'text-gray-500'
                           }

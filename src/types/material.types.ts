@@ -19,8 +19,9 @@ export interface MaterialRequestDto {
   contractorId: string;
   contractorName: string;
   status: MaterialRequestStatus;
-  homeownerApproved: boolean;
-  supervisorApproved: boolean;
+  approvedByHomeowner: boolean;  // Match backend field name
+  approvedBySupervisor: boolean;  // Match backend field name
+  projectDelegatesApprovalToSupervisor?: boolean; // Project has delegation enabled
   rejectionReason?: string;
   createdAt: string;
   materialCount: number;

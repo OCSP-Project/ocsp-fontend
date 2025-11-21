@@ -191,10 +191,10 @@ export function ApprovalModal({
                         {material.name}
                       </td>
                       <td className="px-3 py-2 text-xs text-right text-gray-900">
-                        {material.contractQuantity.toLocaleString('vi-VN')} {material.unit}
+                        {material.contractQuantity?.toLocaleString('vi-VN') || '-'} {material.unit}
                       </td>
                       <td className="px-3 py-2 text-xs text-right text-gray-900">
-                        {material.contractAmount.toLocaleString('vi-VN')} VNĐ
+                        {material.contractAmount?.toLocaleString('vi-VN') || '-'} VNĐ
                       </td>
                     </tr>
                   ))}
