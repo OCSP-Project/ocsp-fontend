@@ -169,6 +169,36 @@ export const materialService = {
     return response.json();
   },
 
+  async deleteRequest(requestId: string): Promise<void> {
+    const response = await fetch(
+      `${API_BASE_URL}/Material/requests/${requestId}`,
+      {
+        method: 'DELETE',
+        headers: getHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to delete request');
+    }
+  },
+
+  async clearImportedMaterials(requestId: string): Promise<void> {
+    const response = await fetch(
+      `${API_BASE_URL}/Material/requests/${requestId}/materials`,
+      {
+        method: 'DELETE',
+        headers: getHeaders(),
+      }
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to clear imported materials');
+    }
+  },
+
   // ==================== Materials ====================
 
   async getMaterialsByProject(projectId: string): Promise<MaterialDto[]> {

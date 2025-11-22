@@ -16,11 +16,16 @@ export enum ApproverRole {
 export interface MaterialRequestDto {
   id: string;
   projectId: string;
+  projectName: string;
   contractorId: string;
   contractorName: string;
-  status: MaterialRequestStatus;
+  requestDate: string;
+  status: MaterialRequestStatus | string; // Can be enum number or string from backend
   approvedByHomeowner: boolean;  // Match backend field name
   approvedBySupervisor: boolean;  // Match backend field name
+  approvedByHomeownerAt?: string; // Timestamp when homeowner approved
+  approvedBySupervisorAt?: string; // Timestamp when supervisor approved
+  rejectedAt?: string; // Timestamp when rejected
   projectDelegatesApprovalToSupervisor?: boolean; // Project has delegation enabled
   rejectionReason?: string;
   createdAt: string;
@@ -48,7 +53,7 @@ export interface RejectMaterialRequestDto {
 // Material DTOs
 export interface MaterialDto {
   id: string;
-  requestId: string;
+  materialRequestId: string; // Backend returns this field name
   projectId: string;
   code: string;
   name: string;
@@ -132,8 +137,28 @@ export interface MaterialUpdateHistoryDto {
 }
 
 // Helper functions
-export function getMaterialRequestStatusLabel(status: MaterialRequestStatus): string {
+export function parseStatusFromBackend(status: string | MaterialRequestStatus): MaterialRequestStatus {
+  if (typeof status === 'number') return status;
+
+  // Convert string to enum
   switch (status) {
+    case 'Pending':
+      return MaterialRequestStatus.Pending;
+    case 'PartiallyApproved':
+      return MaterialRequestStatus.PartiallyApproved;
+    case 'Approved':
+      return MaterialRequestStatus.Approved;
+    case 'Rejected':
+      return MaterialRequestStatus.Rejected;
+    default:
+      return MaterialRequestStatus.Pending;
+  }
+}
+
+export function getMaterialRequestStatusLabel(status: MaterialRequestStatus | string): string {
+  const enumStatus = parseStatusFromBackend(status);
+
+  switch (enumStatus) {
     case MaterialRequestStatus.Pending:
       return 'Chờ duyệt';
     case MaterialRequestStatus.PartiallyApproved:
@@ -147,8 +172,10 @@ export function getMaterialRequestStatusLabel(status: MaterialRequestStatus): st
   }
 }
 
-export function getMaterialRequestStatusColor(status: MaterialRequestStatus): string {
-  switch (status) {
+export function getMaterialRequestStatusColor(status: MaterialRequestStatus | string): string {
+  const enumStatus = parseStatusFromBackend(status);
+
+  switch (enumStatus) {
     case MaterialRequestStatus.Pending:
       return 'bg-yellow-100 text-yellow-800';
     case MaterialRequestStatus.PartiallyApproved:

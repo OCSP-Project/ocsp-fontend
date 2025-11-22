@@ -112,10 +112,12 @@ export function ActualQuantityModal({
               <div>
                 <label className="text-xs text-gray-500">KL theo hợp đồng</label>
                 <p className="text-sm font-semibold text-blue-700">
-                  {material.contractQuantity.toLocaleString('vi-VN', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}{' '}
+                  {material.contractQuantity != null
+                    ? material.contractQuantity.toLocaleString('vi-VN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })
+                    : '-'}{' '}
                   {material.unit}
                 </p>
               </div>

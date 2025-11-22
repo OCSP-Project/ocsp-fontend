@@ -18,6 +18,7 @@ import { ApprovalModal } from './components/ApprovalModal';
 import { RequestDetailModal } from './components/RequestDetailModal';
 import { Plus, RefreshCw, Package } from 'lucide-react';
 import { useAuth, UserRole } from '@/hooks/useAuth';
+import { materialNotificationHelper } from '@/utils/materialNotifications';
 
 export default function MaterialsPage() {
   const params = useParams();
@@ -65,6 +66,33 @@ export default function MaterialsPage() {
       ]);
 
       setMaterials(materialsData);
+
+      // Check for status changes and add notifications
+      if (requests.length > 0) {
+        requestsData.forEach((newRequest) => {
+          const oldRequest = requests.find((r) => r.id === newRequest.id);
+
+          // New upload detected
+          if (!oldRequest) {
+            materialNotificationHelper.add(newRequest, 'upload');
+          }
+          // Status changed to approved
+          else if (
+            oldRequest.status !== MaterialRequestStatus.Approved &&
+            newRequest.status === MaterialRequestStatus.Approved
+          ) {
+            materialNotificationHelper.add(newRequest, 'approved');
+          }
+          // Status changed to rejected
+          else if (
+            oldRequest.status !== MaterialRequestStatus.Rejected &&
+            newRequest.status === MaterialRequestStatus.Rejected
+          ) {
+            materialNotificationHelper.add(newRequest, 'rejected');
+          }
+        });
+      }
+
       setRequests(requestsData);
     } catch (err: any) {
       setError(err.message || 'Không thể tải dữ liệu');
@@ -122,7 +150,69 @@ export default function MaterialsPage() {
     }
   };
 
-  const approvedMaterials = materials.filter((m) => m.requestId); // Only show approved materials
+  const handleDeleteRequest = async (request: MaterialRequestDto) => {
+    const confirmed = window.confirm(
+      `Bạn có chắc chắn muốn xóa yêu cầu vật tư này?\n\nThao tác này sẽ xóa toàn bộ vật tư đã import và không thể hoàn tác.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await materialService.deleteRequest(request.id);
+      alert('Đã xóa yêu cầu thành công');
+      await loadData(); // Reload data
+    } catch (err: any) {
+      alert(err.message || 'Không thể xóa yêu cầu');
+    }
+  };
+
+  const handleDeleteAllApprovedMaterials = async () => {
+    if (approvedMaterials.length === 0) {
+      alert('Không có vật tư nào để xóa');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Bạn có chắc chắn muốn xóa TẤT CẢ ${approvedMaterials.length} vật tư đã phê duyệt?\n\nThao tác này sẽ xóa toàn bộ yêu cầu đã được phê duyệt và vật tư liên quan. Thao tác này KHÔNG THỂ HOÀN TÁC!`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // Delete all approved requests
+      const deletePromises = Array.from(approvedRequestIds).map(requestId =>
+        materialService.deleteRequest(requestId)
+      );
+
+      await Promise.all(deletePromises);
+      alert('Đã xóa tất cả vật tư thành công');
+      await loadData();
+    } catch (err: any) {
+      alert(err.message || 'Không thể xóa vật tư');
+    }
+  };
+
+  // Filter materials from approved requests
+  // Backend returns status as string "Approved", not number
+  const approvedRequestIds = new Set(
+    requests
+      .filter((r) => r.status === 'Approved' || r.status === MaterialRequestStatus.Approved)
+      .map((r) => r.id)
+  );
+
+  console.log('Debug approved materials:', {
+    totalMaterials: materials.length,
+    totalRequests: requests.length,
+    firstRequestStatus: requests[0]?.status,
+    firstRequestStatusType: typeof requests[0]?.status,
+    MaterialRequestStatusApproved: MaterialRequestStatus.Approved,
+    approvedRequestIds: Array.from(approvedRequestIds),
+    materialsWithRequestId: materials.filter(m => m.materialRequestId),
+    firstMaterialRequestId: materials[0]?.materialRequestId,
+    allMaterialRequestIds: materials.map(m => m.materialRequestId).slice(0, 5), // first 5
+  });
+
+  const approvedMaterials = materials.filter((m) => approvedRequestIds.has(m.materialRequestId));
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
@@ -188,24 +278,19 @@ export default function MaterialsPage() {
               onViewDetail={handleViewRequestDetail}
               onApprove={handleApproveRequest}
               onReject={handleRejectRequest}
+              onDelete={handleDeleteRequest}
             />
           </section>
 
           {/* Approved Materials Section */}
           <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-gray-900">
-                Danh sách vật tư đã phê duyệt
-              </h2>
-              <span className="text-sm text-gray-500">
-                {approvedMaterials.length} vật tư
-              </span>
-            </div>
             <MaterialTable
               materials={approvedMaterials}
               canUpdateActual={canUpdateActual}
+              canDelete={canApproveAsHomeowner || canApproveAsSupervisor}
               onViewDetail={handleViewMaterialDetail}
               onUpdateActual={handleUpdateActual}
+              onDeleteAll={handleDeleteAllApprovedMaterials}
             />
           </section>
         </>
@@ -266,6 +351,7 @@ export default function MaterialsPage() {
           setIsRequestDetailModalOpen(false);
           setSelectedRequestId(null);
         }}
+        onReload={loadData}
       />
     </div>
   );

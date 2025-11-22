@@ -1,24 +1,27 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, FileText, Calendar, User, CheckCircle, XCircle } from 'lucide-react';
-import { MaterialRequestDetailDto } from '@/types/material.types';
+import { X, FileText, Calendar, User, CheckCircle, XCircle, Trash2 } from 'lucide-react';
+import { MaterialRequestDetailDto, MaterialRequestStatus, parseStatusFromBackend } from '@/types/material.types';
 import { materialService } from '@/services/materialService';
 
 interface RequestDetailModalProps {
   isOpen: boolean;
   requestId: string | null;
   onClose: () => void;
+  onReload?: () => void;
 }
 
 export function RequestDetailModal({
   isOpen,
   requestId,
   onClose,
+  onReload,
 }: RequestDetailModalProps) {
   const [request, setRequest] = useState<MaterialRequestDetailDto | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [clearing, setClearing] = useState(false);
 
   useEffect(() => {
     if (isOpen && requestId) {
@@ -40,6 +43,38 @@ export function RequestDetailModal({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleClearMaterials = async () => {
+    if (!requestId) return;
+
+    const confirmed = window.confirm(
+      'Bạn có chắc chắn muốn xóa tất cả vật tư đã import?\n\nYêu cầu vẫn được giữ lại và bạn có thể import lại file Excel khác.'
+    );
+
+    if (!confirmed) return;
+
+    setClearing(true);
+    try {
+      await materialService.clearImportedMaterials(requestId);
+      alert('Đã xóa dữ liệu thành công');
+      onClose();
+      onReload?.();
+    } catch (err: any) {
+      alert(err.message || 'Không thể xóa dữ liệu');
+    } finally {
+      setClearing(false);
+    }
+  };
+
+  const canClearMaterials = (): boolean => {
+    if (!request) return false;
+    // Only allow clearing from Pending or Rejected requests
+    const status = parseStatusFromBackend(request.status);
+    return (
+      status === MaterialRequestStatus.Pending ||
+      status === MaterialRequestStatus.Rejected
+    ) && request.materials && request.materials.length > 0;
   };
 
   if (!isOpen) return null;
@@ -118,7 +153,7 @@ export function RequestDetailModal({
                     {request.approvedByHomeowner && (
                       <CheckCircle className="w-4 h-4 text-green-600" />
                     )}
-                    {!request.approvedByHomeowner && request.status === 'Pending' && (
+                    {!request.approvedByHomeowner && parseStatusFromBackend(request.status) === MaterialRequestStatus.Pending && (
                       <XCircle className="w-4 h-4 text-gray-400" />
                     )}
                     <span className="text-sm font-medium">Chủ đầu tư</span>
@@ -127,7 +162,7 @@ export function RequestDetailModal({
                     {request.approvedBySupervisor && (
                       <CheckCircle className="w-4 h-4 text-green-600" />
                     )}
-                    {!request.approvedBySupervisor && request.status === 'Pending' && (
+                    {!request.approvedBySupervisor && parseStatusFromBackend(request.status) === MaterialRequestStatus.Pending && (
                       <XCircle className="w-4 h-4 text-gray-400" />
                     )}
                     <span className="text-sm font-medium">Giám sát</span>
@@ -231,7 +266,19 @@ export function RequestDetailModal({
         </div>
 
         {/* Footer */}
-        <div className="bg-gray-50 px-6 py-4 flex justify-end border-t border-gray-200">
+        <div className="bg-gray-50 px-6 py-4 flex justify-between border-t border-gray-200">
+          <div>
+            {canClearMaterials() && (
+              <button
+                onClick={handleClearMaterials}
+                disabled={clearing}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Trash2 className="w-4 h-4" />
+                {clearing ? 'Đang xóa...' : 'Xóa dữ liệu đã import'}
+              </button>
+            )}
+          </div>
           <button
             onClick={onClose}
             className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"

@@ -119,17 +119,22 @@ export function MaterialDetailModal({
                   <div>
                     <label className="text-xs text-blue-600">Khối lượng</label>
                     <p className="text-lg font-bold text-blue-900">
-                      {material.contractQuantity.toLocaleString('vi-VN', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}{' '}
+                      {material.contractQuantity != null
+                        ? material.contractQuantity.toLocaleString('vi-VN', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })
+                        : '-'}{' '}
                       <span className="text-sm font-normal">{material.unit}</span>
                     </p>
                   </div>
                   <div>
                     <label className="text-xs text-blue-600">Thành tiền</label>
                     <p className="text-lg font-bold text-blue-900">
-                      {material.contractAmount.toLocaleString('vi-VN')} VNĐ
+                      {material.contractAmount != null
+                        ? material.contractAmount.toLocaleString('vi-VN')
+                        : '-'}{' '}
+                      VNĐ
                     </p>
                   </div>
                 </div>
