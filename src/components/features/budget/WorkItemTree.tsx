@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { WorkItemDto, WorkItemStatus } from '@/types/work-item.types';
+import { WorkItemDto, WorkItemStatus, WorkItemStatusLabels } from '@/types/work-item.types';
 import { getStatusColor } from './utils';
 
 interface WorkItemTreeProps {
@@ -24,10 +24,11 @@ export function WorkItemTree({
       <div className="sticky top-0 bg-white z-10 pb-2 border-b border-gray-200 mb-2">
         <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-700">
           <div className="col-span-1">STT</div>
-          <div className="col-span-6">Công việc</div>
+          <div className="col-span-4">Công việc</div>
           <div className="col-span-2">Người thực hiện</div>
-          <div className="col-span-2">Thời gian</div>
-          <div className="col-span-1">Tiến độ</div>
+          <div className="col-span-2">Trạng thái</div>
+          <div className="col-span-1">Thời gian</div>
+          <div className="col-span-2">Tiến độ</div>
         </div>
       </div>
       {items.map((item, index) => (
@@ -54,6 +55,23 @@ interface WorkItemTreeNodeProps {
   onItemDoubleClick: (itemId: string) => void;
   level?: number;
 }
+
+const getStatusBadgeColor = (status: WorkItemStatus) => {
+  switch (status) {
+    case WorkItemStatus.NotStarted:
+      return 'bg-gray-100 text-gray-800';
+    case WorkItemStatus.InProgress:
+      return 'bg-blue-100 text-blue-800';
+    case WorkItemStatus.Completed:
+      return 'bg-green-100 text-green-800';
+    case WorkItemStatus.OnHold:
+      return 'bg-orange-100 text-orange-800';
+    case WorkItemStatus.Cancelled:
+      return 'bg-red-100 text-red-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+};
 
 function WorkItemTreeNode({
   item,
@@ -120,7 +138,7 @@ function WorkItemTreeNode({
         </div>
 
         {/* Work Name Column */}
-        <div className="col-span-6 flex items-center">
+        <div className="col-span-4 flex items-center">
           <span className={`${level > 0 ? 'text-gray-700' : 'font-semibold text-gray-900'}`}>
             {item.name}
           </span>
@@ -150,13 +168,20 @@ function WorkItemTreeNode({
           )}
         </div>
 
+        {/* Status Column - Read only */}
+        <div className="col-span-2 flex items-center">
+          <span className={`px-2 py-1 rounded-md text-xs font-medium ${getStatusBadgeColor(item.status)}`}>
+            {WorkItemStatusLabels[item.status]}
+          </span>
+        </div>
+
         {/* Duration Column */}
-        <div className="col-span-2 flex items-center text-gray-600 text-xs">
+        <div className="col-span-1 flex items-center text-gray-600 text-xs">
           {formatDuration(item.duration)}
         </div>
 
-        {/* Progress Column */}
-        <div className="col-span-1 flex items-center">
+        {/* Progress Column - Read only */}
+        <div className="col-span-2 flex items-center">
           {item.progress !== undefined && (
             <div className="w-full">
               <div className="flex items-center justify-between mb-1">

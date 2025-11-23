@@ -13,7 +13,7 @@ export interface WorkItemDto {
   estimatedHours?: number;
   actualHours?: number;
   progress?: number;
-  status: WorkItemStatus;
+  status: WorkItemStatus | string; // Can be enum number or string from backend
   level: number;
   orderIndex: number;
   assignedUserIds: string[];
@@ -113,7 +113,7 @@ export interface UpdateWorkItemDto {
   startDate?: string;
   endDate?: string;
   estimatedHours?: number;
-  status?: WorkItemStatus;
+  status?: string; // Backend expects string (NotStarted, InProgress, Completed, Paused, Cancelled)
   assignedUserIds?: string[];
 }
 
@@ -197,3 +197,21 @@ export const BudgetTypeLabels = {
   [BudgetType.Equipment]: 'Thiết bị',
   [BudgetType.Other]: 'Khác',
 };
+
+// Helper function to convert backend status string to frontend enum
+export function parseWorkItemStatus(status: string | number): WorkItemStatus {
+  if (typeof status === 'number') {
+    return status as WorkItemStatus;
+  }
+
+  const statusMap: Record<string, WorkItemStatus> = {
+    'NotStarted': WorkItemStatus.NotStarted,
+    'InProgress': WorkItemStatus.InProgress,
+    'Completed': WorkItemStatus.Completed,
+    'Overdue': WorkItemStatus.OnHold,     // Backend Overdue -> Frontend OnHold
+    'Paused': WorkItemStatus.OnHold,      // Backend Paused -> Frontend OnHold
+    'Cancelled': WorkItemStatus.Cancelled,
+  };
+
+  return statusMap[status] ?? WorkItemStatus.NotStarted;
+}
