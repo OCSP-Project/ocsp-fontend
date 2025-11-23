@@ -17,7 +17,7 @@ interface AuthContextType {
   login: (data: LoginData) => Promise<void>;
   register: (data: RegisterData) => Promise<void>;
   forgotPassword: (data: ForgotPasswordData) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshToken: () => Promise<boolean>;
   checkAuthStatus: () => Promise<void>;
 }

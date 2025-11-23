@@ -6,6 +6,8 @@ import Link from 'next/link';
 import Header from '@/components/layout/Header';
 import { paymentsApi, supervisorContractsApi } from '@/lib/contracts/contracts.api';
 import { projectsApi, type ProjectDetailDto, type UpdateProjectDto } from '@/lib/projects/projects.api';
+import { MembersSection } from "@/components/features/project-invitations/MembersSection";
+import { ProjectParticipantRole } from "@/types/project-invitation.types";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -22,7 +24,7 @@ export default function ProjectDetailPage() {
   const [project, setProject] = useState<ProjectDetailDto | null>(null);
   const [form, setForm] = useState<UpdateProjectDto>({});
   const [supervisorContract, setSupervisorContract] = useState<{ status: string } | null>(null);
-  
+
   // Track which orderIds have been processed to prevent duplicate webhook calls
   const processedOrdersRef = React.useRef<Set<string>>(new Set());
 
@@ -245,13 +247,13 @@ export default function ProjectDetailPage() {
     if (!confirmed) return;
     try {
       setSaving(true);
-      
+
       // Tạo supervisor contract trước
       const newContract = await supervisorContractsApi.create({
         projectId: projectId,
         monthlyPrice: monthlyPrice,
       });
-      
+
       // Redirect đến tab contracts với contractId để highlight
       router.push(`/projects?tab=contracts&supervisorContractId=${newContract.id}`);
     } catch (e: any) {
@@ -614,30 +616,12 @@ export default function ProjectDetailPage() {
                   </div>
                 </div>
 
-                {/* Participants */}
+                {/* Participants - Replaced with MembersSection */}
                 <div className={`${cardCls} mt-6`}>
-                  <h2 className={`${titleCls} mb-4`}>Thành viên dự án</h2>
-                  {project.participants.length === 0 ? (
-                    <div className="text-stone-400">Chưa có thành viên nào</div>
-                  ) : (
-                    <div className="space-y-3">
-                      {project.participants.map((participant, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center justify-between p-3 bg-stone-700/30 rounded-lg"
-                        >
-                          <div>
-                            <div className="text-stone-100 font-medium">
-                              {participant.userName}
-                            </div>
-                            <div className="text-sm text-stone-400">
-                              {participant.role} • {participant.status}
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  <MembersSection
+                    projectId={projectId}
+                    currentUserRole={ProjectParticipantRole.Homeowner}
+                  />
                 </div>
               </div>
 
@@ -654,23 +638,33 @@ export default function ProjectDetailPage() {
                     </Link>
 
                     <Link
+                      href={`/projects/${project.id}/budget`}
+                      className="block w-full text-center py-2 px-4 bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 rounded-lg hover:bg-emerald-600/30 transition"
+                    >
+                      Dự toán & Gantt Chart
+                    </Link>
+
+                    <Link
                       href={`/projects/${project.id}/resources`}
                       className="block w-full text-center py-2 px-4 bg-orange-600/20 text-orange-300 border border-orange-500/30 rounded-lg hover:bg-orange-600/30 transition"
                     >
                       Báo cáo tài nguyên
                     </Link>
+
                     <Link
                       href={`/projects/${project.id}/chat`}
                       className="block w-full text-center py-2 px-4 bg-green-600/20 text-green-300 border border-green-500/30 rounded-lg hover:bg-green-600/30 transition"
                     >
                       Chat dự án
                     </Link>
+
                     <Link
                       href={`/projects/${project.id}/reports`}
                       className="block w-full text-center py-2 px-4 bg-purple-600/20 text-purple-300 border border-purple-500/30 rounded-lg hover:bg-purple-600/30 transition"
                     >
                       Báo cáo
                     </Link>
+
                     <Link
                       href={`/projects/${project.id}/3d-model`}
                       className="block w-full text-center py-2 px-4 bg-purple-600/20 text-purple-300 border border-purple-500/30 rounded-lg hover:bg-purple-600/30 transition"
