@@ -23,6 +23,21 @@ export default function BudgetPage() {
     setSelectedWorkItem(null);
   };
 
+  const handleWorkItemUpdate = async () => {
+    // Refresh the list
+    setRefreshTrigger(prev => prev + 1);
+
+    // Also reload the selected work item to update modal
+    if (selectedWorkItem) {
+      try {
+        const updated = await workItemService.getById(selectedWorkItem.id);
+        setSelectedWorkItem(updated);
+      } catch (error) {
+        console.error('Error reloading work item:', error);
+      }
+    }
+  };
+
   const handleImportSuccess = () => {
     setShowImportDialog(false);
     setRefreshTrigger(prev => prev + 1);
@@ -46,24 +61,15 @@ export default function BudgetPage() {
   };
 
   const handleDeleteAll = async () => {
-    if (!confirm('Bạn có chắc chắn muốn xóa tất cả dữ liệu đã import? Hành động này không thể hoàn tác!')) {
+    if (!confirm('Bạn có chắc chắn muốn xóa VĨNH VIỄN tất cả dữ liệu đã import? Hành động này không thể hoàn tác!\n\nToàn bộ work items, trạng thái, lịch sử cập nhật sẽ bị xóa khỏi database.')) {
       return;
     }
 
     try {
-      // Get only root level items
-      const rootItems = await workItemService.getAllByProject(projectId, true, false);
+      // Hard delete all work items for this project
+      await workItemService.hardDeleteAllByProject(projectId);
 
-      // Delete root items - backend will cascade delete children
-      for (const item of rootItems) {
-        try {
-          await workItemService.delete(item.id);
-        } catch (err) {
-          console.warn(`Failed to delete item ${item.id}:`, err);
-        }
-      }
-
-      alert('Đã xóa tất cả dữ liệu thành công');
+      alert('Đã xóa vĩnh viễn tất cả dữ liệu thành công');
       setRefreshTrigger(prev => prev + 1);
     } catch (error) {
       console.error('Error deleting work items:', error);
@@ -126,6 +132,7 @@ export default function BudgetPage() {
         <WorkItemDetailModal
           workItem={selectedWorkItem}
           onClose={handleCloseDetail}
+          onUpdate={handleWorkItemUpdate}
         />
       )}
 

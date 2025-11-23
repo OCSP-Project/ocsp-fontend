@@ -185,4 +185,11 @@ export const workItemService = {
     const response = await apiClient.delete(`/work-items/${id}/unassign-user/${userId}`);
     return response.data;
   },
+
+  /**
+   * Hard delete all work items for a project
+   */
+  hardDeleteAllByProject: async (projectId: string): Promise<void> => {
+    await apiClient.delete(`/work-items/project/${projectId}/hard-delete`);
+  },
 };

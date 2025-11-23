@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { gsap } from "gsap";
 import { useAuthContext } from "@/providers";
+import { MaterialNotificationDropdown } from "../MaterialNotificationDropdown";
 import styles from "./Header.module.scss";
 
 interface NavItem {
@@ -159,6 +160,9 @@ const Header: React.FC = () => {
 
         {/* User Actions */}
         <div className={styles.userActions}>
+          {/* Material Notifications - Only show for authenticated users */}
+          {isAuthenticated && user && <MaterialNotificationDropdown />}
+
           {isLoading ? (
             // Loading skeleton
             <div className={styles.loadingSkeleton}></div>

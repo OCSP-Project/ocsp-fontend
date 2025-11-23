@@ -1,18 +1,101 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { WorkItemDetailDto } from '@/types/work-item.types';
+import { WorkItemDetailDto, WorkItemStatus, parseWorkItemStatus } from '@/types/work-item.types';
 import { formatDate, formatDateTime, getStatusColor, formatCurrency } from './utils';
+import { StatusDropdown } from './StatusDropdown';
+import { ProgressInput } from './ProgressInput';
+import { workItemService } from '@/services';
 
 interface WorkItemDetailModalProps {
   workItem: WorkItemDetailDto;
   onClose: () => void;
+  onUpdate?: () => void;
 }
 
 type TabType = 'overview' | 'budget' | 'statistics' | 'payments' | 'activity';
 
-export function WorkItemDetailModal({ workItem, onClose }: WorkItemDetailModalProps) {
+export function WorkItemDetailModal({ workItem, onClose, onUpdate }: WorkItemDetailModalProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
+  const [currentWorkItem, setCurrentWorkItem] = useState<WorkItemDetailDto>(() => ({
+    ...workItem,
+    status: parseWorkItemStatus(workItem.status)
+  }));
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // Sync state when workItem prop changes
+  useEffect(() => {
+    setCurrentWorkItem({
+      ...workItem,
+      status: parseWorkItemStatus(workItem.status)
+    });
+  }, [workItem]);
+
+  const handleStatusChange = async (newStatus: WorkItemStatus) => {
+    try {
+      setIsUpdating(true);
+      console.log('Updating status to:', newStatus);
+      console.log('Work item ID:', currentWorkItem.id);
+
+      // Convert frontend enum to backend enum string
+      const statusMap: Record<WorkItemStatus, string> = {
+        [WorkItemStatus.NotStarted]: 'NotStarted',
+        [WorkItemStatus.InProgress]: 'InProgress',
+        [WorkItemStatus.Completed]: 'Completed',
+        [WorkItemStatus.OnHold]: 'Paused',     // Frontend OnHold -> Backend Paused
+        [WorkItemStatus.Cancelled]: 'Cancelled',
+      };
+
+      const updateData = { status: statusMap[newStatus] };
+      console.log('Update data:', updateData);
+
+      console.log('Step 1: Calling update API...');
+      const updateResult = await workItemService.update(currentWorkItem.id, updateData);
+      console.log('Step 1 complete. Update result:', updateResult);
+
+      console.log('Step 2: Reloading work item details...');
+      const updated = await workItemService.getById(currentWorkItem.id);
+      console.log('Step 2 complete. Updated work item:', updated);
+      console.log('Updated status:', updated.status);
+      console.log('Updated status type:', typeof updated.status);
+
+      // Convert status string to enum number
+      const normalizedStatus = parseWorkItemStatus(updated.status);
+      console.log('Normalized status:', normalizedStatus);
+      const normalizedWorkItem = { ...updated, status: normalizedStatus };
+
+      console.log('Step 3: Setting current work item state...');
+      setCurrentWorkItem(normalizedWorkItem);
+      console.log('Step 3 complete');
+
+      console.log('Step 4: Calling onUpdate callback...');
+      onUpdate?.();
+      console.log('Step 4 complete');
+    } catch (error: any) {
+      console.error('Error updating status:', error);
+      console.error('Error response:', error?.response?.data);
+      const errorMessage = error?.response?.data?.message || error?.response?.data?.title || 'Không thể cập nhật trạng thái';
+      alert(errorMessage);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleProgressChange = async (newProgress: number) => {
+    try {
+      setIsUpdating(true);
+      await workItemService.updateProgress(currentWorkItem.id, { progress: newProgress });
+      // Reload work item details
+      const updated = await workItemService.getById(currentWorkItem.id);
+      setCurrentWorkItem(updated);
+      onUpdate?.();
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      alert('Không thể cập nhật tiến độ');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   // Close on ESC key
   useEffect(() => {
@@ -31,7 +114,7 @@ export function WorkItemDetailModal({ workItem, onClose }: WorkItemDetailModalPr
     };
   }, []);
 
-  const statusColors = getStatusColor(workItem.status, workItem.progress);
+  const statusColors = getStatusColor(currentWorkItem.status, currentWorkItem.progress);
 
   const tabs: { id: TabType; label: string; icon: string }[] = [
     { id: 'overview', label: 'Tổng quan', icon: '📊' },
@@ -47,7 +130,7 @@ export function WorkItemDetailModal({ workItem, onClose }: WorkItemDetailModalPr
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
           <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-bold text-gray-900">{workItem.name}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{currentWorkItem.name}</h2>
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors.bg} text-white`}>
               {statusColors.label}
             </span>
@@ -82,18 +165,32 @@ export function WorkItemDetailModal({ workItem, onClose }: WorkItemDetailModalPr
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-          {activeTab === 'overview' && <OverviewTab workItem={workItem} />}
-          {activeTab === 'budget' && <BudgetTab workItem={workItem} />}
-          {activeTab === 'statistics' && <StatisticsTab workItem={workItem} />}
-          {activeTab === 'payments' && <PaymentsTab workItem={workItem} />}
-          {activeTab === 'activity' && <ActivityTab workItem={workItem} />}
+          {activeTab === 'overview' && (
+            <OverviewTab
+              workItem={currentWorkItem}
+              onStatusChange={handleStatusChange}
+              onProgressChange={handleProgressChange}
+              isUpdating={isUpdating}
+            />
+          )}
+          {activeTab === 'budget' && <BudgetTab workItem={currentWorkItem} />}
+          {activeTab === 'statistics' && <StatisticsTab workItem={currentWorkItem} />}
+          {activeTab === 'payments' && <PaymentsTab workItem={currentWorkItem} />}
+          {activeTab === 'activity' && <ActivityTab workItem={currentWorkItem} />}
         </div>
       </div>
     </div>
   );
 }
 
-function OverviewTab({ workItem }: { workItem: WorkItemDetailDto }) {
+interface OverviewTabProps {
+  workItem: WorkItemDetailDto;
+  onStatusChange?: (newStatus: WorkItemStatus) => void;
+  onProgressChange?: (newProgress: number) => void;
+  isUpdating?: boolean;
+}
+
+function OverviewTab({ workItem, onStatusChange, onProgressChange, isUpdating = false }: OverviewTabProps) {
   const calculateDuration = () => {
     if (!workItem.startDate || !workItem.endDate) return 0;
     const start = new Date(workItem.startDate);
@@ -139,22 +236,41 @@ function OverviewTab({ workItem }: { workItem: WorkItemDetailDto }) {
             <p className="mt-1 px-3 py-1 bg-pink-100 text-pink-700 rounded inline-block">{formatDate(workItem.endDate)}</p>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-600">Trạng thái</label>
-            <p className={`mt-1 px-3 py-1 rounded inline-block text-white ${getStatusColor(workItem.status, workItem.progress).bg}`}>
-              {getStatusColor(workItem.status, workItem.progress).label}
-            </p>
+            <label className="text-sm font-medium text-gray-600 block mb-2">Trạng thái</label>
+            {onStatusChange ? (
+              <StatusDropdown
+                currentStatus={workItem.status}
+                onStatusChange={onStatusChange}
+                disabled={isUpdating}
+              />
+            ) : (
+              <p className={`px-3 py-1 rounded inline-block text-white ${getStatusColor(workItem.status, workItem.progress).bg}`}>
+                {getStatusColor(workItem.status, workItem.progress).label}
+              </p>
+            )}
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-600">Tiến độ</label>
-            <div className="mt-1 flex items-center gap-2">
-              <div className="flex-1 bg-gray-200 rounded-full h-2">
-                <div
-                  className={`h-2 rounded-full bg-green-500`}
-                  style={{ width: `${workItem.progress || 0}%` }}
+            <label className="text-sm font-medium text-gray-600 block mb-2">Tiến độ</label>
+            {onProgressChange ? (
+              <div className="max-w-[200px]">
+                <ProgressInput
+                  currentProgress={workItem.progress || 0}
+                  status={workItem.status}
+                  onProgressChange={onProgressChange}
+                  disabled={isUpdating}
                 />
               </div>
-              <span className="text-sm font-medium">{workItem.progress || 0}%</span>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full bg-green-500`}
+                    style={{ width: `${workItem.progress || 0}%` }}
+                  />
+                </div>
+                <span className="text-sm font-medium">{workItem.progress || 0}%</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
