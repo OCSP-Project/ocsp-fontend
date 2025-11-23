@@ -183,13 +183,10 @@ export function RequestDetailModal({
                           <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             STT
                           </th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Mã số
-                          </th>
                           <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px]">
                             Hạng mục
                           </th>
-                          <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Đơn vị
                           </th>
                           <th className="px-3 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -212,33 +209,30 @@ export function RequestDetailModal({
                             <td className="px-3 py-3 text-sm text-gray-900">
                               {index + 1}
                             </td>
-                            <td className="px-3 py-3 text-sm text-gray-900 font-mono">
-                              {material.code}
-                            </td>
                             <td className="px-3 py-3 text-sm text-gray-900">
                               {material.name}
                             </td>
-                            <td className="px-3 py-3 text-sm text-gray-900">
-                              {material.unit}
+                            <td className="px-3 py-3 text-sm text-gray-900 text-center">
+                              {material.unit || '-'}
                             </td>
                             <td className="px-3 py-3 text-sm text-gray-900 text-right">
-                              {material.unitPrice.toLocaleString('vi-VN')}
+                              {material.unitPrice?.toLocaleString('vi-VN') || '0'}
                             </td>
                             <td className="px-3 py-3 text-sm text-gray-900 text-right">
                               {material.contractQuantity?.toLocaleString('vi-VN') || '-'}
                             </td>
                             <td className="px-3 py-3 text-sm text-gray-900 text-right font-medium">
-                              {material.estimatedQuantity.toLocaleString('vi-VN')}
+                              {material.estimatedQuantity?.toLocaleString('vi-VN') || '0'}
                             </td>
                             <td className="px-3 py-3 text-sm text-gray-900 text-right font-semibold">
-                              {material.estimatedAmount.toLocaleString('vi-VN')} VNĐ
+                              {material.estimatedAmount?.toLocaleString('vi-VN') || '0'} VNĐ
                             </td>
                           </tr>
                         ))}
                       </tbody>
                       <tfoot className="bg-gray-50">
                         <tr>
-                          <td colSpan={7} className="px-3 py-3 text-sm font-semibold text-gray-900 text-right">
+                          <td colSpan={6} className="px-3 py-3 text-sm font-semibold text-gray-900 text-right">
                             Tổng cộng:
                           </td>
                           <td className="px-3 py-3 text-sm font-bold text-blue-600 text-right">

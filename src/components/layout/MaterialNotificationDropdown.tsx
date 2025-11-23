@@ -2,11 +2,10 @@
 
 import { useEffect, useState, useRef, useMemo } from 'react';
 import { Bell } from 'lucide-react';
-import { MaterialRequestDto, MaterialRequestStatus } from '@/types/material.types';
-import { materialNotificationHelper, MaterialNotification } from '@/utils/materialNotifications';
+import { notificationService, NotificationDto, NotificationType } from '@/services/notification.service';
 import { useAuth } from '@/hooks/useAuth';
 
-type Notification = MaterialNotification;
+type Notification = NotificationDto;
 
 export function MaterialNotificationDropdown() {
   const { user } = useAuth();
@@ -21,17 +20,12 @@ export function MaterialNotificationDropdown() {
     if (user) {
       loadNotifications();
 
-      // Listen for notification events
-      const handleNotificationAdded = () => loadNotifications();
-      const handleNotificationUpdated = () => loadNotifications();
+      // Poll for new notifications every 30 seconds
+      const interval = setInterval(() => {
+        loadNotifications();
+      }, 30000);
 
-      window.addEventListener('materialNotificationAdded', handleNotificationAdded);
-      window.addEventListener('materialNotificationUpdated', handleNotificationUpdated);
-
-      return () => {
-        window.removeEventListener('materialNotificationAdded', handleNotificationAdded);
-        window.removeEventListener('materialNotificationUpdated', handleNotificationUpdated);
-      };
+      return () => clearInterval(interval);
     }
   }, [user]);
 
@@ -47,10 +41,10 @@ export function MaterialNotificationDropdown() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const loadNotifications = () => {
+  const loadNotifications = async () => {
     try {
       setLoading(true);
-      const all = materialNotificationHelper.getAll();
+      const all = await notificationService.getNotifications(false, 50);
       setNotifications(all);
     } catch (error) {
       console.error('Failed to load notifications:', error);
@@ -59,65 +53,69 @@ export function MaterialNotificationDropdown() {
     }
   };
 
-  const markAsRead = (notificationId: string) => {
-    materialNotificationHelper.markAsRead(notificationId);
-    loadNotifications();
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await notificationService.markAsRead(notificationId);
+      loadNotifications();
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   };
 
-  const markAllAsRead = () => {
-    materialNotificationHelper.markAllAsRead();
-    loadNotifications();
+  const markAllAsRead = async () => {
+    try {
+      await notificationService.markAllAsRead();
+      loadNotifications();
+    } catch (error) {
+      console.error('Failed to mark all as read:', error);
+    }
   };
 
   const filteredNotifications = useMemo(() => {
     const filtered = activeTab === 'unread'
-      ? notifications.filter(n => !n.read)
+      ? notifications.filter(n => !n.isRead)
       : notifications;
     return filtered.slice(0, 20); // Show max 20
   }, [notifications, activeTab]);
 
   const unreadCount = useMemo(() => {
-    return notifications.filter(n => !n.read).length;
+    return notifications.filter(n => !n.isRead).length;
   }, [notifications]);
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: NotificationType) => {
     switch (type) {
-      case 'upload':
+      case NotificationType.MaterialRequestUploaded:
         return '📤';
-      case 'approved':
+      case NotificationType.MaterialRequestApproved:
         return '✅';
-      case 'rejected':
+      case NotificationType.MaterialRequestRejected:
         return '❌';
+      case NotificationType.MaterialRequestPartiallyApproved:
+        return '⚠️';
+      default:
+        return '🔔';
     }
   };
 
   const getNotificationTitle = (notification: Notification) => {
-    const { type, request } = notification;
-    switch (type) {
-      case 'upload':
-        return `${request.contractorName} đã thêm mới phiếu xuất hàng hóa`;
-      case 'approved':
-        return `Phiếu xuất hàng hóa đã được phê duyệt`;
-      case 'rejected':
-        return `Phiếu xuất hàng hóa đã bị từ chối`;
-    }
+    return notification.title;
   };
 
   const getNotificationSubtitle = (notification: Notification) => {
-    const { request } = notification;
-    // Display project name and request date
-    const requestDate = new Date(request.requestDate || request.createdAt);
+    const { projectName, createdAt } = notification;
+    const requestDate = new Date(createdAt);
     const dateStr = requestDate.toLocaleDateString('vi-VN', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
     });
-    return `cho dự án ${request.projectName} - ${dateStr}`;
+    return projectName ? `Dự án ${projectName} - ${dateStr}` : dateStr;
   };
 
-  const getTimeAgo = (timestamp: Date) => {
+  const getTimeAgo = (timestamp: string) => {
     const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
+    const notifTime = new Date(timestamp);
+    const diff = now.getTime() - notifTime.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
@@ -210,11 +208,12 @@ export function MaterialNotificationDropdown() {
                   key={notification.id}
                   onClick={() => {
                     markAsRead(notification.id);
-                    // Navigate to materials page
-                    window.location.href = `/projects/${notification.request.projectId}/materials`;
+                    // Navigate using actionUrl or fallback to project materials page
+                    const url = notification.actionUrl || (notification.projectId ? `/projects/${notification.projectId}/materials` : '#');
+                    window.location.href = url;
                   }}
                   className={`px-4 py-3 border-b border-gray-100 cursor-pointer transition-colors relative ${
-                    notification.read ? 'bg-white hover:bg-gray-50' : 'bg-blue-50 hover:bg-blue-100'
+                    notification.isRead ? 'bg-white hover:bg-gray-50' : 'bg-blue-50 hover:bg-blue-100'
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -233,12 +232,12 @@ export function MaterialNotificationDropdown() {
                       </p>
                       <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                         <span>🕐</span>
-                        {getTimeAgo(notification.timestamp)}
+                        {getTimeAgo(notification.notificationDate)}
                       </p>
                     </div>
 
                     {/* Unread indicator */}
-                    {!notification.read && (
+                    {!notification.isRead && (
                       <div className="flex-shrink-0">
                         <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                       </div>

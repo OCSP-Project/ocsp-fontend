@@ -173,18 +173,18 @@ export default function MaterialsPage() {
     }
 
     const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn xóa TẤT CẢ ${approvedMaterials.length} vật tư đã phê duyệt?\n\nThao tác này sẽ xóa toàn bộ yêu cầu đã được phê duyệt và vật tư liên quan. Thao tác này KHÔNG THỂ HOÀN TÁC!`
+      `Bạn có chắc chắn muốn xóa TẤT CẢ ${approvedMaterials.length} vật tư đã phê duyệt?\n\nYêu cầu vẫn được giữ lại nhưng danh sách vật tư sẽ bị xóa. Thao tác này KHÔNG THỂ HOÀN TÁC!`
     );
 
     if (!confirmed) return;
 
     try {
-      // Delete all approved requests
-      const deletePromises = Array.from(approvedRequestIds).map(requestId =>
-        materialService.deleteRequest(requestId)
+      // Clear materials from all approved requests (keep requests)
+      const clearPromises = Array.from(approvedRequestIds).map(requestId =>
+        materialService.clearImportedMaterials(requestId)
       );
 
-      await Promise.all(deletePromises);
+      await Promise.all(clearPromises);
       alert('Đã xóa tất cả vật tư thành công');
       await loadData();
     } catch (err: any) {

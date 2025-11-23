@@ -28,9 +28,22 @@ export const materialNotificationHelper = {
     }
   },
 
+  // Check if notification already exists for this request and type
+  hasNotification(requestId: string, type: 'upload' | 'approved' | 'rejected'): boolean {
+    const notifications = this.getAll();
+    return notifications.some(n =>
+      n.request.id === requestId && n.type === type
+    );
+  },
+
   // Add new notification
   add(request: MaterialRequestDto, type: 'upload' | 'approved' | 'rejected') {
     const notifications = this.getAll();
+
+    // Check if notification already exists
+    if (this.hasNotification(request.id, type)) {
+      return null;
+    }
 
     const newNotification: MaterialNotification = {
       id: `${request.id}-${type}-${Date.now()}`,
@@ -47,6 +60,38 @@ export const materialNotificationHelper = {
     window.dispatchEvent(new CustomEvent('materialNotificationAdded', { detail: newNotification }));
 
     return newNotification;
+  },
+
+  // Ensure notifications exist for recent requests (called when user views materials page)
+  ensureNotificationsForRequests(requests: MaterialRequestDto[], currentUserId: string) {
+    requests.forEach(request => {
+      const requestDate = new Date(request.createdAt);
+      const daysSinceCreated = (Date.now() - requestDate.getTime()) / (1000 * 60 * 60 * 24);
+
+      // Only create notifications for requests from last 7 days
+      if (daysSinceCreated > 7) return;
+
+      // Upload notification - for all users except the contractor who created it
+      if (request.contractorId !== currentUserId) {
+        if (!this.hasNotification(request.id, 'upload')) {
+          this.add(request, 'upload');
+        }
+      }
+
+      // Approved notification - for everyone
+      if (request.status === 'Approved' || request.status === 2) {
+        if (!this.hasNotification(request.id, 'approved')) {
+          this.add(request, 'approved');
+        }
+      }
+
+      // Rejected notification - for everyone
+      if (request.status === 'Rejected' || request.status === 3) {
+        if (!this.hasNotification(request.id, 'rejected')) {
+          this.add(request, 'rejected');
+        }
+      }
+    });
   },
 
   // Mark as read

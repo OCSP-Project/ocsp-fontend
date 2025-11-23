@@ -59,11 +59,14 @@ export function MaterialTable({
               <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider w-20">
                 STT
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider min-w-[120px]">
-                Mã số
-              </th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-white uppercase tracking-wider min-w-[300px]">
                 Hạng mục
+              </th>
+              <th className="px-6 py-4 text-center text-xs font-semibold text-white uppercase tracking-wider min-w-[100px]">
+                Đơn vị
+              </th>
+              <th className="px-6 py-4 text-right text-xs font-semibold text-white uppercase tracking-wider min-w-[130px]">
+                Đơn giá
               </th>
               <th className="px-6 py-4 text-right text-xs font-semibold text-white uppercase tracking-wider min-w-[130px]">
                 KL hợp đồng
@@ -97,23 +100,18 @@ export function MaterialTable({
                       {index + 1}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-3 py-1 rounded-md bg-blue-50 text-sm font-mono font-semibold text-blue-700 border border-blue-200">
-                      {material.code}
+                  <td className="px-6 py-4">
+                    <p className="font-semibold text-slate-900 leading-tight">{material.name}</p>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-center">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700">
+                      {material.unit || '-'}
                     </span>
                   </td>
-                  <td className="px-6 py-4">
-                    <div className="max-w-md">
-                      <p className="font-semibold text-slate-900 leading-tight">{material.name}</p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-700">
-                          {material.unit}
-                        </span>
-                        <span className="text-xs text-slate-500">
-                          Đơn giá: {material.unitPrice.toLocaleString('vi-VN')} VNĐ
-                        </span>
-                      </div>
-                    </div>
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                    <span className="text-sm font-semibold text-slate-900">
+                      {material.unitPrice?.toLocaleString('vi-VN') || '0'}
+                    </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right">
                     <span className="text-sm font-semibold text-slate-900">
