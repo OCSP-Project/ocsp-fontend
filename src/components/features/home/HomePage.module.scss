@@ -95,6 +95,20 @@
   }
 }
 
+.heroButtons {
+  display: flex;
+  flex-direction: row; // Đảm bảo hiển thị theo hàng ngang
+  gap: 1.5rem;
+  flex-wrap: nowrap; // Không cho phép wrap xuống dòng
+  align-items: center; // Căn giữa theo chiều dọc
+  
+  @media (max-width: 768px) {
+    flex-direction: column; // Chỉ trên mobile mới chuyển sang hàng dọc
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+}
+
 .heroButton {
   display: inline-block;
   background: transparent;
@@ -106,10 +120,34 @@
   letter-spacing: 2px;
   font-size: 0.9rem;
   transition: all 0.4s ease;
+  opacity: 1; // Ensure visible by default
+  visibility: visible; // Ensure visible by default
   
   &:hover {
     background: white;
     color: black;
+    transform: translateY(-2px);
+  }
+}
+
+.heroButtonSecondary {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  padding: 1rem 2.5rem;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  text-decoration: none;
+  font-weight: 500;
+  letter-spacing: 2px;
+  font-size: 0.9rem;
+  transition: all 0.4s ease;
+  backdrop-filter: blur(10px);
+  opacity: 1; // Ensure visible by default
+  visibility: visible; // Ensure visible by default
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: white;
     transform: translateY(-2px);
   }
 }

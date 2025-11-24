@@ -433,16 +433,7 @@ const ContractorDetailPage: React.FC = () => {
                         />
                       </Card>
                     </Col>
-                    <Col span={12}>
-                      <Card className={styles.statCard}>
-                        <Statistic
-                          title="Hồ sơ hoàn thiện"
-                          value={contractor.profileCompletionPercentage}
-                          suffix="%"
-                          prefix={<CheckCircleOutlined />}
-                        />
-                      </Card>
-                    </Col>
+                   
                     {(contractor.minProjectBudget ||
                       contractor.maxProjectBudget) && (
                       <Col span={24}>

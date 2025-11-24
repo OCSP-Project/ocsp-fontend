@@ -6,6 +6,8 @@ import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import Header from "@/components/layout/Header";
 import { useAuthContext } from "@/providers";
 import { UserRole } from "@/hooks/useAuth";
+import { usePendingRegistrationRequests } from "@/hooks/usePendingRegistrationRequests";
+import { Tag } from "antd";
 
 export default function DashboardLayout({
   children,
@@ -16,6 +18,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { pendingCount } = usePendingRegistrationRequests();
 
   if (!user) return null;
 
@@ -175,12 +178,20 @@ export default function DashboardLayout({
                 >
                   📊 Dashboard
                 </Link>
-                <Link
-                  href="/admin/users"
-                  className={getActivePathClass("/admin/users")}
-                >
-                  👥 Người dùng
-                </Link>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Link
+                    href="/admin/users"
+                    className={getActivePathClass("/admin/users")}
+                    style={{ flex: 1 }}
+                  >
+                    👥 Người dùng
+                  </Link>
+                  {isAdmin && pendingCount > 0 && (
+                    <Tag color="orange" style={{ marginLeft: 8, borderRadius: '10px', marginRight: 0 }}>
+                      {pendingCount}
+                    </Tag>
+                  )}
+                </div>
                 <Link
                   href="/admin/projects"
                   className={getActivePathClass("/admin/projects")}
