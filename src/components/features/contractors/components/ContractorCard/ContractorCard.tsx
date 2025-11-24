@@ -228,7 +228,7 @@ const ContractorCard: React.FC<ContractorCardProps> = ({
             {/* Header */}
             <div className={styles.header}>
               <div className={styles.title}>
-                <h3 className={styles.companyName}>
+                <h3 className={styles.companyName} title={contractor.companyName}>
                   <Link href={`/view-contractors/${contractor.id}`}>
                     {contractor.companyName}
                   </Link>
@@ -249,13 +249,11 @@ const ContractorCard: React.FC<ContractorCardProps> = ({
             </div>
 
             {/* Description */}
-            {contractor.description && (
-              <p className={styles.description}>
-                {contractor.description.length > 100
-                  ? `${contractor.description.substring(0, 100)}...`
-                  : contractor.description}
-              </p>
-            )}
+            <p className={styles.description} title={contractor.description || "Không có mô tả"}>
+              {contractor.description && contractor.description.length > 0
+                ? contractor.description
+                : "Không có mô tả"}
+            </p>
 
             {/* Info Grid */}
             <div className={styles.infoGrid}>
@@ -305,20 +303,7 @@ const ContractorCard: React.FC<ContractorCardProps> = ({
               </div>
             )}
 
-            {/* Profile completion */}
-            <div className={styles.completion}>
-              <div className={styles.completionLabel}>
-                Hồ sơ hoàn thiện:
-                <Tag
-                  color={getCompletionColor(
-                    contractor.profileCompletionPercentage
-                  )}
-                  style={{ marginLeft: 8 }}
-                >
-                  {contractor.profileCompletionPercentage}%
-                </Tag>
-              </div>
-            </div>
+           
           </div>
         </Card>
       </Badge.Ribbon>

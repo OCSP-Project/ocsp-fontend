@@ -19,6 +19,7 @@ import {
   Switch,
   Divider,
   DatePicker,
+  Tabs,
 } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import locale from "antd/locale/vi_VN";
@@ -34,13 +35,17 @@ import {
   FilterOutlined,
 } from "@ant-design/icons";
 import { adminApi, type CreateUserDto, type UserDto, type UserProjectInfo } from "@/lib/admin/admin.api";
+import { registrationApi, type RegistrationRequestDto, type ApproveRegistrationRequestDto, type RejectRegistrationRequestDto } from "@/lib/registration/registration.api";
 import { UserRole } from "@/hooks/useAuth";
 import RoleBasedRoute from "@/components/shared/RoleBasedRoute";
+import { usePendingRegistrationRequests } from "@/hooks/usePendingRegistrationRequests";
 import styles from "./UsersManagement.module.scss";
 
 const { Title, Text } = Typography;
 const { Option } = Select;
 const { RangePicker } = DatePicker;
+const { TabPane } = Tabs;
+const { TextArea } = Input;
 
 const UsersManagementPage: React.FC = () => {
   const [form] = Form.useForm();
@@ -55,11 +60,27 @@ const UsersManagementPage: React.FC = () => {
   const [searchText, setSearchText] = useState<string>("");
   const [selectedRole, setSelectedRole] = useState<number | undefined>(undefined);
   const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
+  
+  // Registration requests states
+  const [registrationRequests, setRegistrationRequests] = useState<RegistrationRequestDto[]>([]);
+  const [registrationRequestsLoading, setRegistrationRequestsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("users");
+  const [approveModalVisible, setApproveModalVisible] = useState(false);
+  const [rejectModalVisible, setRejectModalVisible] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<RegistrationRequestDto | null>(null);
+  const [approveForm] = Form.useForm();
+  const [rejectForm] = Form.useForm();
+
+  // Get pending requests count from hook (for sidebar badge)
+  const { pendingCount: pendingRequestsCount, refresh: refreshPendingCount } = usePendingRegistrationRequests();
 
   // Fetch users on mount
   useEffect(() => {
     fetchUsers();
-  }, []);
+    if (activeTab === "requests") {
+      fetchRegistrationRequests();
+    }
+  }, [activeTab]);
 
   const fetchUsers = async () => {
     try {
@@ -173,6 +194,193 @@ const UsersManagementPage: React.FC = () => {
     setProfileModalVisible(true);
   };
 
+  const fetchRegistrationRequests = async () => {
+    try {
+      setRegistrationRequestsLoading(true);
+      const data = await registrationApi.getAll();
+      setRegistrationRequests(data);
+      // Refresh pending count in sidebar
+      refreshPendingCount();
+    } catch (error: any) {
+      console.error("Failed to fetch registration requests:", error);
+      message.error(
+        error?.response?.data?.message || "Không thể tải danh sách yêu cầu đăng ký"
+      );
+    } finally {
+      setRegistrationRequestsLoading(false);
+    }
+  };
+
+  const handleApprove = async (values: ApproveRegistrationRequestDto) => {
+    if (!selectedRequest) return;
+    
+    try {
+      setSubmitting(true);
+      await registrationApi.approve(selectedRequest.id, values);
+      message.success("Đã phê duyệt yêu cầu đăng ký và tạo tài khoản thành công!");
+      setApproveModalVisible(false);
+      approveForm.resetFields();
+      setSelectedRequest(null);
+      fetchRegistrationRequests();
+      fetchUsers(); // Refresh users list
+      refreshPendingCount(); // Refresh sidebar badge
+    } catch (error: any) {
+      console.error("Failed to approve registration request:", error);
+      message.error(
+        error?.response?.data?.message || "Không thể phê duyệt yêu cầu đăng ký"
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleReject = async (values: RejectRegistrationRequestDto) => {
+    if (!selectedRequest) return;
+    
+    try {
+      setSubmitting(true);
+      await registrationApi.reject(selectedRequest.id, values);
+      message.success("Đã từ chối yêu cầu đăng ký!");
+      setRejectModalVisible(false);
+      rejectForm.resetFields();
+      setSelectedRequest(null);
+      fetchRegistrationRequests();
+      refreshPendingCount(); // Refresh sidebar badge
+    } catch (error: any) {
+      console.error("Failed to reject registration request:", error);
+      message.error(
+        error?.response?.data?.message || "Không thể từ chối yêu cầu đăng ký"
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const getRequestStatusTag = (status: number) => {
+    const statusMap = {
+      0: { label: "Chờ xử lý", color: "orange" },
+      1: { label: "Đã phê duyệt", color: "green" },
+      2: { label: "Đã từ chối", color: "red" },
+    };
+    const statusInfo = statusMap[status as keyof typeof statusMap] || {
+      label: "Unknown",
+      color: "default",
+    };
+    return <Tag color={statusInfo.color}>{statusInfo.label}</Tag>;
+  };
+
+  const registrationRequestColumns = [
+    {
+      title: "Thông tin",
+      key: "info",
+      render: (_: any, record: RegistrationRequestDto) => (
+        <Space direction="vertical" size="small">
+          <div>
+            <Text strong>{record.username}</Text>
+          </div>
+          <div>
+            <Text type="secondary">{record.email}</Text>
+          </div>
+          <div>
+            <Text type="secondary">{record.phone}</Text>
+          </div>
+        </Space>
+      ),
+    },
+    {
+      title: "Vai trò",
+      dataIndex: "requestedRole",
+      key: "requestedRole",
+      render: (role: number) => (
+        <Tag color={role === UserRole.Supervisor ? "orange" : "blue"}>
+          {role === UserRole.Supervisor ? "Giám sát viên" : "Nhà thầu"}
+        </Tag>
+      ),
+    },
+    {
+      title: "Thông tin bổ sung",
+      key: "details",
+      render: (_: any, record: RegistrationRequestDto) => {
+        if (record.requestedRole === UserRole.Supervisor) {
+          return (
+            <Space direction="vertical" size="small">
+              <div><Text type="secondary">Phòng ban: </Text>{record.department || "-"}</div>
+              <div><Text type="secondary">Chức vụ: </Text>{record.position || "-"}</div>
+              {record.district && <div><Text type="secondary">Quận: </Text>{record.district}</div>}
+            </Space>
+          );
+        } else {
+          return (
+            <Space direction="vertical" size="small">
+              <div><Text type="secondary">Công ty: </Text>{record.companyName || "-"}</div>
+              <div><Text type="secondary">Giấy phép: </Text>{record.businessLicense || "-"}</div>
+            </Space>
+          );
+        }
+      },
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+      render: (status: number) => getRequestStatusTag(status),
+    },
+    {
+      title: "Ngày tạo",
+      dataIndex: "createdAt",
+      key: "createdAt",
+      render: (date: string) =>
+        new Date(date).toLocaleDateString("vi-VN", {
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }),
+    },
+    {
+      title: "Hành động",
+      key: "actions",
+      render: (_: any, record: RegistrationRequestDto) => (
+        <Space>
+          {record.status === 0 && (
+            <>
+              <Button
+                type="primary"
+                size="small"
+                onClick={() => {
+                  setSelectedRequest(record);
+                  setApproveModalVisible(true);
+                }}
+              >
+                Phê duyệt
+              </Button>
+              <Button
+                danger
+                size="small"
+                onClick={() => {
+                  setSelectedRequest(record);
+                  setRejectModalVisible(true);
+                }}
+              >
+                Từ chối
+              </Button>
+            </>
+          )}
+          {record.status === 1 && record.createdUserId && (
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                window.open(`/admin/users/${record.createdUserId}`, '_blank');
+              }}
+            >
+              Xem tài khoản
+            </Button>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
   const columns = [
     {
       title: "Tên người dùng",
@@ -276,13 +484,24 @@ const UsersManagementPage: React.FC = () => {
             </Text>
           </div>
           <Space>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={fetchUsers}
-              loading={loading}
-            >
-              Làm mới
-            </Button>
+            {activeTab === "requests" && (
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={fetchRegistrationRequests}
+                loading={registrationRequestsLoading}
+              >
+                Làm mới
+              </Button>
+            )}
+            {activeTab === "users" && (
+              <Button
+                icon={<ReloadOutlined />}
+                onClick={fetchUsers}
+                loading={loading}
+              >
+                Làm mới
+              </Button>
+            )}
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -347,21 +566,55 @@ const UsersManagementPage: React.FC = () => {
           </Row>
         </Card>
 
-        {/* Users Table */}
-        <Card>
-          <Table
-            columns={columns}
-            dataSource={filteredUsers}
-            rowKey="id"
-            loading={loading}
-            pagination={{
-              pageSize: 10,
-              showSizeChanger: true,
-              showTotal: (total, range) =>
-                `${range[0]}-${range[1]} của ${total} người dùng (${users.length} tổng)`,
-            }}
-          />
-        </Card>
+        {/* Tabs */}
+        <Tabs activeKey={activeTab} onChange={setActiveTab}>
+          <TabPane tab="Quản lý người dùng" key="users">
+            {/* Users Table */}
+            <Card>
+              <Table
+                columns={columns}
+                dataSource={filteredUsers}
+                rowKey="id"
+                loading={loading}
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: true,
+                  showTotal: (total, range) =>
+                    `${range[0]}-${range[1]} của ${total} người dùng (${users.length} tổng)`,
+                }}
+              />
+            </Card>
+          </TabPane>
+          
+          <TabPane 
+            tab={
+              <span>
+                Yêu cầu đăng ký nhà thầu, giám sát viên
+                {pendingRequestsCount > 0 && (
+                  <Tag color="orange" style={{ marginLeft: 8 }}>
+                    {pendingRequestsCount}
+                  </Tag>
+                )}
+              </span>
+            } 
+            key="requests"
+          >
+            <Card>
+              <Table
+                columns={registrationRequestColumns}
+                dataSource={registrationRequests}
+                rowKey="id"
+                loading={registrationRequestsLoading}
+                pagination={{
+                  pageSize: 10,
+                  showSizeChanger: true,
+                  showTotal: (total, range) =>
+                    `${range[0]}-${range[1]} của ${total} yêu cầu`,
+                }}
+              />
+            </Card>
+          </TabPane>
+        </Tabs>
 
         {/* Create User Modal */}
         <Modal
@@ -573,6 +826,128 @@ const UsersManagementPage: React.FC = () => {
               )}
             </div>
           )}
+        </Modal>
+
+        {/* Approve Registration Request Modal */}
+        <Modal
+          title="Phê duyệt yêu cầu đăng ký"
+          open={approveModalVisible}
+          onCancel={() => {
+            setApproveModalVisible(false);
+            approveForm.resetFields();
+            setSelectedRequest(null);
+          }}
+          footer={null}
+          width={500}
+        >
+          {selectedRequest && (
+            <div style={{ marginBottom: 16 }}>
+              <Text strong>Người đăng ký: </Text>
+              <Text>{selectedRequest.username} ({selectedRequest.email})</Text>
+              <br />
+              <Text strong>Vai trò: </Text>
+              <Text>{selectedRequest.requestedRole === UserRole.Supervisor ? "Giám sát viên" : "Nhà thầu"}</Text>
+            </div>
+          )}
+          <Form
+            form={approveForm}
+            layout="vertical"
+            onFinish={handleApprove}
+            autoComplete="off"
+          >
+            <Form.Item
+              label="Mật khẩu cho tài khoản"
+              name="password"
+              rules={[
+                { required: true, message: "Vui lòng nhập mật khẩu" },
+                { min: 6, message: "Mật khẩu phải có ít nhất 6 ký tự" },
+              ]}
+            >
+              <Input.Password placeholder="Mật khẩu sẽ được gửi qua email" />
+            </Form.Item>
+
+            <Form.Item
+              label="Bỏ qua xác thực email"
+              name="skipEmailVerification"
+              valuePropName="checked"
+              initialValue={false}
+            >
+              <Switch />
+            </Form.Item>
+
+            <Form.Item>
+              <Space>
+                <Button type="primary" htmlType="submit" loading={submitting}>
+                  Phê duyệt và tạo tài khoản
+                </Button>
+                <Button
+                  onClick={() => {
+                    setApproveModalVisible(false);
+                    approveForm.resetFields();
+                    setSelectedRequest(null);
+                  }}
+                >
+                  Hủy
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
+        </Modal>
+
+        {/* Reject Registration Request Modal */}
+        <Modal
+          title="Từ chối yêu cầu đăng ký"
+          open={rejectModalVisible}
+          onCancel={() => {
+            setRejectModalVisible(false);
+            rejectForm.resetFields();
+            setSelectedRequest(null);
+          }}
+          footer={null}
+          width={500}
+        >
+          {selectedRequest && (
+            <div style={{ marginBottom: 16 }}>
+              <Text strong>Người đăng ký: </Text>
+              <Text>{selectedRequest.username} ({selectedRequest.email})</Text>
+            </div>
+          )}
+          <Form
+            form={rejectForm}
+            layout="vertical"
+            onFinish={handleReject}
+            autoComplete="off"
+          >
+            <Form.Item
+              label="Lý do từ chối"
+              name="rejectionReason"
+              rules={[
+                { required: true, message: "Vui lòng nhập lý do từ chối" },
+              ]}
+            >
+              <TextArea
+                rows={4}
+                placeholder="Nhập lý do từ chối yêu cầu đăng ký..."
+              />
+            </Form.Item>
+
+            <Form.Item>
+              <Space>
+                <Button type="primary" danger htmlType="submit" loading={submitting}>
+                  Từ chối
+                </Button>
+                <Button
+                  onClick={() => {
+                    setRejectModalVisible(false);
+                    rejectForm.resetFields();
+                    setSelectedRequest(null);
+                  }}
+                >
+                  Hủy
+                </Button>
+              </Space>
+            </Form.Item>
+          </Form>
         </Modal>
       </div>
     </RoleBasedRoute>
