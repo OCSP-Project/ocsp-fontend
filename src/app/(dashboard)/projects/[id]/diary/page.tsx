@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
+import { getDiariesByMonth } from '@/lib/api/construction-diary';
+import type { ConstructionDiarySummaryDto } from '@/types/construction-diary.types';
 
 export default function ConstructionDiaryPage() {
   const params = useParams();
@@ -10,14 +12,34 @@ export default function ConstructionDiaryPage() {
   const projectId = params.id as string;
 
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [diaries, setDiaries] = useState<ConstructionDiarySummaryDto[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - sẽ thay bằng API call sau
-  const diariesByDate: Record<string, boolean> = {
-    '2025-11-05': true,
-    '2025-11-12': true,
-    '2025-11-18': true,
-    '2025-11-25': true,
-  };
+  // Fetch diaries for the current month
+  useEffect(() => {
+    const fetchDiaries = async () => {
+      try {
+        setLoading(true);
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        const data = await getDiariesByMonth(projectId, year, month);
+        setDiaries(data);
+      } catch (error) {
+        console.error('Error fetching diaries:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDiaries();
+  }, [projectId, currentDate]);
+
+  // Convert diaries array to date lookup
+  const diariesByDate: Record<string, boolean> = {};
+  diaries.forEach(diary => {
+    const dateStr = new Date(diary.diaryDate).toISOString().split('T')[0];
+    diariesByDate[dateStr] = true;
+  });
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -239,7 +261,7 @@ export default function ConstructionDiaryPage() {
               <div>
                 <p className="text-blue-300 text-sm font-medium mb-1">Nhật ký tháng này</p>
                 <p className="text-3xl font-bold text-white">
-                  {Object.keys(diariesByDate).filter(d => d.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`)).length}
+                  {loading ? '...' : diaries.length}
                 </p>
               </div>
               <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
@@ -254,7 +276,9 @@ export default function ConstructionDiaryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-300 text-sm font-medium mb-1">Tổng công việc</p>
-                <p className="text-3xl font-bold text-white">0</p>
+                <p className="text-3xl font-bold text-white">
+                  {loading ? '...' : diaries.reduce((sum, d) => sum + d.workItemCount, 0)}
+                </p>
               </div>
               <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,7 +292,9 @@ export default function ConstructionDiaryPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-purple-300 text-sm font-medium mb-1">Tổng ảnh</p>
-                <p className="text-3xl font-bold text-white">0</p>
+                <p className="text-3xl font-bold text-white">
+                  {loading ? '...' : diaries.reduce((sum, d) => sum + d.imageCount, 0)}
+                </p>
               </div>
               <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
                 <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,10 +1,10 @@
 // Construction Site Diary Types
 
-// ====== ENUMS ======
+// ====== ENUMS (matching backend) ======
 export enum ConstructionRating {
-  Good = 'good',
-  Average = 'average',
-  Poor = 'poor',
+  Good = 0,
+  Average = 1,
+  Poor = 2,
 }
 
 export enum WeatherCondition {
@@ -15,9 +15,9 @@ export enum WeatherCondition {
 }
 
 export enum ImageCategory {
-  Construction = 'construction',
-  Incident = 'incident',
-  Material = 'material',
+  Construction = 0,
+  Incident = 1,
+  Material = 2,
 }
 
 // ====== LABOR (Nhân công) ======

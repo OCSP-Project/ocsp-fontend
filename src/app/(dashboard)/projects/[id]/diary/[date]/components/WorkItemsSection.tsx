@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { DiaryWorkItemEntry, WorkItemSummary } from '@/types/construction-diary.types';
 import { LaborEntry } from './LaborEntry';
 import { EquipmentEntry } from './EquipmentEntry';
 import { MaterialSection } from './MaterialSection';
+import apiClient from '@/lib/api/client';
 
 interface WorkItemsSectionProps {
   projectId: string;
@@ -12,21 +13,68 @@ interface WorkItemsSectionProps {
   onWorkItemsChange: (workItems: DiaryWorkItemEntry[]) => void;
 }
 
-// Mock data - sẽ thay bằng API call
-const MOCK_WORK_ITEMS: WorkItemSummary[] = [
-  { id: '1', name: 'Đào móng', code: 'WI-001', unit: 'm3', plannedQuantity: 100 },
-  { id: '2', name: 'Đổ bê tông móng', code: 'WI-002', unit: 'm3', plannedQuantity: 50 },
-  { id: '3', name: 'Xây tường gạch', code: 'WI-003', unit: 'm2', plannedQuantity: 200 },
-  { id: '4', name: 'Trát tường', code: 'WI-004', unit: 'm2', plannedQuantity: 400 },
-  { id: '5', name: 'Lắp cốt thép', code: 'WI-005', unit: 'tấn', plannedQuantity: 5 },
-];
+interface WorkItemApiResponse {
+  id: string;
+  name: string;
+  code?: string;
+  unit?: string;
+  plannedQuantity?: number;
+  children?: WorkItemApiResponse[];
+}
 
 export function WorkItemsSection({ projectId, workItems, onWorkItemsChange }: WorkItemsSectionProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [selectedWorkItemId, setSelectedWorkItemId] = useState<string | null>(null);
+  const [availableWorkItems, setAvailableWorkItems] = useState<WorkItemSummary[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const filteredWorkItems = MOCK_WORK_ITEMS.filter(item =>
+  // Fetch work items from API
+  useEffect(() => {
+    const fetchWorkItems = async () => {
+      try {
+        setLoading(true);
+        const response = await apiClient.get<WorkItemApiResponse[]>(
+          `/work-items/project/${projectId}?rootLevelOnly=false&includeChildren=true`
+        );
+
+        // Flatten nested work items
+        const flattenWorkItems = (items: WorkItemApiResponse[]): WorkItemSummary[] => {
+          const result: WorkItemSummary[] = [];
+
+          const flatten = (item: WorkItemApiResponse) => {
+            result.push({
+              id: item.id,
+              name: item.name,
+              code: item.code,
+              unit: item.unit,
+              plannedQuantity: item.plannedQuantity,
+            });
+
+            if (item.children && item.children.length > 0) {
+              item.children.forEach(flatten);
+            }
+          };
+
+          items.forEach(flatten);
+          return result;
+        };
+
+        const flattened = flattenWorkItems(response.data);
+        setAvailableWorkItems(flattened);
+      } catch (error) {
+        console.error('Error fetching work items:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (projectId) {
+      fetchWorkItems();
+    }
+  }, [projectId]);
+
+  const filteredWorkItems = availableWorkItems.filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.code?.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -113,7 +161,15 @@ export function WorkItemsSection({ projectId, workItems, onWorkItemsChange }: Wo
             {/* Search Results Dropdown */}
             {showSearchResults && searchQuery && (
               <div className="absolute z-50 w-full mt-2 bg-slate-800 border border-slate-700/50 rounded-lg shadow-2xl max-h-64 overflow-y-auto">
-                {filteredWorkItems.length > 0 ? (
+                {loading ? (
+                  <div className="py-8 text-center text-slate-400">
+                    <svg className="animate-spin h-6 w-6 mx-auto mb-2 text-blue-400" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Đang tải công việc...
+                  </div>
+                ) : filteredWorkItems.length > 0 ? (
                   <div className="py-2">
                     {filteredWorkItems.map((item) => (
                       <button

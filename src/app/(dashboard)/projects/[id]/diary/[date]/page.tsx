@@ -6,6 +6,7 @@ import Header from '@/components/layout/Header';
 import { WorkItemsSection } from './components/WorkItemsSection';
 import { DiaryInfoSection } from './components/DiaryInfoSection';
 import type { CreateConstructionDiaryDto, DiaryWorkItemEntry } from '@/types/construction-diary.types';
+import { getDiaryByDate, createDiary, updateDiary } from '@/lib/api/construction-diary';
 
 export default function DiaryEntryPage() {
   const params = useParams();
@@ -13,8 +14,9 @@ export default function DiaryEntryPage() {
   const projectId = params.id as string;
   const date = params.date as string;
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [existingDiaryId, setExistingDiaryId] = useState<string | null>(null);
 
   // Form state
   const [workItems, setWorkItems] = useState<DiaryWorkItemEntry[]>([]);
@@ -29,16 +31,54 @@ export default function DiaryEntryPage() {
       { period: 'night', condition: '', temperature: '' },
     ],
     assessment: {
-      safety: 'good' as any,
-      quality: 'good' as any,
-      progress: 'good' as any,
-      cleanliness: 'good' as any,
+      safety: 0, // ConstructionRating.Good
+      quality: 0,
+      progress: 0,
+      cleanliness: 0,
     },
     images: [],
     incidentReport: '',
     recommendations: '',
     notes: '',
   });
+
+  // Load existing diary if available
+  useEffect(() => {
+    const loadDiary = async () => {
+      try {
+        setLoading(true);
+        const existing = await getDiaryByDate(projectId, date);
+
+        if (existing) {
+          // Load existing diary data into form
+          setExistingDiaryId(existing.id);
+          setDiaryData({
+            projectId: existing.projectId,
+            diaryDate: existing.diaryDate,
+            team: existing.constructionTeam || '',
+            weather: existing.weatherPeriods || [],
+            assessment: {
+              safety: existing.safetyRating,
+              quality: existing.qualityRating,
+              progress: existing.progressRating,
+              cleanliness: existing.cleanlinessRating,
+            },
+            images: existing.images || [],
+            incidentReport: existing.incidentReport || '',
+            recommendations: existing.recommendations || '',
+            notes: existing.notes || '',
+          });
+          setWorkItems(existing.workItems || []);
+        }
+      } catch (error) {
+        console.error('Error loading diary:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDiary();
+  }, [projectId, date]);
 
   const formatDisplayDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -51,18 +91,71 @@ export default function DiaryEntryPage() {
       setSaving(true);
 
       const dataToSave: CreateConstructionDiaryDto = {
-        ...diaryData as CreateConstructionDiaryDto,
-        workItems,
+        projectId,
+        diaryDate: date,
+        constructionTeam: diaryData.team || '',
+        safetyRating: diaryData.assessment?.safety ?? 0,
+        qualityRating: diaryData.assessment?.quality ?? 0,
+        progressRating: diaryData.assessment?.progress ?? 0,
+        cleanlinessRating: diaryData.assessment?.cleanliness ?? 0,
+        incidentReport: diaryData.incidentReport || '',
+        recommendations: diaryData.recommendations || '',
+        notes: diaryData.notes || '',
+        supervisorName: '',
+        supervisorPosition: '',
+        contractorName: '',
+        supervisorUnitName: '',
+        workItems: workItems.map(wi => ({
+          workItemId: wi.workItemId,
+          constructionArea: wi.constructionArea || '',
+          constructedQuantity: wi.constructedQuantity || 0,
+          laborEntries: wi.laborEntries?.map(l => ({
+            laborId: l.laborId,
+            laborName: l.laborName,
+            position: l.position || '',
+            workHours: l.workHours,
+            team: l.team,
+            shift: l.shift,
+            quantity: l.quantity,
+            unit: l.unit,
+          })) || [],
+          equipmentEntries: wi.equipmentEntries?.map(e => ({
+            equipmentId: e.equipmentId,
+            equipmentName: e.equipmentName,
+            specifications: e.specifications,
+            hoursUsed: e.hoursUsed,
+            quantity: e.quantity,
+            unit: e.unit,
+          })) || [],
+        })),
+        weatherPeriods: diaryData.weather?.map(w => ({
+          period: w.period,
+          condition: w.condition,
+          temperature: w.temperature || '',
+        })) || [],
+        images: diaryData.images?.map(img => ({
+          url: img.url,
+          category: img.category,
+          description: img.description || '',
+        })) || [],
       };
 
-      // TODO: Call API to save
       console.log('Saving diary:', dataToSave);
+
+      if (existingDiaryId) {
+        // Update existing diary
+        await updateDiary(existingDiaryId, dataToSave);
+      } else {
+        // Create new diary
+        await createDiary(dataToSave);
+      }
 
       alert('Lưu nhật ký thành công!');
       router.push(`/projects/${projectId}/diary`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving diary:', error);
-      alert('Không thể lưu nhật ký. Vui lòng thử lại.');
+      const errorMsg = error.response?.data?.message || 'Không thể lưu nhật ký. Vui lòng thử lại.';
+      alert(errorMsg);
     } finally {
       setSaving(false);
     }
