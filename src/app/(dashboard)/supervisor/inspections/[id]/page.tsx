@@ -196,7 +196,7 @@ export default function ProjectDetailPage() {
                   {project.status}
                 </span>
                 <span className="text-stone-400 text-sm">
-                  Tạo: {formatDate(project.createdAt)}
+                  Bắt đầu: {formatDate(project.startDate)}
                 </span>
               </div>
             </div>
@@ -362,7 +362,7 @@ export default function ProjectDetailPage() {
               {/* Project Info */}
               <div className="lg:col-span-2">
                 <div className={cardCls}>
-                  <h2 className={titleCls} className="mb-4">Thông tin dự án</h2>
+                  <h2 className={`${titleCls} mb-4`}>Thông tin dự án</h2>
                   
                   <div className="space-y-4">
                     <div>

@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import type { CreateConstructionDiaryDto, ConstructionRating } from '@/types/construction-diary.types';
+import type { CreateConstructionDiaryDto } from '@/types/construction-diary.types';
+import { ConstructionRating } from '@/types/construction-diary.types';
 import { ImageUploadSection } from './ImageUploadSection';
 import { WeatherSection } from './WeatherSection';
 import { AssessmentSection } from './AssessmentSection';
@@ -74,10 +75,10 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
       {/* Assessment Section */}
       <AssessmentSection
         assessment={data.assessment || {
-          safety: 'good' as ConstructionRating,
-          quality: 'good' as ConstructionRating,
-          progress: 'good' as ConstructionRating,
-          cleanliness: 'good' as ConstructionRating,
+          safety: ConstructionRating.Good,
+          quality: ConstructionRating.Good,
+          progress: ConstructionRating.Good,
+          cleanliness: ConstructionRating.Good,
         }}
         onChange={(assessment) => onChange({ ...data, assessment })}
       />

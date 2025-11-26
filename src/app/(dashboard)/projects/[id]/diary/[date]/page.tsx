@@ -93,26 +93,29 @@ export default function DiaryEntryPage() {
       const dataToSave: CreateConstructionDiaryDto = {
         projectId,
         diaryDate: date,
-        constructionTeam: diaryData.team || '',
-        safetyRating: diaryData.assessment?.safety ?? 0,
-        qualityRating: diaryData.assessment?.quality ?? 0,
-        progressRating: diaryData.assessment?.progress ?? 0,
-        cleanlinessRating: diaryData.assessment?.cleanliness ?? 0,
+        team: diaryData.team || '',
+        assessment: diaryData.assessment || {
+          safety: 0,
+          quality: 0,
+          progress: 0,
+          cleanliness: 0,
+        },
         incidentReport: diaryData.incidentReport || '',
         recommendations: diaryData.recommendations || '',
         notes: diaryData.notes || '',
-        supervisorName: '',
-        supervisorPosition: '',
-        contractorName: '',
-        supervisorUnitName: '',
         workItems: workItems.map(wi => ({
+          id: wi.id || '',
           workItemId: wi.workItemId,
+          workItemName: wi.workItemName || '',
           constructionArea: wi.constructionArea || '',
+          plannedQuantity: wi.plannedQuantity || 0,
           constructedQuantity: wi.constructedQuantity || 0,
+          remainingQuantity: wi.remainingQuantity || 0,
+          unit: wi.unit || '',
           laborEntries: wi.laborEntries?.map(l => ({
+            id: l.id || '',
             laborId: l.laborId,
             laborName: l.laborName,
-            position: l.position || '',
             workHours: l.workHours,
             team: l.team,
             shift: l.shift,
@@ -120,6 +123,7 @@ export default function DiaryEntryPage() {
             unit: l.unit,
           })) || [],
           equipmentEntries: wi.equipmentEntries?.map(e => ({
+            id: e.id || '',
             equipmentId: e.equipmentId,
             equipmentName: e.equipmentName,
             specifications: e.specifications,
@@ -128,15 +132,17 @@ export default function DiaryEntryPage() {
             unit: e.unit,
           })) || [],
         })),
-        weatherPeriods: diaryData.weather?.map(w => ({
+        weather: diaryData.weather?.map(w => ({
           period: w.period,
           condition: w.condition,
           temperature: w.temperature || '',
         })) || [],
         images: diaryData.images?.map(img => ({
+          id: img.id || '',
           url: img.url,
           category: img.category,
           description: img.description || '',
+          uploadedAt: img.uploadedAt || new Date().toISOString(),
         })) || [],
       };
 
@@ -144,7 +150,7 @@ export default function DiaryEntryPage() {
 
       if (existingDiaryId) {
         // Update existing diary
-        await updateDiary(existingDiaryId, dataToSave);
+        await updateDiary(existingDiaryId, { ...dataToSave, id: existingDiaryId });
       } else {
         // Create new diary
         await createDiary(dataToSave);

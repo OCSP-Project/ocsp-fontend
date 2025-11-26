@@ -237,7 +237,7 @@ export function RequestDetailModal({
                           </td>
                           <td className="px-3 py-3 text-sm font-bold text-blue-600 text-right">
                             {request.materials
-                              ?.reduce((sum, m) => sum + m.estimatedAmount, 0)
+                              ?.reduce((sum, m) => sum + (m.estimatedAmount || 0), 0)
                               .toLocaleString('vi-VN')}{' '}
                             VNĐ
                           </td>
@@ -248,11 +248,11 @@ export function RequestDetailModal({
                 </div>
               </div>
 
-              {/* Notes */}
-              {request.notes && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                  <h4 className="text-sm font-semibold text-yellow-900 mb-2">Ghi chú</h4>
-                  <p className="text-sm text-yellow-800">{request.notes}</p>
+              {/* Rejection Reason */}
+              {request.rejectionReason && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-red-900 mb-2">Lý do từ chối</h4>
+                  <p className="text-sm text-red-800">{request.rejectionReason}</p>
                 </div>
               )}
             </div>

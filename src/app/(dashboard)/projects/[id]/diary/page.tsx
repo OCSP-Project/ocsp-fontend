@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import { getDiariesByMonth } from '@/lib/api/construction-diary';
-import type { ConstructionDiarySummaryDto } from '@/types/construction-diary.types';
+import type { ConstructionDiaryDto } from '@/types/construction-diary.types';
 
 export default function ConstructionDiaryPage() {
   const params = useParams();
@@ -12,7 +12,7 @@ export default function ConstructionDiaryPage() {
   const projectId = params.id as string;
 
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [diaries, setDiaries] = useState<ConstructionDiarySummaryDto[]>([]);
+  const [diaries, setDiaries] = useState<ConstructionDiaryDto[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch diaries for the current month
@@ -277,7 +277,7 @@ export default function ConstructionDiaryPage() {
               <div>
                 <p className="text-green-300 text-sm font-medium mb-1">Tổng công việc</p>
                 <p className="text-3xl font-bold text-white">
-                  {loading ? '...' : diaries.reduce((sum, d) => sum + d.workItemCount, 0)}
+                  {loading ? '...' : diaries.reduce((sum, d) => sum + (d.workItems?.length || 0), 0)}
                 </p>
               </div>
               <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
@@ -293,7 +293,7 @@ export default function ConstructionDiaryPage() {
               <div>
                 <p className="text-purple-300 text-sm font-medium mb-1">Tổng ảnh</p>
                 <p className="text-3xl font-bold text-white">
-                  {loading ? '...' : diaries.reduce((sum, d) => sum + d.imageCount, 0)}
+                  {loading ? '...' : diaries.reduce((sum, d) => sum + (d.images?.length || 0), 0)}
                 </p>
               </div>
               <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
