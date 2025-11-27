@@ -23,6 +23,55 @@ const CATEGORY_COLORS: Record<ImageCategory, string> = {
 export function ImageUploadSection({ images, onChange }: ImageUploadSectionProps) {
   const [selectedCategory, setSelectedCategory] = useState<ImageCategory>(ImageCategory.Construction);
 
+  // Compress image to reduce base64 size (max 300x300, quality 0.5)
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_SIZE = 300; // Resize to max 300x300
+
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions
+          if (width > height) {
+            if (width > MAX_SIZE) {
+              height = (height * MAX_SIZE) / width;
+              width = MAX_SIZE;
+            }
+          } else {
+            if (height > MAX_SIZE) {
+              width = (width * MAX_SIZE) / height;
+              height = MAX_SIZE;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject('Canvas not supported');
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // Convert to base64 with quality 0.5 (50%)
+          const base64 = canvas.toDataURL('image/jpeg', 0.5);
+          resolve(base64);
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleFileSelect = async (category: ImageCategory, files: FileList | null) => {
     if (!files || files.length === 0) return;
 
@@ -31,28 +80,28 @@ export function ImageUploadSection({ images, onChange }: ImageUploadSectionProps
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
-      // Convert to base64
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
+      try {
+        // Compress image
+        const compressedBase64 = await compressImage(file);
 
         const newImage: DiaryImage = {
           id: crypto.randomUUID(),
           category,
-          url: base64String,
+          url: compressedBase64,
           description: '',
           uploadedAt: new Date().toISOString(),
         };
 
         newImages.push(newImage);
+      } catch (error) {
+        console.error('Error compressing image:', error);
+        alert('Không thể xử lý ảnh. Vui lòng thử lại.');
+      }
+    }
 
-        // Update after all files processed
-        if (newImages.length === files.length) {
-          onChange([...images, ...newImages]);
-        }
-      };
-
-      reader.readAsDataURL(file);
+    // Update all at once
+    if (newImages.length > 0) {
+      onChange([...images, ...newImages]);
     }
   };
 

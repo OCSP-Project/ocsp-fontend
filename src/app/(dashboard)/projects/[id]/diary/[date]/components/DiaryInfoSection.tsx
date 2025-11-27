@@ -2,10 +2,11 @@
 
 import { useState } from 'react';
 import type { CreateConstructionDiaryDto } from '@/types/construction-diary.types';
-import { ConstructionRating } from '@/types/construction-diary.types';
+import { ConstructionRating, ImageCategory } from '@/types/construction-diary.types';
 import { ImageUploadSection } from './ImageUploadSection';
 import { WeatherSection } from './WeatherSection';
 import { AssessmentSection } from './AssessmentSection';
+import { AIConsultantModal } from './AIConsultantModal';
 
 interface DiaryInfoSectionProps {
   data: Partial<CreateConstructionDiaryDto>;
@@ -13,10 +14,20 @@ interface DiaryInfoSectionProps {
 }
 
 export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+
   const formatDisplayDate = (dateStr: string) => {
     const d = new Date(dateStr);
     const days = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
     return `${days[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+  };
+
+  const getIncidentImages = () => {
+    return (data.images || []).filter(img => img.category === ImageCategory.Incident);
+  };
+
+  const handleApplySuggestion = (suggestion: string) => {
+    onChange({ ...data, recommendations: suggestion });
   };
 
   return (
@@ -95,9 +106,26 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
         <div className="space-y-4">
           {/* Incident Report */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
-              Báo cáo sự cố
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-sm font-medium text-slate-300">
+                Báo cáo sự cố
+              </label>
+              <button
+                type="button"
+                onClick={() => setIsAIModalOpen(true)}
+                className="px-3 py-1.5 bg-gradient-to-r from-purple-600/20 to-pink-600/20 hover:from-purple-600/30 hover:to-pink-600/30 border border-purple-500/50 text-purple-300 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                Tư vấn AI
+                {getIncidentImages().length > 0 && (
+                  <span className="px-1.5 py-0.5 bg-red-500/20 text-red-300 rounded text-xs">
+                    {getIncidentImages().length}
+                  </span>
+                )}
+              </button>
+            </div>
             <textarea
               value={data.incidentReport || ''}
               onChange={(e) => onChange({ ...data, incidentReport: e.target.value })}
@@ -136,6 +164,15 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
           </div>
         </div>
       </div>
+
+      {/* AI Consultant Modal */}
+      <AIConsultantModal
+        isOpen={isAIModalOpen}
+        onClose={() => setIsAIModalOpen(false)}
+        incidentImages={getIncidentImages()}
+        incidentReport={data.incidentReport || ''}
+        onApplySuggestion={handleApplySuggestion}
+      />
     </div>
   );
 }

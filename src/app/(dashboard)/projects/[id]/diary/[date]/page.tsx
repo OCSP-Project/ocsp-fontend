@@ -43,40 +43,40 @@ export default function DiaryEntryPage() {
   });
 
   // Load existing diary if available
-  useEffect(() => {
-    const loadDiary = async () => {
-      try {
-        setLoading(true);
-        const existing = await getDiaryByDate(projectId, date);
+  const loadDiary = async () => {
+    try {
+      setLoading(true);
+      const existing = await getDiaryByDate(projectId, date);
 
-        if (existing) {
-          // Load existing diary data into form
-          setExistingDiaryId(existing.id);
-          setDiaryData({
-            projectId: existing.projectId,
-            diaryDate: existing.diaryDate,
-            team: existing.constructionTeam || '',
-            weather: existing.weatherPeriods || [],
-            assessment: {
-              safety: existing.safetyRating,
-              quality: existing.qualityRating,
-              progress: existing.progressRating,
-              cleanliness: existing.cleanlinessRating,
-            },
-            images: existing.images || [],
-            incidentReport: existing.incidentReport || '',
-            recommendations: existing.recommendations || '',
-            notes: existing.notes || '',
-          });
-          setWorkItems(existing.workItems || []);
-        }
-      } catch (error) {
-        console.error('Error loading diary:', error);
-      } finally {
-        setLoading(false);
+      if (existing) {
+        // Load existing diary data into form
+        setExistingDiaryId(existing.id);
+        setDiaryData({
+          projectId: existing.projectId,
+          diaryDate: existing.diaryDate,
+          team: existing.constructionTeam || '',
+          weather: existing.weatherPeriods || [],
+          assessment: {
+            safety: existing.safetyRating,
+            quality: existing.qualityRating,
+            progress: existing.progressRating,
+            cleanliness: existing.cleanlinessRating,
+          },
+          images: existing.images || [],
+          incidentReport: existing.incidentReport || '',
+          recommendations: existing.recommendations || '',
+          notes: existing.notes || '',
+        });
+        setWorkItems(existing.workItems || []);
       }
-    };
+    } catch (error) {
+      console.error('Error loading diary:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadDiary();
   }, [projectId, date]);
 
@@ -90,32 +90,29 @@ export default function DiaryEntryPage() {
     try {
       setSaving(true);
 
-      const dataToSave: CreateConstructionDiaryDto = {
+      const dataToSave: any = {
         projectId,
         diaryDate: date,
-        team: diaryData.team || '',
-        assessment: diaryData.assessment || {
-          safety: 0,
-          quality: 0,
-          progress: 0,
-          cleanliness: 0,
-        },
+        constructionTeam: diaryData.team || '',
+        safetyRating: diaryData.assessment?.safety ?? 0,
+        qualityRating: diaryData.assessment?.quality ?? 0,
+        progressRating: diaryData.assessment?.progress ?? 0,
+        cleanlinessRating: diaryData.assessment?.cleanliness ?? 0,
         incidentReport: diaryData.incidentReport || '',
         recommendations: diaryData.recommendations || '',
         notes: diaryData.notes || '',
+        supervisorName: '',
+        supervisorPosition: '',
+        contractorName: '',
+        supervisorUnitName: '',
         workItems: workItems.map(wi => ({
-          id: wi.id || '',
           workItemId: wi.workItemId,
-          workItemName: wi.workItemName || '',
           constructionArea: wi.constructionArea || '',
-          plannedQuantity: wi.plannedQuantity || 0,
           constructedQuantity: wi.constructedQuantity || 0,
-          remainingQuantity: wi.remainingQuantity || 0,
-          unit: wi.unit || '',
           laborEntries: wi.laborEntries?.map(l => ({
-            id: l.id || '',
             laborId: l.laborId,
             laborName: l.laborName,
+            position: l.position || '',
             workHours: l.workHours,
             team: l.team,
             shift: l.shift,
@@ -123,7 +120,6 @@ export default function DiaryEntryPage() {
             unit: l.unit,
           })) || [],
           equipmentEntries: wi.equipmentEntries?.map(e => ({
-            id: e.id || '',
             equipmentId: e.equipmentId,
             equipmentName: e.equipmentName,
             specifications: e.specifications,
@@ -132,17 +128,16 @@ export default function DiaryEntryPage() {
             unit: e.unit,
           })) || [],
         })),
-        weather: diaryData.weather?.map(w => ({
+        weatherPeriods: diaryData.weather?.map(w => ({
           period: w.period,
-          condition: w.condition,
+          condition: w.condition || '',
           temperature: w.temperature || '',
         })) || [],
         images: diaryData.images?.map(img => ({
-          id: img.id || '',
           url: img.url,
           category: img.category,
           description: img.description || '',
-          uploadedAt: img.uploadedAt || new Date().toISOString(),
+          // Don't send uploadedAt, backend will set it
         })) || [],
       };
 
@@ -157,6 +152,8 @@ export default function DiaryEntryPage() {
       }
 
       alert('Lưu nhật ký thành công!');
+
+      // Redirect back to diary calendar
       router.push(`/projects/${projectId}/diary`);
     } catch (error: any) {
       console.error('Error saving diary:', error);
