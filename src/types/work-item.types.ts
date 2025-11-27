@@ -29,6 +29,20 @@ export interface WorkItemDetailDto extends WorkItemDto {
   activities: WorkItemActivityDto[];
   materials: WorkItemMaterialDto[];
   assignedUsers: UserDto[];
+  projectName?: string;
+  code?: string;
+  phase?: string;
+  type?: string;
+  mode?: string;
+  unit?: string;
+  plannedQuantity?: number;
+  actualQuantity?: number;
+  createdBy?: {
+    id: string;
+    fullName?: string;
+    username?: string;
+    email?: string;
+  };
 }
 
 export interface BudgetDetailDto {

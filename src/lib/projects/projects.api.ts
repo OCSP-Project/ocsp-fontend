@@ -186,6 +186,12 @@ export const projectsApi = {
     const res = await apiClient.delete(`/projects/${projectId}/gallery/${mediaId}`);
     return res.data as { success: boolean };
   },
+
+  // Get project members/participants
+  getProjectMembers: async (projectId: string) => {
+    const res = await apiClient.get(`/projects/${projectId}`);
+    return res.data.participants || [];
+  },
 };
 export { ProjectResponseDto, ProjectDetailDto, UpdateProjectDto };
 
