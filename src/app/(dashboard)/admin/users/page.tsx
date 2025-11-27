@@ -175,6 +175,32 @@ const UsersManagementPage: React.FC = () => {
     }
   };
 
+  const handleBanUser = async (userId: string) => {
+    try {
+      await adminApi.banUser(userId);
+      message.success("Đã ban người dùng thành công!");
+      fetchUsers(); // Refresh list
+    } catch (error: any) {
+      console.error("Failed to ban user:", error);
+      message.error(
+        error?.response?.data?.message || "Không thể ban người dùng"
+      );
+    }
+  };
+
+  const handleUnbanUser = async (userId: string) => {
+    try {
+      await adminApi.unbanUser(userId);
+      message.success("Đã unban người dùng thành công!");
+      fetchUsers(); // Refresh list
+    } catch (error: any) {
+      console.error("Failed to unban user:", error);
+      message.error(
+        error?.response?.data?.message || "Không thể unban người dùng"
+      );
+    }
+  };
+
   const getRoleTag = (role: number) => {
     const roles = {
       0: { label: "Admin", color: "red" },
@@ -423,6 +449,17 @@ const UsersManagementPage: React.FC = () => {
         ),
     },
     {
+      title: "Trạng thái",
+      dataIndex: "isBanned",
+      key: "isBanned",
+      render: (isBanned: boolean) =>
+        isBanned ? (
+          <Tag color="red">Đã bị ban</Tag>
+        ) : (
+          <Tag color="green">Hoạt động</Tag>
+        ),
+    },
+    {
       title: "Ngày tạo",
       dataIndex: "createdAt",
       key: "createdAt",
@@ -451,6 +488,43 @@ const UsersManagementPage: React.FC = () => {
       key: "actions",
       render: (_: any, record: UserDto) => (
         <Space>
+          {record.role !== UserRole.Admin && (
+            <>
+              {record.isBanned ? (
+                <Popconfirm
+                  title="Unban người dùng này?"
+                  description="Người dùng sẽ có thể đăng nhập lại sau khi unban."
+                  onConfirm={() => handleUnbanUser(record.id)}
+                  okText="Unban"
+                  cancelText="Hủy"
+                >
+                  <Button
+                    type="primary"
+                    size="small"
+                    style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                  >
+                    Unban
+                  </Button>
+                </Popconfirm>
+              ) : (
+                <Popconfirm
+                  title="Ban người dùng này?"
+                  description="Người dùng sẽ không thể đăng nhập sau khi bị ban."
+                  onConfirm={() => handleBanUser(record.id)}
+                  okText="Ban"
+                  cancelText="Hủy"
+                  okButtonProps={{ danger: true }}
+                >
+                  <Button
+                    danger
+                    size="small"
+                  >
+                    Ban
+                  </Button>
+                </Popconfirm>
+              )}
+            </>
+          )}
           <Popconfirm
             title="Xóa người dùng này?"
             description="Hành động này không thể hoàn tác."

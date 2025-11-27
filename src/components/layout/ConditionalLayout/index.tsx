@@ -13,20 +13,29 @@ const ConditionalLayout: React.FC<ConditionalLayoutProps> = ({ children }) => {
   const pathname = usePathname();
 
   // Define routes that should not show header
+  // Note: Use exact match or more specific paths to avoid matching similar routes
   const noHeaderRoutes = [
     "/login",
     "/register",
     "/forgot-password",
     "/reset-password", // Auth routes
     "/admin",
-    "/supervisor",
+    "/supervisor", // Dashboard route (not /supervisors which is the public list)
     "/contractor",
     "/homeowner", // Dashboard routes
   ];
 
-  const shouldShowHeader = !noHeaderRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  // Check if pathname matches any noHeaderRoute
+  // For dashboard routes, check exact match or starts with route + "/" to avoid matching similar routes
+  const shouldShowHeader = !noHeaderRoutes.some((route) => {
+    // Exact match for auth routes
+    if (route === "/login" || route === "/register" || route === "/forgot-password" || route === "/reset-password") {
+      return pathname === route;
+    }
+    // For dashboard routes, match if pathname starts with route and is followed by "/" or end of string
+    // This prevents "/supervisor" from matching "/supervisors"
+    return pathname === route || pathname.startsWith(route + "/");
+  });
 
   if (!shouldShowHeader) {
     // Auth pages and Dashboard pages - no header, no padding, no chat assistant

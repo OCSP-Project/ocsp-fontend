@@ -18,13 +18,13 @@ export default function SupervisorsPage() {
   return (
     <div className="supervisors-page">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 text-white">
+      <div className="bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 text-white" style={{ marginTop: '-80px', paddingTop: '80px' }}>
         <div className="container mx-auto px-6 py-16">
           <div className="max-w-4xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
               DANH SÁCH GIÁM SÁT VIÊN
             </h1>
-            <p className="text-xl md:text-2xl text-amber-100 leading-relaxed">
+            <p className="text-xl md:text-2xl text-slate-200 leading-relaxed">
               Tìm kiếm và kết nối với các giám sát viên chuyên nghiệp.
               <br />
               Đảm bảo chất lượng công trình với đội ngũ giám sát uy tín.

@@ -22,6 +22,7 @@ export interface UserDto {
   email: string;
   role: number;
   isEmailVerified: boolean;
+  isBanned: boolean;
   createdAt: string;
   projects?: UserProjectInfo[];
 }
@@ -58,6 +59,7 @@ export interface RecentUserDto {
   email: string;
   role: number;
   isEmailVerified: boolean;
+  isBanned: boolean;
   createdAt: string;
 }
 
@@ -131,6 +133,16 @@ export const adminApi = {
   // Delete user
   deleteUser: async (userId: string): Promise<void> => {
     await apiClient.delete(`/admin/users/${userId}`);
+  },
+
+  // Ban user
+  banUser: async (userId: string): Promise<void> => {
+    await apiClient.post(`/admin/users/${userId}/ban`);
+  },
+
+  // Unban user
+  unbanUser: async (userId: string): Promise<void> => {
+    await apiClient.post(`/admin/users/${userId}/unban`);
   },
 
   // Get dashboard stats
