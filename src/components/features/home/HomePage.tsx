@@ -37,6 +37,15 @@ const HomePage: React.FC = () => {
 
   // Animation setup
   useEffect(() => {
+    // Fallback: ensure buttons are visible after a delay
+    const fallbackTimer = setTimeout(() => {
+      const buttons = document.querySelectorAll(".hero-button");
+      buttons.forEach((btn) => {
+        (btn as HTMLElement).style.opacity = "1";
+        (btn as HTMLElement).style.visibility = "visible";
+      });
+    }, 2000); // After 2 seconds, ensure buttons are visible
+
     const ctx = gsap.context(() => {
       // Hero section animations
       gsap.from(".hero-title", {
@@ -55,12 +64,23 @@ const HomePage: React.FC = () => {
         delay: 0.8,
       });
 
+      // Animate hero buttons
+      // Animate hero buttons
       gsap.from(".hero-button", {
         duration: 1,
         y: 30,
         opacity: 0,
         ease: "power2.out",
         delay: 1.1,
+        stagger: 0.2,
+        // Ensure buttons are visible if animation fails
+        onComplete: () => {
+          const buttons = document.querySelectorAll(".hero-button");
+          buttons.forEach((btn) => {
+            (btn as HTMLElement).style.opacity = "1";
+            (btn as HTMLElement).style.visibility = "visible";
+          });
+        },
       });
 
       // About section animation
@@ -126,7 +146,10 @@ const HomePage: React.FC = () => {
       });
     });
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      clearTimeout(fallbackTimer);
+    };
   }, []);
 
   const services: ServiceItem[] = [
@@ -229,12 +252,22 @@ const HomePage: React.FC = () => {
               Nền tảng quản lý dự án toàn diện với công nghệ AI tiên tiến.
             </p>
 
-            <Link
-              href="/projects/create"
-              className={`${styles.heroButton} hero-button`}
-            >
-              BẮT ĐẦU DỰ ÁN
-            </Link>
+            <div className={styles.heroButtons}>
+              <Link
+                href="/projects/create"
+                className={`${styles.heroButton} hero-button`}
+              >
+                BẮT ĐẦU <br />
+                DỰ ÁN
+              </Link>
+              <Link
+                href="/contact"
+                className={`${styles.heroButtonSecondary} hero-button`}
+              >
+                ĐĂNG KÝ NHÀ THẦU,  <br />
+                GIÁM SÁT VIÊN
+              </Link>
+            </div>
           </div>
         </div>
       </section>
