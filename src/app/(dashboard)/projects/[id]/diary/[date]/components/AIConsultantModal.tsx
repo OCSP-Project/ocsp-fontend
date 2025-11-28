@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { DiaryImage } from '@/types/construction-diary.types';
+import { analyzeIncident } from '@/lib/api/ai-consultant';
 
 interface Message {
   id: string;
@@ -46,54 +47,91 @@ export function AIConsultantModal({
     setInputMessage('');
     setIsLoading(true);
 
-    // TODO: Call AI API here
-    // For now, simulate AI response
-    setTimeout(() => {
+    try {
+      // Gọi AI API với câu hỏi của người dùng
+      const result = await analyzeIncident({
+        images: incidentImages.map(img => img.url),
+        incident_report: `${incidentReport}\n\nCâu hỏi bổ sung: ${inputMessage}`,
+        context: incidentImages.map((img, idx) => `Ảnh ${idx + 1}: ${img.description || ''}`).join('; '),
+      });
+
       const aiMessage: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: 'Đây là câu trả lời mẫu từ AI. Tích hợp API thực tế ở đây.',
+        content: `**📋 Trả lời:**\n${result.incident_report}\n\n**💡 Đề xuất:**\n${result.recommendations}`,
         timestamp: new Date(),
       };
+
       setMessages(prev => [...prev, aiMessage]);
-      setCurrentSuggestion(aiMessage.content);
+      setCurrentSuggestion(result.recommendations);
       setIsLoading(false);
-    }, 1000);
+    } catch (error: any) {
+      console.error('AI chat error:', error);
+
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: `❌ Lỗi: ${error.message || 'Không thể kết nối AI'}`,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+      setIsLoading(false);
+    }
   };
 
   const handleAnalyzeIncident = async () => {
+    console.log('🚀 [AI Consultant] Starting analysis...');
+    console.log('📷 Images count:', incidentImages.length);
+    console.log('📝 Incident report:', incidentReport);
+    console.log('🌐 API URL:', process.env.NEXT_PUBLIC_RAG_API_URL);
+
     setIsLoading(true);
-
-    const analysisPrompt = `Phân tích sự cố xây dựng dựa trên thông tin sau:
-
-Báo cáo sự cố: ${incidentReport}
-
-Số lượng ảnh sự cố: ${incidentImages.length}
-${incidentImages.map((img, idx) => `Ảnh ${idx + 1}: ${img.description || 'Không có mô tả'}`).join('\n')}
-
-Hãy đưa ra đánh giá và đề xuất giải pháp.`;
 
     const systemMessage: Message = {
       id: crypto.randomUUID(),
       role: 'user',
-      content: analysisPrompt,
+      content: '🔍 Đang phân tích ảnh sự cố với AI...',
       timestamp: new Date(),
     };
 
     setMessages([systemMessage]);
 
-    // TODO: Call AI API here
-    setTimeout(() => {
+    try {
+      console.log('📤 Calling analyzeIncident API...');
+
+      // Gọi AI API thực tế
+      const result = await analyzeIncident({
+        images: incidentImages.map(img => img.url),
+        incident_report: incidentReport,
+        context: incidentImages.map((img, idx) => `Ảnh ${idx + 1}: ${img.description || ''}`).join('; '),
+      });
+
+      console.log('✅ API Response:', result);
+
       const aiResponse: Message = {
         id: crypto.randomUUID(),
         role: 'assistant',
-        content: `Dựa trên thông tin đã cung cấp, tôi nhận thấy:\n\n1. Đánh giá tình huống\n2. Nguyên nhân có thể\n3. Giải pháp đề xuất\n4. Biện pháp phòng ngừa\n\n(Tích hợp AI thực tế tại đây)`,
+        content: `**📋 Báo cáo phân tích:**\n${result.incident_report}\n\n**💡 Đề xuất giải pháp:**\n${result.recommendations}`,
         timestamp: new Date(),
       };
+
       setMessages(prev => [...prev, aiResponse]);
-      setCurrentSuggestion(aiResponse.content);
+      setCurrentSuggestion(result.recommendations);
       setIsLoading(false);
-    }, 2000);
+    } catch (error: any) {
+      console.error('❌ AI Analysis error:', error);
+
+      const errorMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: `❌ Lỗi khi phân tích: ${error.message || 'Không thể kết nối với hệ thống AI'}.\n\n**Debug Info:**\n- API URL: ${process.env.NEXT_PUBLIC_RAG_API_URL || 'CHƯA CẤU HÌNH'}\n- Error: ${error.toString()}\n\nVui lòng kiểm tra Console để xem chi tiết lỗi.`,
+        timestamp: new Date(),
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+      setIsLoading(false);
+    }
   };
 
   const handleApply = () => {

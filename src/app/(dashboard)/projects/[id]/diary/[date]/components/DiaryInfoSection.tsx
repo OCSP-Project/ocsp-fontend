@@ -144,8 +144,8 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
               value={data.recommendations || ''}
               onChange={(e) => onChange({ ...data, recommendations: e.target.value })}
               placeholder="Nhập các đề xuất, kiến nghị về công trình..."
-              rows={4}
-              className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 resize-none"
+              rows={8}
+              className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 resize-y"
             />
           </div>
 

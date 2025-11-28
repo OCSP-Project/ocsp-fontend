@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import { getDiariesByMonth } from '@/lib/api/construction-diary';
 import type { ConstructionDiaryDto } from '@/types/construction-diary.types';
+import { ImageCategory } from '@/types/construction-diary.types';
 
 export default function ConstructionDiaryPage() {
   const params = useParams();
@@ -36,9 +37,17 @@ export default function ConstructionDiaryPage() {
 
   // Convert diaries array to date lookup
   const diariesByDate: Record<string, boolean> = {};
+  const diariesWithIncidents: Record<string, boolean> = {};
+
   diaries.forEach(diary => {
     const dateStr = new Date(diary.diaryDate).toISOString().split('T')[0];
     diariesByDate[dateStr] = true;
+
+    // Check if diary has incident images
+    const hasIncidentImages = diary.images?.some(img => img.category === ImageCategory.Incident) || false;
+    if (hasIncidentImages) {
+      diariesWithIncidents[dateStr] = true;
+    }
   });
 
   const getDaysInMonth = (date: Date) => {
@@ -106,6 +115,12 @@ export default function ConstructionDiaryPage() {
     if (!day) return false;
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return diariesByDate[dateStr] || false;
+  };
+
+  const hasIncident = (day: number | null) => {
+    if (!day) return false;
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    return diariesWithIncidents[dateStr] || false;
   };
 
   return (
@@ -187,6 +202,7 @@ export default function ConstructionDiaryPage() {
               {calendarDays.map((day, index) => {
                 const isCurrentDay = isToday(day);
                 const hasEntry = hasDiary(day);
+                const hasIncidentReport = hasIncident(day);
 
                 return (
                   <div
@@ -196,7 +212,8 @@ export default function ConstructionDiaryPage() {
                       relative aspect-square rounded-xl transition-all duration-200
                       ${day ? 'cursor-pointer' : 'cursor-default'}
                       ${day && !hasEntry ? 'bg-slate-700/30 hover:bg-slate-600/50 border border-slate-600/30 hover:border-slate-500/50' : ''}
-                      ${hasEntry ? 'bg-gradient-to-br from-blue-500/30 to-purple-500/30 border-2 border-blue-400/50 hover:border-blue-300 shadow-lg shadow-blue-500/20' : ''}
+                      ${hasEntry && !hasIncidentReport ? 'bg-gradient-to-br from-blue-500/30 to-purple-500/30 border-2 border-blue-400/50 hover:border-blue-300 shadow-lg shadow-blue-500/20' : ''}
+                      ${hasIncidentReport ? 'bg-gradient-to-br from-red-500/30 to-orange-500/30 border-2 border-red-400/50 hover:border-red-300 shadow-lg shadow-red-500/20' : ''}
                       ${isCurrentDay ? 'ring-2 ring-yellow-400/50 ring-offset-2 ring-offset-slate-800' : ''}
                     `}
                   >
@@ -241,6 +258,10 @@ export default function ConstructionDiaryPage() {
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-gradient-to-br from-blue-500/30 to-purple-500/30 border-2 border-blue-400/50"></div>
                 <span className="text-slate-300">Đã có nhật ký</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-gradient-to-br from-red-500/30 to-orange-500/30 border-2 border-red-400/50"></div>
+                <span className="text-slate-300">Có sự cố</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-slate-700/30 border border-slate-600/30"></div>
