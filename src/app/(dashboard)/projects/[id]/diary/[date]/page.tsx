@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Header from '@/components/layout/Header';
 import { WorkItemsSection } from './components/WorkItemsSection';
+import { MaterialDiarySection } from './components/MaterialDiarySection';
 import { DiaryInfoSection } from './components/DiaryInfoSection';
-import type { CreateConstructionDiaryDto, DiaryWorkItemEntry } from '@/types/construction-diary.types';
+import type { CreateConstructionDiaryDto, DiaryWorkItemEntry, DiaryMaterialEntry } from '@/types/construction-diary.types';
 import { getDiaryByDate, createDiary, updateDiary } from '@/lib/api/construction-diary';
 
 export default function DiaryEntryPage() {
@@ -17,9 +18,11 @@ export default function DiaryEntryPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [existingDiaryId, setExistingDiaryId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'workItems' | 'materials'>('workItems');
 
   // Form state
   const [workItems, setWorkItems] = useState<DiaryWorkItemEntry[]>([]);
+  const [materialEntries, setMaterialEntries] = useState<DiaryMaterialEntry[]>([]);
   const [diaryData, setDiaryData] = useState<Partial<CreateConstructionDiaryDto>>({
     projectId,
     diaryDate: date,
@@ -68,6 +71,7 @@ export default function DiaryEntryPage() {
           notes: existing.notes || '',
         });
         setWorkItems(existing.workItems || []);
+        setMaterialEntries(existing.materialEntries || []);
       }
     } catch (error) {
       console.error('Error loading diary:', error);
@@ -127,6 +131,15 @@ export default function DiaryEntryPage() {
             quantity: e.quantity,
             unit: e.unit,
           })) || [],
+        })),
+        materialEntries: materialEntries.map(m => ({
+          materialId: m.materialId,
+          materialName: m.materialName,
+          code: m.code,
+          unit: m.unit,
+          contractQuantity: m.contractQuantity,
+          actualQuantity: m.actualQuantity,
+          variance: m.variance,
         })),
         weatherPeriods: diaryData.weather?.map(w => ({
           period: w.period,
@@ -204,13 +217,60 @@ export default function DiaryEntryPage() {
 
         {/* 2-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* LEFT COLUMN - Work Items & Materials */}
+          {/* LEFT COLUMN - Work Items & Materials with Tabs */}
           <div className="space-y-6">
-            <WorkItemsSection
-              projectId={projectId}
-              workItems={workItems}
-              onWorkItemsChange={setWorkItems}
-            />
+            {/* Tab Navigation */}
+            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-2 flex gap-2">
+              <button
+                onClick={() => setActiveTab('workItems')}
+                className={`
+                  flex-1 px-4 py-3 rounded-lg font-medium transition-all duration-200
+                  ${activeTab === 'workItems'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg shadow-blue-500/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                  }
+                `}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  Nhật ký thi công
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab('materials')}
+                className={`
+                  flex-1 px-4 py-3 rounded-lg font-medium transition-all duration-200
+                  ${activeTab === 'materials'
+                    ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg shadow-purple-500/30'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-700/50'
+                  }
+                `}
+              >
+                <div className="flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                  Nhật ký vật tư
+                </div>
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'workItems' ? (
+              <WorkItemsSection
+                projectId={projectId}
+                workItems={workItems}
+                onWorkItemsChange={setWorkItems}
+              />
+            ) : (
+              <MaterialDiarySection
+                projectId={projectId}
+                materialEntries={materialEntries}
+                onMaterialEntriesChange={setMaterialEntries}
+              />
+            )}
           </div>
 
           {/* RIGHT COLUMN - Diary Information */}

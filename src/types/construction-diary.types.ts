@@ -57,6 +57,27 @@ export interface DiaryEquipmentEntry {
   unit: string; // "ca"
 }
 
+// ====== MATERIAL DIARY (Nhật ký vật tư) ======
+export interface MaterialSummary {
+  id: string;
+  name: string;
+  code?: string;
+  unit?: string;
+  contractQuantity?: number;
+  actualQuantity?: number;
+}
+
+export interface DiaryMaterialEntry {
+  id: string;
+  materialId: string;
+  materialName: string;
+  code?: string;
+  unit: string;
+  contractQuantity: number; // KL hợp đồng
+  actualQuantity: number; // KL thực tế (có thể edit)
+  variance?: number; // Chênh lệch %
+}
+
 // ====== WORK ITEM (Công việc) ======
 export interface WorkItemSummary {
   id: string;
@@ -112,6 +133,9 @@ export interface ConstructionDiaryDto {
   // Work Items Section
   workItems: DiaryWorkItemEntry[];
 
+  // Material Diary Section
+  materialEntries?: DiaryMaterialEntry[];
+
   // Diary Information Section
   team: string; // Tổ đội thi công
   weather: WeatherPeriod[]; // 4 periods
@@ -137,6 +161,7 @@ export interface CreateConstructionDiaryDto {
   projectId: string;
   diaryDate: string;
   workItems?: DiaryWorkItemEntry[];
+  materialEntries?: DiaryMaterialEntry[];
   team?: string;
   weather?: WeatherPeriod[];
   assessment?: ConstructionAssessment;
