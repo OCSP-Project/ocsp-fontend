@@ -74,9 +74,9 @@ export default function QuoteSendModal({
   };
 
   const handleSelectAllQuotes = () => {
-    // Chọn tất cả quotes trừ những cái đã bị cancelled
+    // Chọn tất cả quotes trừ những cái đã bị cancelled hoặc closed
     const selectableQuoteIds = quotes
-      .filter(q => q.status !== 'Cancelled')
+      .filter(q => q.status !== 'Cancelled' && q.status !== 'Closed')
       .map(q => q.id);
     setSelectedQuotes(selectableQuoteIds);
   };
@@ -89,6 +89,16 @@ export default function QuoteSendModal({
   const handleSendQuotes = async () => {
     if (selectedQuotes.length === 0) {
       setError('Vui lòng chọn ít nhất 1 quote để gửi');
+      return;
+    }
+
+    // Validate: không cho phép gửi quotes có status Closed hoặc Cancelled
+    const invalidQuotes = quotes.filter(q => 
+      selectedQuotes.includes(q.id) && (q.status === 'Closed' || q.status === 'Cancelled')
+    );
+    
+    if (invalidQuotes.length > 0) {
+      setError(`Không thể gửi ${invalidQuotes.length} quote có trạng thái ${invalidQuotes[0].status}`);
       return;
     }
 
@@ -193,7 +203,7 @@ export default function QuoteSendModal({
                             ? 'border-amber-500 bg-amber-900/20 shadow-lg shadow-amber-500/20'
                             : 'border-stone-700 bg-stone-900/50 hover:border-stone-600'
                         } ${
-                          q.status === 'Cancelled' ? 'opacity-50' : 'hover:bg-stone-800/50'
+                          (q.status === 'Cancelled' || q.status === 'Closed') ? 'opacity-50' : 'hover:bg-stone-800/50'
                         }`}
                       >
                         <div className="flex items-start space-x-3">
@@ -201,8 +211,9 @@ export default function QuoteSendModal({
                             type="checkbox"
                             checked={selectedQuotes.includes(q.id)}
                             onChange={() => handleSelectQuote(q.id)}
-                            disabled={q.status === 'Cancelled'}
+                            disabled={q.status === 'Cancelled' || q.status === 'Closed'}
                             className="mt-1 rounded border-stone-600 bg-stone-800 text-amber-600 focus:ring-amber-500 disabled:opacity-50"
+                            title={q.status === 'Closed' ? 'Không thể gửi quote đã đóng' : q.status === 'Cancelled' ? 'Không thể gửi quote đã hủy' : undefined}
                           />
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-stone-100 mb-2 leading-relaxed">
@@ -223,9 +234,9 @@ export default function QuoteSendModal({
                               }`}>
                                 {q.status}
                               </span>
-                              {q.dueDate && (
-                                <span className="text-stone-500">
-                                  Hạn: {new Date(q.dueDate).toLocaleDateString('vi-VN')}
+                              {(q.status === 'Closed' || q.status === 'Cancelled') && (
+                                <span className="text-xs text-stone-500 italic">
+                                  {q.status === 'Closed' ? '(Không thể gửi)' : '(Đã hủy)'}
                                 </span>
                               )}
                             </div>

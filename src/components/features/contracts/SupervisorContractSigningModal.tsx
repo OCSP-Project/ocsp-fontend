@@ -6,16 +6,87 @@ import { supervisorContractsApi, paymentsApi, type SupervisorContractDto } from 
 import { DownloadOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
 import { useAuth, UserRole } from '@/hooks/useAuth';
 
+const PROFILE_INFO_ERROR =
+  'Vui lòng cập nhật đầy đủ thông tin cá nhân (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hoặc ký hợp đồng.';
+
+const getFriendlyErrorMessage = (error: any, fallback: string, userRole?: 'homeowner' | 'supervisor') => {
+  const apiMessage =
+    error?.response?.data?.message ||
+    error?.response?.data?.detail ||
+    error?.response?.data?.title ||
+    (typeof error?.response?.data === 'string' ? error.response.data : null);
+
+  // Check for specific profile missing errors
+  if (apiMessage && typeof apiMessage === 'string') {
+    // Parse backend error messages
+    if (apiMessage.includes('HOMEOWNER_PROFILE_MISSING') || apiMessage.includes('Chủ nhà chưa cập nhật')) {
+      return 'Chủ nhà chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu chủ nhà cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng.';
+    }
+    if (apiMessage.includes('SUPERVISOR_PROFILE_MISSING') || apiMessage.includes('Giám sát viên chưa cập nhật') || apiMessage.includes('Supervisor profile not found')) {
+      return 'Giám sát viên chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu giám sát viên cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng.';
+    }
+    // If message already contains the full error, return it
+    if (apiMessage.includes('chưa cập nhật thông tin cá nhân')) {
+      return apiMessage;
+    }
+    return apiMessage;
+  }
+
+  if (typeof error?.message === 'string' && error.message !== 'Request failed with status code 500') {
+    // Filter out technical error messages like "Request failed with status code XXX"
+    if (error.message.match(/Request failed with status code \d+/)) {
+      // Don't return technical error messages, fall through to other checks
+    } else {
+      // Check error message for profile issues
+      if (error.message.includes('HOMEOWNER_PROFILE_MISSING') || error.message.includes('Homeowner profile not found')) {
+        return 'Chủ nhà chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu chủ nhà cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng.';
+      }
+      if (error.message.includes('SUPERVISOR_PROFILE_MISSING') || error.message.includes('Supervisor profile not found')) {
+        return 'Giám sát viên chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu giám sát viên cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng.';
+      }
+      // Only return non-technical error messages
+      if (!error.message.match(/status code|Request failed|Network Error|timeout/i)) {
+        return error.message;
+      }
+    }
+  }
+
+  // Check for 400/500 status codes and provide friendly messages
+  if (error?.response?.status === 400 || error?.response?.status === 500) {
+    // For 400/500 errors, check if we have a specific profile error message
+    if (apiMessage && typeof apiMessage === 'string') {
+      // If apiMessage already contains profile error, return it (this is the most accurate)
+      if (apiMessage.includes('HOMEOWNER_PROFILE_MISSING') || apiMessage.includes('Chủ nhà chưa cập nhật')) {
+        return 'Chủ nhà chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu chủ nhà cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng.';
+      }
+      if (apiMessage.includes('SUPERVISOR_PROFILE_MISSING') || apiMessage.includes('Giám sát viên chưa cập nhật')) {
+        return 'Giám sát viên chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu giám sát viên cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng.';
+      }
+      // If apiMessage contains other useful info, return it
+      if (apiMessage.includes('chưa cập nhật thông tin cá nhân')) {
+        return apiMessage;
+      }
+    }
+    
+    // Fallback: generic message if we can't determine which party is missing info
+    return 'Không thể tải PDF hợp đồng. Vui lòng kiểm tra xem cả hai bên (chủ nhà và giám sát viên) đã cập nhật đầy đủ thông tin cá nhân (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ chưa.';
+  }
+
+  return fallback;
+};
+
 interface SupervisorContractSigningModalProps {
   contract: SupervisorContractDto;
   onClose: () => void;
   onSigned?: (contract: SupervisorContractDto) => void;
+  onError?: (message: string) => void;
 }
 
 export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningModalProps> = ({
   contract: initialContract,
   onClose,
   onSigned,
+  onError,
 }) => {
   const { user } = useAuth();
   const [contract, setContract] = useState<SupervisorContractDto>(initialContract);
@@ -24,10 +95,18 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
   const [signatureBase64, setSignatureBase64] = useState<string>('');
   const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string>('');
+  const [pdfLoading, setPdfLoading] = useState(true);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [paymentPaidServer, setPaymentPaidServer] = useState<boolean | null>(null);
 
   const isHomeowner = user?.role === UserRole.Homeowner;
   const isSupervisor = user?.role === UserRole.Supervisor;
+
+  const emitError = (message: string) => {
+    if (!message) return;
+    onError?.(message.startsWith('✗') ? message : `✗ ${message}`);
+  };
 
   useEffect(() => {
     loadContract();
@@ -35,13 +114,30 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
     checkPaymentStatus();
   }, [initialContract.id]);
 
+  // Refresh payment status periodically when modal is open (especially after returning from MoMo)
+  useEffect(() => {
+    if (!isHomeowner) return;
+    
+    // Check immediately
+    checkPaymentStatus();
+    
+    // Then check every 2 seconds while modal is open
+    const interval = setInterval(() => {
+      checkPaymentStatus();
+    }, 2000);
+    
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHomeowner, initialContract.projectId]);
+
   const loadContract = async () => {
     try {
       setLoading(true);
       const data = await supervisorContractsApi.getById(initialContract.id);
       setContract(data);
     } catch (error: any) {
-      alert('Lỗi tải hợp đồng: ' + (error.response?.data?.message || error.message));
+      const friendly = getFriendlyErrorMessage(error, 'Không thể tải hợp đồng giám sát viên. Vui lòng thử lại sau.');
+      emitError(friendly);
     } finally {
       setLoading(false);
     }
@@ -49,20 +145,62 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
 
   const loadPdf = async () => {
     try {
-      // Generate PDF if not exists
+      setPdfLoading(true);
+      setPdfError(null);
+      setProfileError(null);
+      
+      // Generate PDF if not exists - this will validate profiles on backend
       try {
         await supervisorContractsApi.generatePdf(initialContract.id);
-      } catch (error) {
-        console.log('PDF generation failed or not needed:', error);
+      } catch (error: any) {
+        console.log('PDF generation error:', error);
+        // Check if it's a profile validation error
+        const userRole = isHomeowner ? 'homeowner' : 'supervisor';
+        const friendly = getFriendlyErrorMessage(error, PROFILE_INFO_ERROR, userRole);
+        
+        // Check for specific profile missing errors
+        if (friendly.includes('HOMEOWNER_PROFILE_MISSING') || friendly.includes('Chủ nhà chưa cập nhật')) {
+          setProfileError('Chủ nhà chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu chủ nhà cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng.');
+          setPdfError(friendly);
+          setPdfUrl('');
+          return;
+        }
+        if (friendly.includes('SUPERVISOR_PROFILE_MISSING') || friendly.includes('Giám sát viên chưa cập nhật')) {
+          setProfileError('Giám sát viên chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu giám sát viên cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng.');
+          setPdfError(friendly);
+          setPdfUrl('');
+          return;
+        }
+        // Other errors - still try to download if PDF might exist
+        console.log('PDF generation failed, will try to download existing PDF:', error);
       }
       
-      // Download PDF
-      const blob = await supervisorContractsApi.downloadPdf(initialContract.id);
-      const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
-    } catch (error: any) {
-      console.error('Error loading PDF:', error);
-      // PDF might not be generated yet, that's okay
+      // Download PDF - this will also validate profiles
+      try {
+        const blob = await supervisorContractsApi.downloadPdf(initialContract.id);
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+        setPdfError(null);
+        setProfileError(null);
+      } catch (downloadError: any) {
+        console.error('Error downloading PDF:', downloadError);
+        const userRole = isHomeowner ? 'homeowner' : 'supervisor';
+        const friendly = getFriendlyErrorMessage(downloadError, PROFILE_INFO_ERROR, userRole);
+        
+        // Check for specific profile missing errors
+        if (friendly.includes('HOMEOWNER_PROFILE_MISSING') || friendly.includes('Chủ nhà chưa cập nhật')) {
+          setProfileError('Chủ nhà chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu chủ nhà cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng.');
+        } else if (friendly.includes('SUPERVISOR_PROFILE_MISSING') || friendly.includes('Giám sát viên chưa cập nhật')) {
+          setProfileError('Giám sát viên chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu giám sát viên cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng.');
+        } else {
+          setProfileError(friendly);
+        }
+        
+        setPdfError(friendly);
+        setPdfUrl('');
+      }
+    } finally {
+      setPdfLoading(false);
     }
   };
 
@@ -111,8 +249,8 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
       
       onClose();
     } catch (error: any) {
-      const errorMsg = error.response?.data?.message || error.response?.data || error.message || 'Lỗi không xác định';
-      alert('Lỗi ký hợp đồng: ' + errorMsg);
+      const errorMsg = getFriendlyErrorMessage(error, 'Ký hợp đồng giám sát viên thất bại. Vui lòng thử lại sau.');
+      emitError(errorMsg);
     } finally {
       setSigning(false);
     }
@@ -133,7 +271,8 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
   const alreadySigned = isHomeowner
     ? !!contract.homeownerSignatureBase64
     : !!contract.supervisorSignatureBase64;
-  const paymentPaid = paymentPaidServer === true;
+  // Strict gating: rely on server-paid flag; if unknown or false -> treat as NOT paid
+  const paymentPaid = isHomeowner ? (paymentPaidServer === true) : true; // Supervisor doesn't need payment
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -248,8 +387,24 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
             </div>
           )}
 
+          {/* Profile Error - Show prominently at top */}
+          {profileError && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <span className="text-red-400 text-xl">⚠️</span>
+                <div className="flex-1">
+                  <p className="text-red-300 font-semibold mb-1">Không thể tải PDF hợp đồng</p>
+                  <p className="text-red-200 text-sm">{profileError}</p>
+                  <p className="text-red-200/80 text-xs mt-2">
+                    Vui lòng cập nhật đầy đủ thông tin trong mục <strong>Hồ sơ</strong> trước khi xem hoặc ký hợp đồng.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* PDF Preview */}
-          {pdfUrl && (
+          {pdfUrl && !profileError && (
             <div className="bg-stone-800 p-4 rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-white font-semibold">Xem trước hợp đồng</h3>
@@ -274,22 +429,51 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
             <div className="bg-stone-800 p-4 rounded-lg space-y-4">
               <h3 className="text-white font-semibold">Chữ ký điện tử</h3>
               
+              {/* Show loading state */}
+              {pdfLoading && !profileError && (
+                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3 mb-4">
+                  <p className="text-amber-300 text-sm">Đang tải PDF hợp đồng...</p>
+                </div>
+              )}
+              
+              {/* Show error if PDF failed to load (non-profile errors) */}
+              {pdfError && !profileError && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-4">
+                  <p className="text-red-300 text-sm">{pdfError}</p>
+                  <p className="text-red-200/80 text-xs mt-1">Vui lòng giải quyết vấn đề trên trước khi ký hợp đồng.</p>
+                </div>
+              )}
+              
               {!showSignaturePad && !signatureBase64 && (
                 <button
                   onClick={() => {
                     // Supervisor doesn't need payment, homeowner needs payment
                     if (isHomeowner && !paymentPaid) return;
+                    if (!pdfUrl) {
+                      emitError('Vui lòng đợi PDF hợp đồng tải xong trước khi ký.');
+                      return;
+                    }
                     setShowSignaturePad(true);
                   }}
-                  disabled={isHomeowner && !paymentPaid}
+                  disabled={(isHomeowner && !paymentPaid) || !pdfUrl || pdfLoading || !!pdfError || !!profileError}
                   className={`w-full px-4 py-3 rounded-lg transition-colors ${
-                    (isHomeowner && !paymentPaid)
+                    (isHomeowner && !paymentPaid) || !pdfUrl || pdfLoading || !!pdfError || !!profileError
                       ? 'bg-stone-700 text-stone-300 opacity-60 cursor-not-allowed'
                       : 'bg-blue-600 hover:bg-blue-500 text-white'
                   }`}
-                  title={(isHomeowner && !paymentPaid) ? 'Vui lòng thanh toán phí đăng ký giám sát viên trước' : undefined}
+                  title={
+                    profileError
+                      ? 'Vui lòng cập nhật thông tin cá nhân trước khi ký hợp đồng'
+                      : isHomeowner && !paymentPaid
+                      ? 'Vui lòng thanh toán phí đăng ký giám sát viên trước'
+                      : !pdfUrl || pdfLoading
+                      ? 'Đang tải PDF hợp đồng...'
+                      : pdfError
+                      ? 'PDF hợp đồng chưa tải được. Vui lòng kiểm tra lại.'
+                      : undefined
+                  }
                 >
-                  Bắt đầu ký tên
+                  {pdfLoading ? 'Đang tải PDF...' : profileError ? 'Không thể ký (Thiếu thông tin)' : pdfError ? 'Không thể ký (PDF lỗi)' : 'Bắt đầu ký tên'}
                 </button>
               )}
 
@@ -341,10 +525,10 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
             {alreadySigned ? 'Đóng' : 'Quay lại'}
           </button>
           
-          {canSign && !alreadySigned && signatureBase64 && (isSupervisor || paymentPaid) && (
+          {canSign && !alreadySigned && signatureBase64 && (isSupervisor || paymentPaid) && pdfUrl && !pdfError && !profileError && (
             <button
               onClick={handleSign}
-              disabled={signing}
+              disabled={signing || !pdfUrl || pdfLoading || !!pdfError || !!profileError}
               className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {signing ? 'Đang ký...' : 'Xác nhận ký hợp đồng'}

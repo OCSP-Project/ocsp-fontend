@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { FileTextOutlined, EyeOutlined, CalendarOutlined, UserOutlined, CheckCircleOutlined, EditOutlined, ProjectOutlined } from '@ant-design/icons';
 import { contractsApi, paymentsApi, escrowApi, supervisorContractsApi, type ContractListItemDto, type ContractDetailDto, type ContractItemDto, type SupervisorContractListItemDto, type SupervisorContractDto } from '@/lib/contracts/contracts.api';
@@ -40,6 +40,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
   const supervisorContractRef = React.useRef<HTMLDivElement>(null);
   // Refs for individual contract items
   const contractItemRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
+  const messageTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const [highlightedContractId, setHighlightedContractId] = useState<string | null>(null);
   
   // Proposal detail modal state
@@ -47,6 +48,32 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
   const [selectedProposal, setSelectedProposal] = useState<ProposalDto | null>(null);
   const [loadingProposal, setLoadingProposal] = useState(false);
   
+  const showBannerMessage = useCallback((message: string, duration = 10000) => {
+    setSuccessMessage(message);
+    if (messageTimeoutRef.current) {
+      clearTimeout(messageTimeoutRef.current);
+    }
+    if (duration > 0) {
+      messageTimeoutRef.current = setTimeout(() => {
+        setSuccessMessage(null);
+        messageTimeoutRef.current = null;
+      }, duration);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (messageTimeoutRef.current) {
+        clearTimeout(messageTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const handleContractModalError = useCallback((message: string) => {
+    const formatted = message.startsWith('✗') ? message : `✗ ${message}`;
+    showBannerMessage(formatted, 10000);
+  }, [showBannerMessage]);
+
   // Track processed orders to prevent duplicate webhook calls
   const processedOrdersRef = React.useRef<Set<string>>(new Set());
   
@@ -101,11 +128,10 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
             })() : null;
             
             if (purpose === 'supervisor') {
-              setSuccessMessage('✓ Thanh toán đăng ký giám sát viên thành công! Bạn có thể ký hợp đồng ngay bây giờ.');
+              showBannerMessage('✓ Thanh toán đăng ký giám sát viên thành công! Bạn có thể ký hợp đồng ngay bây giờ.', 10000);
             } else {
-              setSuccessMessage('✓ Thanh toán phí môi giới thành công! Bạn có thể tiếp tục ký hợp đồng.');
+              showBannerMessage('✓ Thanh toán phí môi giới thành công! Bạn có thể tiếp tục ký hợp đồng.', 10000);
             }
-            setTimeout(() => setSuccessMessage(null), 10000);
             // Trigger contracts reload
             setRefreshTrigger(prev => prev + 1);
           }
@@ -116,10 +142,9 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
           processedOrdersRef.current.delete(orderId);
         });
     } else if (resultCode !== null && resultCode !== '0') {
-      setSuccessMessage('✗ Thanh toán không thành công. Vui lòng thử lại.');
-      setTimeout(() => setSuccessMessage(null), 10000);
+      showBannerMessage('✗ Thanh toán không thành công. Vui lòng thử lại.', 10000);
     }
-  }, [searchParams]);
+  }, [searchParams, showBannerMessage]);
 
   // Load contracts
   useEffect(() => {
@@ -174,7 +199,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
       } catch (error) {
         console.error('Failed to load contracts:', error);
         // Show error message to user
-        setSuccessMessage(`Lỗi tải hợp đồng: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        showBannerMessage(`✗ Lỗi tải hợp đồng: ${error instanceof Error ? error.message : 'Unknown error'}`, 10000);
       } finally {
         setLoading(false);
       }
@@ -195,7 +220,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
       };
       loadWalletBalance();
     }
-  }, [user?.role, refreshTrigger, searchParams]);
+  }, [user?.role, refreshTrigger, searchParams, showBannerMessage]);
 
   // Load escrow balances per contract
   useEffect(() => {
@@ -251,17 +276,10 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
   useEffect(() => {
     const message = localStorage.getItem('contractSuccess');
     if (message) {
-      setSuccessMessage(message);
+      showBannerMessage(message, 5000);
       localStorage.removeItem('contractSuccess'); // Clear after reading
-      
-      // Auto-hide after 5 seconds
-      const timer = setTimeout(() => {
-        setSuccessMessage(null);
-      }, 5000);
-      
-      return () => clearTimeout(timer);
     }
-  }, []);
+  }, [showBannerMessage]);
 
   const handleUpdateContractStatus = async (contractId: string, newStatus: number) => {
     setUpdatingStatus(contractId);
@@ -280,14 +298,14 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
         3: 'Completed',
         4: 'Cancelled'
       };
-      setSuccessMessage(`Cập nhật trạng thái hợp đồng thành công: ${statusNames[newStatus as keyof typeof statusNames]}`);
-      
-      // Auto-hide success message
-      setTimeout(() => setSuccessMessage(null), 5000);
+      showBannerMessage(
+        `✓ Cập nhật trạng thái hợp đồng thành công: ${statusNames[newStatus as keyof typeof statusNames]}`,
+        5000
+      );
       
     } catch (error) {
       console.error('Failed to update contract status:', error);
-      setSuccessMessage(`Lỗi cập nhật trạng thái: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      showBannerMessage(`✗ Lỗi cập nhật trạng thái: ${error instanceof Error ? error.message : 'Unknown error'}`, 10000);
     } finally {
       setUpdatingStatus(null);
     }
@@ -307,7 +325,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
     const updatedContracts = await contractsApi.getAll();
     setContracts(updatedContracts);
     
-    setSuccessMessage('Ký hợp đồng thành công!');
+    showBannerMessage('✓ Ký hợp đồng thành công!', 5000);
   };
 
   // Handle view proposal
@@ -561,7 +579,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                                 setSigningSupervisorContract(contractDetail);
                                 setShowSupervisorSigningModal(true);
                               } catch (error) {
-                                alert('Lỗi tải hợp đồng: ' + (error instanceof Error ? error.message : 'Unknown error'));
+                                handleContractModalError('Lỗi tải hợp đồng: ' + (error instanceof Error ? error.message : 'Unknown error'));
                               }
                             }}
                             className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -587,6 +605,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
           userRole={user?.role === UserRole.Homeowner ? 'homeowner' : 'contractor'}
           onClose={() => setShowSigningModal(false)}
           onSigned={handleSigningComplete}
+          onError={handleContractModalError}
         />
       )}
 
@@ -610,8 +629,9 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
             setContracts(contractorData);
             setSupervisorContracts(supervisorData);
             
-            setSuccessMessage('Ký hợp đồng giám sát viên thành công!');
+            showBannerMessage('✓ Ký hợp đồng giám sát viên thành công!', 5000);
           }}
+          onError={handleContractModalError}
         />
       )}
 
