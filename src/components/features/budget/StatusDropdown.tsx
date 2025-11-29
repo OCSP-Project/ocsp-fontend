@@ -62,7 +62,7 @@ export function StatusDropdown({ currentStatus, onStatusChange, disabled = false
       </button>
 
       {isOpen && (
-        <div className="absolute z-50 mt-1 w-40 bg-white rounded-md shadow-lg border border-gray-200">
+        <div className="absolute z-[100] mt-1 w-40 bg-white rounded-md shadow-lg border border-gray-200">
           {statusOptions.map((option) => (
             <button
               key={option.value}

@@ -652,6 +652,13 @@ export default function ProjectDetailPage() {
                     </Link>
 
                     <Link
+                      href={`/projects/${project.id}/diary`}
+                      className="block w-full text-center py-2 px-4 bg-teal-600/20 text-teal-300 border border-teal-500/30 rounded-lg hover:bg-teal-600/30 transition"
+                    >
+                      Nhật ký công trình
+                    </Link>
+
+                    <Link
                       href={`/projects/${project.id}/resources`}
                       className="block w-full text-center py-2 px-4 bg-orange-600/20 text-orange-300 border border-orange-500/30 rounded-lg hover:bg-orange-600/30 transition"
                     >
