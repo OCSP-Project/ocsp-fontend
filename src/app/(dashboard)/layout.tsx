@@ -71,258 +71,245 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
-      <div className="flex-1 grid grid-cols-[240px_1fr] mt-24">
-        <aside className="bg-white border-r p-4 flex flex-col">
+      <div className="flex-1 grid grid-cols-[240px_1fr]">
+        <aside className="bg-white border-r pt-12 pl-4 flex flex-col">
           {/* Sidebar Header */}
           <div className="mb-6">
             <h2 className="font-bold text-gray-900">OCSP Construction</h2>
             <p className="text-xs text-gray-500">{user.username}</p>
           </div>
 
-        {/* Navigation */}
-        <nav className="space-y-6 flex-1">
-          {/* Contractor & Homeowner dùng ?tab= */}
-          {(isContractor || isHomeowner) && (
-            <div>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Dự án
-              </div>
-              <div className="space-y-1">
-                <Link
-                  href="/projects?tab=projects"
-                  className={getActiveTabClass("projects")}
-                >
-                  📊 Projects
-                </Link>
-
-                {isContractor ? (
-                  <>
-                    <Link
-                      href="/projects?tab=invites"
-                      className={getActiveTabClass("invites")}
-                    >
-                      💼 Invites & Proposals
-                    </Link>
-                    <Link
-                      href="/projects?tab=contracts"
-                      className={getActiveTabClass("contracts")}
-                    >
-                      📋 Contracts
-                    </Link>
-                    <Link
-                      href="/projects?tab=milestones"
-                      className={getActiveTabClass("milestones")}
-                    >
-                      📆 Milestones
-                    </Link>
-                    <Link
-                      href="/contractor/posts"
-                      className={getActivePathClass("/contractor/posts")}
-                    >
-                      📝 Bài đăng
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link
-                      href="/projects?tab=quotes"
-                      className={getActiveTabClass("quotes")}
-                    >
-                      💰 Quotes & Proposals
-                    </Link>
-                    <Link
-                      href="/projects?tab=contracts"
-                      className={getActiveTabClass("contracts")}
-                    >
-                      📋 Contracts
-                    </Link>
-                    <Link
-                      href="/projects?tab=milestones"
-                      className={getActiveTabClass("milestones")}
-                    >
-                      📆 Milestones
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Chat - For Contractor */}
-          {isContractor && (
-            <div>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Liên hệ
-              </div>
-              <div className="space-y-1">
-                <Link
-                  href="/contractor/chat"
-                  className={getActivePathClass("/contractor/chat")}
-                >
-                  💬 Tin nhắn
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Admin giữ nguyên route */}
-          {isAdmin && (
-            <div>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Quản lý hệ thống
-              </div>
-              <div className="space-y-1">
-                <Link
-                  href="/admin"
-                  className={getActivePathClass("/admin")}
-                >
-                  📊 Dashboard
-                </Link>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          {/* Navigation */}
+          <nav className="space-y-6 flex-1">
+            {/* Contractor & Homeowner dùng ?tab= */}
+            {(isContractor || isHomeowner) && (
+              <div>
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                  Dự án
+                </div>
+                <div className="space-y-1">
                   <Link
-                    href="/admin/users"
-                    className={getActivePathClass("/admin/users")}
-                    style={{ flex: 1 }}
+                    href="/projects?tab=projects"
+                    className={getActiveTabClass("projects")}
                   >
-                    👥 Người dùng
+                    📊 Projects
                   </Link>
-                  {isAdmin && pendingCount > 0 && (
-                    <Tag color="orange" style={{ marginLeft: 8, borderRadius: '10px', marginRight: 0 }}>
-                      {pendingCount}
-                    </Tag>
+
+                  {isContractor ? (
+                    <>
+                      <Link
+                        href="/projects?tab=invites"
+                        className={getActiveTabClass("invites")}
+                      >
+                        💼 Invites & Proposals
+                      </Link>
+                      <Link
+                        href="/projects?tab=contracts"
+                        className={getActiveTabClass("contracts")}
+                      >
+                        📋 Contracts
+                      </Link>
+                      <Link
+                        href="/projects?tab=milestones"
+                        className={getActiveTabClass("milestones")}
+                      >
+                        📆 Milestones
+                      </Link>
+                      <Link
+                        href="/contractor/posts"
+                        className={getActivePathClass("/contractor/posts")}
+                      >
+                        📝 Bài đăng
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/projects?tab=quotes"
+                        className={getActiveTabClass("quotes")}
+                      >
+                        💰 Quotes & Proposals
+                      </Link>
+                      <Link
+                        href="/projects?tab=contracts"
+                        className={getActiveTabClass("contracts")}
+                      >
+                        📋 Contracts
+                      </Link>
+                      <Link
+                        href="/projects?tab=milestones"
+                        className={getActiveTabClass("milestones")}
+                      >
+                        📆 Milestones
+                      </Link>
+                    </>
                   )}
                 </div>
+              </div>
+            )}
+
+            {/* Chat - For Contractor */}
+            {isContractor && (
+              <div>
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                  Liên hệ
+                </div>
+                <div className="space-y-1">
+                  <Link
+                    href="/contractor/chat"
+                    className={getActivePathClass("/contractor/chat")}
+                  >
+                    💬 Tin nhắn
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Admin giữ nguyên route */}
+            {isAdmin && (
+              <div>
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                  Quản lý hệ thống
+                </div>
+                <div className="space-y-1">
+                  <Link href="/admin" className={getActivePathClass("/admin")}>
+                    📊 Dashboard
+                  </Link>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <Link
+                      href="/admin/users"
+                      className={getActivePathClass("/admin/users")}
+                      style={{ flex: 1 }}
+                    >
+                      👥 Người dùng
+                    </Link>
+                    {isAdmin && pendingCount > 0 && (
+                      <Tag
+                        color="orange"
+                        style={{
+                          marginLeft: 8,
+                          borderRadius: "10px",
+                          marginRight: 0,
+                        }}
+                      >
+                        {pendingCount}
+                      </Tag>
+                    )}
+                  </div>
+                  <Link
+                    href="/admin/projects"
+                    className={getActivePathClass("/admin/projects")}
+                  >
+                    🏗️ Dự án
+                  </Link>
+                  <Link
+                    href="/admin/reports"
+                    className={getActivePathClass("/admin/reports")}
+                  >
+                    📈 Báo cáo
+                  </Link>
+                  <Link
+                    href="/admin/settings"
+                    className={getActivePathClass("/admin/settings")}
+                  >
+                    ⚙️ Cài đặt
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Supervisor giữ nguyên route */}
+            {isSupervisor && (
+              <div>
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                  Giám sát & Kiểm tra
+                </div>
+                <div className="space-y-1">
+                  <Link
+                    href="/supervisor/projects"
+                    className={getActivePathClass("/supervisor/projects")}
+                  >
+                    🏗️ Dự án giám sát
+                  </Link>
+                  <Link
+                    href="/projects?tab=contracts"
+                    className={getActiveTabClass("contracts")}
+                  >
+                    📋 Contracts
+                  </Link>
+                  <Link
+                    href="/supervisor/inspections"
+                    className={getActivePathClass("/supervisor/inspections")}
+                  >
+                    ✅ Kiểm tra
+                  </Link>
+                  <Link
+                    href="/supervisor/reports"
+                    className={getActivePathClass("/supervisor/reports")}
+                  >
+                    📊 Báo cáo
+                  </Link>
+                  <Link
+                    href="/supervisor/schedule"
+                    className={getActivePathClass("/supervisor/schedule")}
+                  >
+                    📅 Lịch làm việc
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Chat - Only for Homeowner */}
+            {isHomeowner && (
+              <div>
+                <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                  Liên hệ
+                </div>
+                <div className="space-y-1">
+                  <Link href="/chat" className={getActivePathClass("/chat")}>
+                    💬 Tin nhắn
+                  </Link>
+                </div>
+              </div>
+            )}
+
+            {/* Common Navigation */}
+            <div>
+              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Cá nhân
+              </div>
+              <div className="space-y-1">
                 <Link
-                  href="/admin/projects"
-                  className={getActivePathClass("/admin/projects")}
+                  href="/profile"
+                  className={getActivePathClass("/profile")}
                 >
-                  🏗️ Dự án
+                  👤 Hồ sơ
                 </Link>
                 <Link
-                  href="/admin/reports"
-                  className={getActivePathClass("/admin/reports")}
+                  href="/notifications"
+                  className={getActivePathClass("/notifications")}
                 >
-                  📈 Báo cáo
+                  🔔 Thông báo
                 </Link>
                 <Link
-                  href="/admin/settings"
-                  className={getActivePathClass("/admin/settings")}
+                  href="/settings"
+                  className={getActivePathClass("/settings")}
                 >
                   ⚙️ Cài đặt
                 </Link>
               </div>
             </div>
-          )}
-
-          {/* Supervisor giữ nguyên route */}
-          {isSupervisor && (
-            <div>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Giám sát & Kiểm tra
-              </div>
-              <div className="space-y-1">
-                <Link
-                  href="/supervisor/projects"
-                  className={getActivePathClass("/supervisor/projects")}
-                >
-                  🏗️ Dự án giám sát
-                </Link>
-                <Link
-                  href="/projects?tab=contracts"
-                  className={getActiveTabClass("contracts")}
-                >
-                  📋 Contracts
-                </Link>
-                <Link
-                  href="/supervisor/inspections"
-                  className={getActivePathClass("/supervisor/inspections")}
-                >
-                  ✅ Kiểm tra
-                </Link>
-                <Link
-                  href="/supervisor/reports"
-                  className={getActivePathClass("/supervisor/reports")}
-                >
-                  📊 Báo cáo
-                </Link>
-                <Link
-                  href="/supervisor/schedule"
-                  className={getActivePathClass("/supervisor/schedule")}
-                >
-                  📅 Lịch làm việc
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Chat - Only for Homeowner */}
-          {isHomeowner && (
-            <div>
-              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                Liên hệ
-              </div>
-              <div className="space-y-1">
-                <Link href="/chat" className={getActivePathClass("/chat")}>
-                  💬 Tin nhắn
-                </Link>
-              </div>
-            </div>
-          )}
-
-          {/* Common Navigation */}
-          <div>
-            <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-              Cá nhân
-            </div>
-            <div className="space-y-1">
-              <Link href="/profile" className={getActivePathClass("/profile")}>
-                👤 Hồ sơ
-              </Link>
-              <Link
-                href="/notifications"
-                className={getActivePathClass("/notifications")}
-              >
-                🔔 Thông báo
-              </Link>
-              <Link
-                href="/settings"
-                className={getActivePathClass("/settings")}
-              >
-                ⚙️ Cài đặt
-              </Link>
-            </div>
-          </div>
-        </nav>
-
-        {/* User Section */}
-        <div className="border-t pt-4 mt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white text-sm font-medium">
-                  {user.username.slice(0, 2).toUpperCase()}
-                </span>
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user.username}
-                </p>
-                <p className="text-xs text-gray-500 truncate">{user.email}</p>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              className="text-gray-400 hover:text-red-500 transition-colors p-1"
-              title="Đăng xuất"
-            >
-              ⎋
-            </button>
-          </div>
-        </div>
+          </nav>
         </aside>
 
         <main className="overflow-auto">
-          <div className="p-8">{children}</div>
+          <div>{children}</div>
         </main>
       </div>
     </div>
