@@ -300,7 +300,7 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
                 <p className="text-white font-medium">{contract.status}</p>
               </div>
               <div>
-                <p className="text-sm text-stone-400">Giá hàng tháng</p>
+                <p className="text-sm text-stone-400">Phí đăng ký giám sát viên</p>
                 <p className="text-amber-400 font-semibold">{contract.monthlyPrice.toLocaleString('vi-VN')} đồng</p>
               </div>
               <div>

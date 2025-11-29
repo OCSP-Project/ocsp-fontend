@@ -551,7 +551,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                             </p>
                           </div>
                           <div>
-                            <p className="text-stone-500 text-sm">Giá hàng tháng</p>
+                            <p className="text-stone-500 text-sm">Phí đăng ký giám sát viên</p>
                             <p className="text-amber-300 font-semibold text-lg">
                               {formatCurrency(contract.monthlyPrice)}
                             </p>
