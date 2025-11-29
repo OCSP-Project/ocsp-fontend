@@ -235,6 +235,7 @@ export default function ProjectsPage() {
               onSwitchTab={(tab: string) => setActiveTab(tab as any)}
             />
           )}
+
           {activeTab === "invites" && <InvitesSection />}
           {activeTab === "contracts" && <ContractsSection />}
           {activeTab === "milestones" &&
