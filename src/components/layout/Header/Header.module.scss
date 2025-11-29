@@ -7,9 +7,38 @@
   left: 0;
   width: 100%;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.95);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
   padding: 1rem 0;
-  box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.4s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(56, 193, 182, 0.1) 0%,
+      rgba(102, 126, 234, 0.1) 100%
+    );
+    z-index: -1;
+  }
+
+  &.scrolled {
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    border-bottom-color: rgba(255, 255, 255, 0.15);
+
+    &::before {
+      background: linear-gradient(
+        90deg,
+        rgba(56, 193, 182, 0.05) 0%,
+        rgba(102, 126, 234, 0.05) 100%
+      );
+    }
+  }
 }
 
 .container {
@@ -29,10 +58,10 @@
 .loadingSkeleton {
   width: 200px;
   height: 40px;
-  background: linear-gradient(90deg, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.1) 75%);
+  background: linear-gradient(90deg, rgba(56, 193, 182, 0.1) 25%, rgba(102, 126, 234, 0.2) 50%, rgba(56, 193, 182, 0.1) 75%);
   background-size: 200% 100%;
   animation: loading 1.5s infinite;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 
 @keyframes loading {
@@ -47,9 +76,10 @@
   display: flex;
   flex-direction: column;
   line-height: 1;
+  transition: all 0.3s ease;
 
   &:hover {
-    opacity: 0.8;
+    transform: translateY(-2px);
   }
 }
 
@@ -57,14 +87,18 @@
   font-size: 1.8rem;
   font-weight: 700;
   letter-spacing: 2px;
-  color: #D4AF37;
+  background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 8px rgba(56, 193, 182, 0.3));
 }
 
 .logoSubtext {
   font-size: 0.7rem;
   font-weight: 300;
   letter-spacing: 3px;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.9);
   opacity: 0.8;
   margin-top: -2px;
 }
@@ -82,9 +116,9 @@
 
 .navItem {
   text-decoration: none;
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.85rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 1px;
   padding: 0.5rem 0;
   position: relative;
@@ -97,21 +131,21 @@
     left: 0;
     width: 0;
     height: 2px;
-    background: #D4AF37;
+    background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
     transition: width 0.3s ease;
   }
 
   &:hover {
-    color: #D4AF37;
-    
+    color: #38c1b6;
+
     &::after {
       width: 100%;
     }
   }
 
   &.active {
-    color: #D4AF37;
-    
+    color: #38c1b6;
+
     &::after {
       width: 100%;
     }
@@ -131,37 +165,45 @@
 
 .loginBtn {
   text-decoration: none;
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
   font-size: 0.85rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 1px;
   padding: 0.7rem 1.5rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 0;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
   transition: all 0.3s ease;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #D4AF37;
-    color: #D4AF37;
+    background: rgba(56, 193, 182, 0.1);
+    border-color: #38c1b6;
+    color: #38c1b6;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(56, 193, 182, 0.2);
   }
 }
 
 .registerBtn {
   text-decoration: none;
-  color: black;
+  color: white;
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 1px;
   padding: 0.7rem 1.5rem;
-  background: #D4AF37;
-  border-radius: 0;
+  background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
+  border-radius: 12px;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(56, 193, 182, 0.3);
 
   &:hover {
-    background: #B8941F;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(56, 193, 182, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
@@ -176,16 +218,17 @@
   gap: 0.75rem;
   cursor: pointer;
   padding: 0.5rem 1rem;
-  border-radius: 12px;
+  border-radius: 16px;
   transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(212, 175, 55, 0.3);
-    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(56, 193, 182, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(56, 193, 182, 0.2);
   }
 }
 
@@ -193,20 +236,20 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #D4AF37, #F4D03F);
+  background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2C2C2C;
+  color: white;
   font-weight: 700;
   font-size: 0.9rem;
   letter-spacing: 1px;
-  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+  box-shadow: 0 4px 15px rgba(56, 193, 182, 0.3);
   transition: all 0.3s ease;
 
   .userProfile:hover & {
     transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+    box-shadow: 0 6px 20px rgba(56, 193, 182, 0.4);
   }
 }
 
@@ -224,7 +267,7 @@
 }
 
 .userRole {
-  color: #D4AF37;
+  color: #38c1b6;
   font-size: 0.75rem;
   font-weight: 400;
   letter-spacing: 0.5px;
@@ -234,10 +277,10 @@
 .chevronIcon {
   color: rgba(255, 255, 255, 0.7);
   transition: all 0.3s ease;
-  
+
   &.open {
     transform: rotate(180deg);
-    color: #D4AF37;
+    color: #38c1b6;
   }
 }
 
@@ -246,13 +289,13 @@
   position: absolute;
   top: calc(100% + 1rem);
   right: 0;
-  background: rgba(0, 0, 0, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
   padding: 0.5rem 0;
   min-width: 200px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
   z-index: 1001;
 }
 
@@ -261,10 +304,10 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.75rem 1.25rem;
-  color: white;
+  color: rgba(255, 255, 255, 0.9);
   text-decoration: none;
   font-size: 0.85rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 0.5px;
   transition: all 0.2s ease;
   border: none;
@@ -280,12 +323,12 @@
   }
 
   &:hover {
-    background: rgba(212, 175, 55, 0.1);
-    color: #D4AF37;
-    
+    background: rgba(56, 193, 182, 0.15);
+    color: #38c1b6;
+
     svg {
       opacity: 1;
-      color: #D4AF37;
+      color: #38c1b6;
     }
   }
 }
@@ -299,10 +342,18 @@
 // Mobile Menu Button
 .mobileMenuBtn {
   display: none;
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
   cursor: pointer;
-  padding: 0.5rem;
+  padding: 0.75rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(56, 193, 182, 0.3);
+  }
 
   @media (max-width: 1024px) {
     display: block;
@@ -322,6 +373,7 @@
     width: 100%;
     height: 2px;
     background: white;
+    border-radius: 2px;
     transition: all 0.3s ease;
     transform-origin: center;
 
@@ -362,14 +414,26 @@
   left: 0;
   width: 100%;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.98);
-  backdrop-filter: blur(20px);
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(30px);
   transform: translateX(-100%);
   transition: transform 0.3s ease;
   overflow-y: auto;
 
   &.open {
     transform: translateX(0);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(56, 193, 182, 0.1) 0%,
+      rgba(102, 126, 234, 0.1) 100%
+    );
+    z-index: -1;
   }
 }
 
@@ -387,7 +451,7 @@
   text-decoration: none;
   color: white;
   font-size: 1.2rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 2px;
   padding: 1rem 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -397,8 +461,8 @@
 
   &:hover,
   &.active {
-    color: #D4AF37;
-    border-bottom-color: #D4AF37;
+    color: #38c1b6;
+    border-bottom-color: #38c1b6;
   }
 }
 
@@ -416,23 +480,25 @@
   align-items: center;
   gap: 1rem;
   padding: 1.5rem;
-  background: rgba(212, 175, 55, 0.1);
-  border-radius: 12px;
+  background: rgba(56, 193, 182, 0.1);
+  border-radius: 16px;
   margin-bottom: 1rem;
+  border: 1px solid rgba(56, 193, 182, 0.2);
 }
 
 .mobileAvatar {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #D4AF37, #F4D03F);
+  background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2C2C2C;
+  color: white;
   font-weight: 700;
   font-size: 1rem;
   letter-spacing: 1px;
+  box-shadow: 0 4px 15px rgba(56, 193, 182, 0.3);
 }
 
 .mobileUserName {
@@ -443,7 +509,7 @@
 }
 
 .mobileUserRole {
-  color: #D4AF37;
+  color: #38c1b6;
   font-size: 0.85rem;
   font-weight: 400;
   letter-spacing: 0.5px;
@@ -454,50 +520,59 @@
   text-decoration: none;
   color: white;
   font-size: 1rem;
-  font-weight: 400;
+  font-weight: 500;
   letter-spacing: 1px;
   padding: 1rem 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 12px;
   text-align: center;
   transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: #D4AF37;
-    color: #D4AF37;
+    background: rgba(56, 193, 182, 0.1);
+    border-color: #38c1b6;
+    color: #38c1b6;
   }
 }
 
 .mobileRegisterBtn {
   text-decoration: none;
-  color: black;
+  color: white;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 1px;
   padding: 1rem 2rem;
-  background: #D4AF37;
+  background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
+  border-radius: 12px;
   text-align: center;
   transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(56, 193, 182, 0.3);
 
   &:hover {
-    background: #B8941F;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(56, 193, 182, 0.4);
   }
 }
 
 .mobileLogoutBtn {
-  background: rgba(220, 38, 38, 0.1);
+  background: rgba(239, 68, 68, 0.1);
   color: #EF4444;
-  border: 1px solid rgba(220, 38, 38, 0.3);
+  border: 2px solid rgba(239, 68, 68, 0.3);
+  border-radius: 12px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 1px;
   padding: 1rem 2rem;
   text-align: center;
   transition: all 0.3s ease;
   cursor: pointer;
+  backdrop-filter: blur(10px);
 
   &:hover {
-    background: rgba(220, 38, 38, 0.2);
+    background: rgba(239, 68, 68, 0.2);
     border-color: #EF4444;
+    transform: translateY(-2px);
   }
 }

@@ -274,23 +274,23 @@ export default function CreateProjectPage() {
 
   // Styles
   const cardCls =
-    "bg-stone-800/60 backdrop-blur-xl rounded-xl border border-stone-700 shadow-lg p-6 text-stone-100";
+    "bg-white/10 backdrop-blur-xl rounded-xl border border-white/15 shadow-lg p-6 text-stone-100";
   const btnPrimary =
-    "inline-flex items-center justify-center gap-2 rounded-md bg-amber-600 text-stone-900 px-5 py-2.5 font-semibold hover:bg-amber-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-amber-600/20";
+    "inline-flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-teal-500 to-purple-600 text-white px-5 py-2.5 font-semibold hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-teal-500/20";
   const btnGhost =
-    "inline-flex items-center justify-center gap-2 rounded-md border border-stone-600 px-4 py-2 text-stone-200 hover:bg-stone-700/60 transition";
+    "inline-flex items-center justify-center gap-2 rounded-md border border-white/20 px-4 py-2 text-stone-200 hover:bg-white/10 transition";
   const inputCls =
-    "w-full rounded-md border border-stone-700 bg-stone-900/60 text-stone-100 placeholder-stone-400 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500 transition";
+    "w-full rounded-md border border-white/15 bg-stone-900/60 text-stone-100 placeholder-stone-400 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 transition";
   const labelCls = "text-sm font-medium text-stone-300 mb-1.5 block";
 
   return (
     <>
       <Header />
-      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-900 text-stone-100 pt-20">
+      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-stone-100 pt-20">
         <div className="max-w-6xl mx-auto px-4 py-10">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-4xl font-extrabold tracking-tight text-amber-200 mb-2">
+            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-teal-300 to-purple-300 bg-clip-text text-transparent mb-2">
               Tạo dự án mới
             </h1>
             <p className="text-stone-400">
@@ -308,7 +308,7 @@ export default function CreateProjectPage() {
             />
             <div
               className={`h-px flex-1 ${
-                step !== "upload" ? "bg-amber-500" : "bg-stone-700"
+                step !== "upload" ? "bg-gradient-to-r from-teal-500 to-purple-500" : "bg-stone-700"
               }`}
             />
             <StepIndicator
@@ -319,7 +319,7 @@ export default function CreateProjectPage() {
             />
             <div
               className={`h-px flex-1 ${
-                step === "form" ? "bg-amber-500" : "bg-stone-700"
+                step === "form" ? "bg-gradient-to-r from-teal-500 to-purple-500" : "bg-stone-700"
               }`}
             />
             <StepIndicator
@@ -467,9 +467,9 @@ function StepIndicator({
       <div
         className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
           completed
-            ? "bg-amber-500 text-stone-900"
+            ? "bg-gradient-to-r from-teal-500 to-purple-500 text-white"
             : active
-            ? "bg-amber-500/20 text-amber-400 border-2 border-amber-500"
+            ? "bg-teal-500/20 text-teal-400 border-2 border-teal-500"
             : "bg-stone-800 text-stone-500 border-2 border-stone-700"
         }`}
       >
@@ -477,7 +477,7 @@ function StepIndicator({
       </div>
       <span
         className={`text-sm font-medium hidden sm:block ${
-          active || completed ? "text-amber-300" : "text-stone-500"
+          active || completed ? "text-teal-300" : "text-stone-500"
         }`}
       >
         {title}
@@ -530,15 +530,15 @@ function FileUploadCard({
       textColor: "text-blue-300",
     },
     amber: {
-      border: "border-amber-500",
-      hoverBorder: "hover:border-amber-500",
-      text: "text-amber-300",
-      hoverText: "group-hover:text-amber-300",
-      icon: "text-amber-400",
-      hoverIcon: "group-hover:text-amber-400",
-      bg: "bg-amber-500/5",
-      borderColor: "border-amber-500/20",
-      textColor: "text-amber-300",
+      border: "border-teal-500",
+      hoverBorder: "hover:border-teal-500",
+      text: "text-teal-300",
+      hoverText: "group-hover:text-teal-300",
+      icon: "text-teal-400",
+      hoverIcon: "group-hover:text-teal-400",
+      bg: "bg-teal-500/5",
+      borderColor: "border-teal-500/20",
+      textColor: "text-teal-300",
     },
   };
 
@@ -619,7 +619,7 @@ function FileUploadCard({
           </div>
 
           {scanning && (
-            <div className="flex items-center justify-center gap-2 py-4 text-amber-400">
+            <div className="flex items-center justify-center gap-2 py-4 text-teal-400">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span className="text-sm font-medium">
                 Đang quét... {scanProgress}%
@@ -671,18 +671,18 @@ function PreviewSection({
   onConfirm: () => void;
 }) {
   const cardCls =
-    "bg-stone-800/60 backdrop-blur-xl rounded-xl border border-stone-700 shadow-lg p-6 text-stone-100";
+    "bg-white/10 backdrop-blur-xl rounded-xl border border-white/15 shadow-lg p-6 text-stone-100";
   const btnPrimary =
-    "inline-flex items-center justify-center gap-2 rounded-md bg-amber-600 text-stone-900 px-5 py-2.5 font-semibold hover:bg-amber-500 transition-all shadow-lg shadow-amber-600/20";
+    "inline-flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-teal-500 to-purple-600 text-white px-5 py-2.5 font-semibold hover:opacity-90 transition-all shadow-lg shadow-teal-500/20";
   const btnGhost =
-    "inline-flex items-center justify-center gap-2 rounded-md border border-stone-600 px-4 py-2 text-stone-200 hover:bg-stone-700/60 transition";
+    "inline-flex items-center justify-center gap-2 rounded-md border border-white/20 px-4 py-2 text-stone-200 hover:bg-white/10 transition";
 
   return (
     <div className="space-y-6">
       <div className={cardCls}>
         <div className="flex items-start justify-between mb-6">
           <div>
-            <h3 className="text-2xl font-bold text-amber-300 mb-2">
+            <h3 className="text-2xl font-bold bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent mb-2">
               Xác nhận thông tin
             </h3>
             <p className="text-sm text-stone-400">
@@ -708,11 +708,11 @@ function PreviewSection({
             </div>
           </div>
 
-          <div className="p-4 rounded-lg bg-amber-500/5 border border-amber-500/20">
+          <div className="p-4 rounded-lg bg-teal-500/5 border border-teal-500/20">
             <div className="flex items-center gap-3">
-              <Shield className="w-8 h-8 text-amber-400" />
+              <Shield className="w-8 h-8 text-teal-400" />
               <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium text-amber-300 truncate">
+                <div className="text-sm font-medium text-teal-300 truncate">
                   {permitFile?.name}
                 </div>
                 <div className="text-xs text-stone-400">
@@ -801,19 +801,19 @@ function FormSection({
   router: any;
 }) {
   const cardCls =
-    "bg-stone-800/60 backdrop-blur-xl rounded-xl border border-stone-700 shadow-lg p-6 text-stone-100";
+    "bg-white/10 backdrop-blur-xl rounded-xl border border-white/15 shadow-lg p-6 text-stone-100";
   const btnPrimary =
-    "inline-flex items-center justify-center gap-2 rounded-md bg-amber-600 text-stone-900 px-5 py-2.5 font-semibold hover:bg-amber-500 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-amber-600/20";
+    "inline-flex items-center justify-center gap-2 rounded-md bg-gradient-to-r from-teal-500 to-purple-600 text-white px-5 py-2.5 font-semibold hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg shadow-teal-500/20";
   const btnGhost =
-    "inline-flex items-center justify-center gap-2 rounded-md border border-stone-600 px-4 py-2 text-stone-200 hover:bg-stone-700/60 transition";
+    "inline-flex items-center justify-center gap-2 rounded-md border border-white/20 px-4 py-2 text-stone-200 hover:bg-white/10 transition";
   const inputCls =
-    "w-full rounded-md border border-stone-700 bg-stone-900/60 text-stone-100 placeholder-stone-400 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-500 transition";
+    "w-full rounded-md border border-white/15 bg-stone-900/60 text-stone-100 placeholder-stone-400 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-500 transition";
   const labelCls = "text-sm font-medium text-stone-300 mb-1.5 block";
 
   return (
     <form onSubmit={onSubmit} className={cardCls}>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-amber-300">Thông tin dự án</h2>
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent">Thông tin dự án</h2>
         <div className="text-sm text-stone-400">
           {scanResult.buildingType} • {scanResult.floorArea}m²
         </div>
@@ -928,14 +928,14 @@ function InfoItem({
     <div
       className={`p-3 rounded-lg ${
         highlight
-          ? "bg-amber-500/5 border border-amber-500/20"
+          ? "bg-teal-500/5 border border-teal-500/20"
           : "bg-stone-900/40"
       } ${className}`}
     >
       <div className="text-xs text-stone-500 mb-1">{label}</div>
       <div
         className={`font-semibold ${
-          highlight ? "text-amber-300" : "text-stone-200"
+          highlight ? "text-teal-300" : "text-stone-200"
         }`}
       >
         {value}

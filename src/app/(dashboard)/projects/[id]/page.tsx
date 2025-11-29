@@ -1,14 +1,21 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import Link from 'next/link';
-import Header from '@/components/layout/Header';
-import { paymentsApi, supervisorContractsApi } from '@/lib/contracts/contracts.api';
-import { projectsApi, type ProjectDetailDto, type UpdateProjectDto } from '@/lib/projects/projects.api';
+import React, { useEffect, useState, useMemo } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import Header from "@/components/layout/Header";
+import {
+  paymentsApi,
+  supervisorContractsApi,
+} from "@/lib/contracts/contracts.api";
+import {
+  projectsApi,
+  type ProjectDetailDto,
+  type UpdateProjectDto,
+} from "@/lib/projects/projects.api";
 import { MembersSection } from "@/components/features/project-invitations/MembersSection";
 import { ProjectParticipantRole } from "@/types/project-invitation.types";
-import { useAuth } from '@/hooks/useAuth';
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -30,7 +37,9 @@ export default function ProjectDetailPage() {
     return user?.id === project?.homeownerId;
   }, [user?.id, project?.homeownerId]);
   const [form, setForm] = useState<UpdateProjectDto>({});
-  const [supervisorContract, setSupervisorContract] = useState<{ status: string } | null>(null);
+  const [supervisorContract, setSupervisorContract] = useState<{
+    status: string;
+  } | null>(null);
 
   // Track which orderIds have been processed to prevent duplicate webhook calls
   const processedOrdersRef = React.useRef<Set<string>>(new Set());
@@ -250,7 +259,11 @@ export default function ProjectDetailPage() {
 
   const onRegisterSupervisor = async () => {
     if (!project) return;
-    const confirmed = window.confirm(`Đăng ký giám sát viên với giá ${monthlyPrice.toLocaleString('vi-VN')}₫/tháng?`);
+    const confirmed = window.confirm(
+      `Đăng ký giám sát viên với giá ${monthlyPrice.toLocaleString(
+        "vi-VN"
+      )}₫/tháng?`
+    );
     if (!confirmed) return;
     try {
       setSaving(true);
@@ -262,9 +275,15 @@ export default function ProjectDetailPage() {
       });
 
       // Redirect đến tab contracts với contractId để highlight
-      router.push(`/projects?tab=contracts&supervisorContractId=${newContract.id}`);
+      router.push(
+        `/projects?tab=contracts&supervisorContractId=${newContract.id}`
+      );
     } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || 'Đăng ký giám sát viên thất bại');
+      setError(
+        e?.response?.data?.message ||
+          e?.message ||
+          "Đăng ký giám sát viên thất bại"
+      );
     } finally {
       setSaving(false);
     }
@@ -274,7 +293,7 @@ export default function ProjectDetailPage() {
     return (
       <>
         <Header />
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-900 text-stone-100 pt-20">
+        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-stone-100 pt-20">
           <div className="max-w-6xl mx-auto px-4 py-10">
             <div className="text-stone-300">Loading project...</div>
           </div>
@@ -286,7 +305,7 @@ export default function ProjectDetailPage() {
     return (
       <>
         <Header />
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-900 text-stone-100 pt-20">
+        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-stone-100 pt-20">
           <div className="max-w-6xl mx-auto px-4 py-10">
             <div className="text-rose-400">{error}</div>
           </div>
@@ -298,7 +317,7 @@ export default function ProjectDetailPage() {
     return (
       <>
         <Header />
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-900 text-stone-100 pt-20">
+        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-stone-100 pt-20">
           <div className="max-w-6xl mx-auto px-4 py-10">
             <div className="text-stone-200">Project not found</div>
           </div>
@@ -307,20 +326,21 @@ export default function ProjectDetailPage() {
     );
 
   const inputCls =
-    "w-full rounded-md border border-stone-700 bg-stone-900/60 text-stone-100 placeholder-stone-400 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition";
+    "w-full rounded-md border border-white/15 bg-stone-900/60 text-stone-100 placeholder-stone-400 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition";
   const cardCls =
-    "bg-stone-800/60 backdrop-blur-xl rounded-xl border border-stone-700 shadow-lg p-5 text-stone-100";
-  const titleCls = "text-xl font-semibold text-amber-300 tracking-wide";
+    "bg-white/10 backdrop-blur-xl rounded-xl border border-white/15 shadow-lg p-5 text-stone-100";
+  const titleCls =
+    "text-xl font-semibold bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent tracking-wide";
   const btnPrimary =
-    "inline-flex items-center justify-center rounded-md bg-amber-600 text-stone-900 px-4 py-2 font-semibold hover:bg-amber-500 active:bg-amber-600 disabled:opacity-60 disabled:cursor-not-allowed transition";
+    "inline-flex items-center justify-center rounded-md bg-gradient-to-r from-teal-500 to-purple-600 text-white px-4 py-2 font-semibold hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition shadow-lg shadow-teal-500/20";
   const btnGhost =
-    "inline-flex items-center justify-center rounded-md border border-stone-600 px-3 py-2 text-stone-200 hover:bg-stone-700/60 transition";
+    "inline-flex items-center justify-center rounded-md border border-white/20 px-3 py-2 text-stone-200 hover:bg-white/10 transition";
   const labelCls = "text-sm text-stone-300 mb-1 block";
 
   return (
     <>
       <Header />
-      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-900 text-stone-100 pt-20">
+      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-stone-100 pt-20">
         <div className="max-w-6xl mx-auto px-4 py-10">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -332,7 +352,7 @@ export default function ProjectDetailPage() {
                   ← Dự án
                 </Link>
                 <span className="text-stone-500">/</span>
-                <h1 className="text-3xl font-extrabold tracking-tight text-amber-200">
+                <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-teal-300 to-purple-300 bg-clip-text text-transparent">
                   {project.name}
                 </h1>
               </div>
@@ -368,7 +388,7 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          {supervisorContract && supervisorContract.status === 'Completed' && (
+          {supervisorContract && supervisorContract.status === "Completed" && (
             <div className="mb-4 p-3 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
               ✓ Dự án đã được đăng ký giám sát viên thành công!
             </div>
@@ -688,7 +708,7 @@ export default function ProjectDetailPage() {
 
                     <Link
                       href={`/projects/${project.id}/materials`}
-                      className="block w-full text-center py-2 px-4 bg-amber-600/20 text-amber-300 border border-amber-500/30 rounded-lg hover:bg-amber-600/30 transition"
+                      className="block w-full text-center py-2 px-4 bg-teal-600/20 text-teal-300 border border-teal-500/30 rounded-lg hover:bg-teal-600/30 transition"
                     >
                       Quản lý vật tư
                     </Link>

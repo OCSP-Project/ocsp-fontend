@@ -84,7 +84,7 @@ export default function ProjectsPage() {
       case "draft":
         return "text-gray-400 bg-gray-400/10 border-gray-400/30";
       default:
-        return "text-stone-400 bg-stone-400/10 border-stone-400/30";
+        return "text-slate-400 bg-slate-400/10 border-slate-400/30";
     }
   };
 
@@ -92,9 +92,9 @@ export default function ProjectsPage() {
     return (
       <>
         <Header />
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-900 text-stone-100 pt-20">
+        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-slate-100 pt-20">
           <div className="max-w-6xl mx-auto px-4 py-10">
-            <div className="text-stone-300">Loading projects...</div>
+            <div className="text-slate-300">Loading projects...</div>
           </div>
         </div>
       </>
@@ -104,7 +104,7 @@ export default function ProjectsPage() {
     return (
       <>
         <Header />
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-900 text-stone-100 pt-20">
+        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-slate-100 pt-20">
           <div className="max-w-6xl mx-auto px-4 py-10">
             <div className="text-rose-400">{error}</div>
           </div>
@@ -113,19 +113,20 @@ export default function ProjectsPage() {
     );
 
   const cardCls =
-    "bg-stone-800/60 backdrop-blur-xl rounded-xl border border-stone-700 shadow-lg p-5 text-stone-100";
-  const titleCls = "text-xl font-semibold text-amber-300 tracking-wide";
+    "bg-white/10 backdrop-blur-xl rounded-xl border border-white/15 shadow-lg p-5 text-slate-100";
+  const titleCls =
+    "text-xl font-semibold bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent tracking-wide";
   const btnPrimary =
-    "inline-flex items-center justify-center rounded-md bg-amber-600 text-stone-900 px-4 py-2 font-semibold hover:bg-amber-500 active:bg-amber-600 transition";
+    "inline-flex items-center justify-center rounded-md bg-gradient-to-r from-teal-500 to-purple-600 text-white px-4 py-2 font-semibold hover:opacity-90 transition shadow-lg shadow-teal-500/20";
 
   return (
     <>
       <Header />
-      <div className="min-h-[100vh] bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-900 text-stone-100 pt-20">
+      <div className="min-h-[100vh] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-slate-100 pt-20">
         <div className="max-w-6xl mx-auto px-4 py-10">
           {activeTab === "projects" && (
             <div className="flex items-center justify-between mb-6">
-              <h1 className="text-3xl font-extrabold tracking-tight text-amber-200">
+              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-teal-300 to-purple-300 bg-clip-text text-transparent">
                 Dự án của tôi
               </h1>
               <Link href="/projects/create" className={btnPrimary}>
@@ -138,10 +139,10 @@ export default function ProjectsPage() {
             (projects.length === 0 ? (
               <div className={cardCls}>
                 <div className="text-center py-12">
-                  <div className="text-2xl text-stone-400 mb-4">
+                  <div className="text-2xl text-slate-400 mb-4">
                     Chưa có dự án nào
                   </div>
-                  <div className="text-stone-500 mb-6">
+                  <div className="text-slate-500 mb-6">
                     Bắt đầu tạo dự án đầu tiên của bạn
                   </div>
                   <Link href="/projects/create" className={btnPrimary}>
@@ -154,7 +155,7 @@ export default function ProjectsPage() {
                 {projects.map((project) => (
                   <div key={project.id} className={cardCls}>
                     <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-semibold text-lg text-stone-100 line-clamp-2">
+                      <h3 className="font-semibold text-lg text-slate-100 line-clamp-2">
                         {project.name}
                       </h3>
                       <span
@@ -166,60 +167,60 @@ export default function ProjectsPage() {
                       </span>
                     </div>
 
-                    <p className="text-stone-400 text-sm mb-4 line-clamp-2">
+                    <p className="text-slate-400 text-sm mb-4 line-clamp-2">
                       {project.description}
                     </p>
 
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm">
-                        <span className="text-stone-500 w-20">Địa chỉ:</span>
-                        <span className="text-stone-300">
+                        <span className="text-slate-500 w-20">Địa chỉ:</span>
+                        <span className="text-slate-300">
                           {project.address}
                         </span>
                       </div>
                       <div className="flex items-center text-sm">
-                        <span className="text-stone-500 w-20">Diện tích:</span>
-                        <span className="text-stone-300">
+                        <span className="text-slate-500 w-20">Diện tích:</span>
+                        <span className="text-slate-300">
                           {project.floorArea}m²
                         </span>
                       </div>
                       <div className="flex items-center text-sm">
-                        <span className="text-stone-500 w-20">Số tầng:</span>
-                        <span className="text-stone-300">
+                        <span className="text-slate-500 w-20">Số tầng:</span>
+                        <span className="text-slate-300">
                           {project.numberOfFloors}
                         </span>
                       </div>
                       <div className="flex items-center text-sm">
-                        <span className="text-stone-500 w-20">Ngân sách:</span>
-                        <span className="text-stone-300">
+                        <span className="text-slate-500 w-20">Ngân sách:</span>
+                        <span className="text-slate-300">
                           {formatCurrency(project.budget)}
                         </span>
                       </div>
                       <div className="flex items-center text-sm">
-                        <span className="text-stone-500 w-20">
+                        <span className="text-slate-500 w-20">
                           Ngày bắt đầu:
                         </span>
-                        <span className="text-stone-300">
+                        <span className="text-slate -300">
                           {formatDate(project.startDate)}
                         </span>
                       </div>
                       {project.estimatedCompletionDate && (
                         <div className="flex items-center text-sm">
-                          <span className="text-stone-500 w-20">Dự kiến:</span>
-                          <span className="text-stone-300">
+                          <span className="text-slate-500 w-20">Dự kiến:</span>
+                          <span className="text-slate-300">
                             {formatDate(project.estimatedCompletionDate)}
                           </span>
                         </div>
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-stone-700/60">
-                      <div className="text-xs text-stone-500">
+                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                      <div className="text-xs text-slate-500">
                         Tạo: {formatDate(project.createdAt)}
                       </div>
                       <Link
                         href={`/projects/${project.id}`}
-                        className="text-amber-400 hover:text-amber-300 text-sm font-medium transition"
+                        className="text-teal-400 hover:text-teal-300 text-sm font-medium transition"
                       >
                         Xem chi tiết →
                       </Link>
