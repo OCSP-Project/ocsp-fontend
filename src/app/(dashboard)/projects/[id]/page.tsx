@@ -260,9 +260,9 @@ export default function ProjectDetailPage() {
   const onRegisterSupervisor = async () => {
     if (!project) return;
     const confirmed = window.confirm(
-      `Đăng ký giám sát viên với giá ${monthlyPrice.toLocaleString(
+      `Đăng ký giám sát viên với phí đăng ký ${monthlyPrice.toLocaleString(
         "vi-VN"
-      )}₫/tháng?`
+      )}₫?`
     );
     if (!confirmed) return;
     try {
@@ -377,7 +377,7 @@ export default function ProjectDetailPage() {
                   className={btnPrimary}
                 >
                   Đăng ký giám sát viên ({monthlyPrice.toLocaleString("vi-VN")}
-                  ₫/tháng)
+                  ₫)
                 </button>
               )}
               {!editing && (
