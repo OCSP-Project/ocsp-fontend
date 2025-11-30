@@ -88,5 +88,11 @@ export interface PublicUserSummary {
     acknowledgeWarning: async (data: { userId: string; warningType: string }) => {
       const response = await apiClient.post('/chat/acknowledge-warning', data);
       return response.data;
+    },
+
+    // Join users to conversation
+    joinUsersToConversation: async (conversationId: string, userIds: string[]): Promise<ConversationListItem> => {
+      const response = await apiClient.post(`/chat/${conversationId}/join`, { userIds });
+      return response.data;
     }
   };
