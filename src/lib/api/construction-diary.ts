@@ -1,8 +1,7 @@
 // src/lib/api/construction-diary.ts
 import apiClient from './client';
 import type {
-  ConstructionDiaryDetailDto,
-  ConstructionDiarySummaryDto,
+  ConstructionDiaryDto,
   CreateConstructionDiaryDto,
   UpdateConstructionDiaryDto,
 } from '@/types/construction-diary.types';
@@ -13,9 +12,9 @@ import type {
 export const getDiaryByDate = async (
   projectId: string,
   date: string // Format: yyyy-MM-dd
-): Promise<ConstructionDiaryDetailDto | null> => {
+): Promise<ConstructionDiaryDto | null> => {
   try {
-    const response = await apiClient.get<ConstructionDiaryDetailDto>(
+    const response = await apiClient.get<ConstructionDiaryDto>(
       `/constructiondiary/project/${projectId}/date/${date}`
     );
     return response.data;
@@ -34,8 +33,8 @@ export const getDiariesByMonth = async (
   projectId: string,
   year: number,
   month: number
-): Promise<ConstructionDiarySummaryDto[]> => {
-  const response = await apiClient.get<ConstructionDiarySummaryDto[]>(
+): Promise<ConstructionDiaryDto[]> => {
+  const response = await apiClient.get<ConstructionDiaryDto[]>(
     `/constructiondiary/project/${projectId}/month/${year}/${month}`
   );
   return response.data;
@@ -46,8 +45,8 @@ export const getDiariesByMonth = async (
  */
 export const getAllDiariesByProject = async (
   projectId: string
-): Promise<ConstructionDiarySummaryDto[]> => {
-  const response = await apiClient.get<ConstructionDiarySummaryDto[]>(
+): Promise<ConstructionDiaryDto[]> => {
+  const response = await apiClient.get<ConstructionDiaryDto[]>(
     `/constructiondiary/project/${projectId}`
   );
   return response.data;
@@ -58,8 +57,8 @@ export const getAllDiariesByProject = async (
  */
 export const createDiary = async (
   dto: CreateConstructionDiaryDto
-): Promise<ConstructionDiaryDetailDto> => {
-  const response = await apiClient.post<ConstructionDiaryDetailDto>(
+): Promise<ConstructionDiaryDto> => {
+  const response = await apiClient.post<ConstructionDiaryDto>(
     '/constructiondiary',
     dto
   );
@@ -72,8 +71,8 @@ export const createDiary = async (
 export const updateDiary = async (
   diaryId: string,
   dto: UpdateConstructionDiaryDto
-): Promise<ConstructionDiaryDetailDto> => {
-  const response = await apiClient.put<ConstructionDiaryDetailDto>(
+): Promise<ConstructionDiaryDto> => {
+  const response = await apiClient.put<ConstructionDiaryDto>(
     `/constructiondiary/${diaryId}`,
     dto
   );

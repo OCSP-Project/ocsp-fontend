@@ -405,7 +405,7 @@ export default function ProjectDetailPage() {
 
                 {/* Participants */}
                 <div className={`${cardCls} mt-6`}>
-                  <h2 className={titleCls} className="mb-4">Thành viên dự án</h2>
+                  <h2 className={`${titleCls} mb-4`}>Thành viên dự án</h2>
                   
                   {project.participants.length === 0 ? (
                     <div className="text-stone-400">Chưa có thành viên nào</div>
@@ -468,7 +468,7 @@ export default function ProjectDetailPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-stone-400">Cập nhật</span>
-                      <span className="text-stone-100">{formatDate(project.updatedAt)}</span>
+                      <span className="text-stone-100">{project.updatedAt ? formatDate(project.updatedAt) : 'N/A'}</span>
                     </div>
                   </div>
                 </div>

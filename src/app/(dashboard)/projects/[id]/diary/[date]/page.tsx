@@ -72,13 +72,13 @@ export default function DiaryEntryPage() {
         setDiaryData({
           projectId: existing.projectId,
           diaryDate: existing.diaryDate,
-          team: existing.constructionTeam || "",
-          weather: existing.weatherPeriods || [],
-          assessment: {
-            safety: existing.safetyRating,
-            quality: existing.qualityRating,
-            progress: existing.progressRating,
-            cleanliness: existing.cleanlinessRating,
+          team: existing.team || "",
+          weather: existing.weather || [],
+          assessment: existing.assessment || {
+            safety: 0,
+            quality: 0,
+            progress: 0,
+            cleanliness: 0,
           },
           images: existing.images || [],
           incidentReport: existing.incidentReport || "",

@@ -32,6 +32,7 @@ export interface DiaryLaborEntry {
   id: string;
   laborId: string;
   laborName: string;
+  position?: string; // Vị trí: Thợ, phụ, v.v.
   workHours: string; // VD: "3.5/7"
   team: string; // VD: "Nhóm 2"
   shift: string; // VD: "7h00-17h00"
@@ -137,17 +138,23 @@ export interface ConstructionDiaryDto {
   materialEntries?: DiaryMaterialEntry[];
 
   // Diary Information Section
-  team: string; // Tổ đội thi công
-  weather: WeatherPeriod[]; // 4 periods
-  assessment: ConstructionAssessment;
+  team?: string; // Tổ đội thi công
+  constructionTeam?: string; // Backend format
+  weather?: WeatherPeriod[]; // 4 periods
+  weatherPeriods?: WeatherPeriod[]; // Backend format
+  assessment?: ConstructionAssessment;
+  safetyRating?: number; // Backend format
+  qualityRating?: number; // Backend format
+  progressRating?: number; // Backend format
+  cleanlinessRating?: number; // Backend format
 
   // Images
-  images: DiaryImage[];
+  images?: DiaryImage[];
 
   // Reports & Notes
-  incidentReport: string; // Báo cáo sự cố
-  recommendations: string; // Đề xuất - kiến nghị
-  notes: string; // Ghi chú
+  incidentReport?: string; // Báo cáo sự cố
+  recommendations?: string; // Đề xuất - kiến nghị
+  notes?: string; // Ghi chú
 
   // Metadata
   createdBy?: string;
