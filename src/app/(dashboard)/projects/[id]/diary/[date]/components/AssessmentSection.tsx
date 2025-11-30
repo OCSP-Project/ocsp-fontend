@@ -62,10 +62,10 @@ export function AssessmentSection({ assessment, onChange }: AssessmentSectionPro
   };
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 shadow-xl">
-      <div className="bg-gradient-to-r from-emerald-600/20 to-teal-600/20 border-b border-slate-700/50 px-6 py-4">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-          <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="bg-white backdrop-blur-sm rounded-xl border border-gray-200 shadow-xl">
+      <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-gray-200 px-6 py-4">
+        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+          <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
           </svg>
           Tình hình thi công trong ngày
@@ -76,9 +76,9 @@ export function AssessmentSection({ assessment, onChange }: AssessmentSectionPro
         {ASSESSMENT_CATEGORIES.map((category) => (
           <div
             key={category.key}
-            className="bg-slate-900/30 border border-slate-700/30 rounded-lg p-4"
+            className="bg-gray-50 border border-gray-200 rounded-lg p-4"
           >
-            <div className="flex items-center gap-2 text-slate-200 font-medium mb-3">
+            <div className="flex items-center gap-2 text-gray-900 font-medium mb-3">
               {category.icon}
               <span>{category.label}</span>
             </div>
@@ -93,8 +93,8 @@ export function AssessmentSection({ assessment, onChange }: AssessmentSectionPro
                     className={`
                       relative flex items-center justify-center gap-2 px-4 py-3 rounded-lg border-2 cursor-pointer transition-all
                       ${isSelected
-                        ? `border-${option.color}-500 bg-${option.color}-500/20`
-                        : 'border-slate-600/50 bg-slate-800/30 hover:border-slate-500/50 hover:bg-slate-700/30'
+                        ? `border-${option.color}-500 bg-${option.color}-50`
+                        : 'border-gray-300 bg-white hover:border-gray-400 hover:bg-gray-50'
                       }
                     `}
                   >
@@ -112,8 +112,8 @@ export function AssessmentSection({ assessment, onChange }: AssessmentSectionPro
                       className={`
                         w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all
                         ${isSelected
-                          ? `border-${option.color}-400 bg-${option.color}-500`
-                          : 'border-slate-500 bg-slate-800'
+                          ? `border-${option.color}-500 bg-${option.color}-500`
+                          : 'border-gray-400 bg-white'
                         }
                       `}
                     >
@@ -126,8 +126,8 @@ export function AssessmentSection({ assessment, onChange }: AssessmentSectionPro
                       className={`
                         text-sm font-medium transition-colors
                         ${isSelected
-                          ? `text-${option.color}-300`
-                          : 'text-slate-400'
+                          ? `text-${option.color}-700`
+                          : 'text-gray-600'
                         }
                       `}
                     >

@@ -69,10 +69,10 @@ export function WeatherSection({ weather, onChange }: WeatherSectionProps) {
   };
 
   return (
-    <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 shadow-xl">
-      <div className="bg-gradient-to-r from-cyan-600/20 to-blue-600/20 border-b border-slate-700/50 px-6 py-4">
-        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-          <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div className="bg-white backdrop-blur-sm rounded-xl border border-gray-200 shadow-xl">
+      <div className="bg-gradient-to-r from-cyan-50 to-blue-50 border-b border-gray-200 px-6 py-4">
+        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+          <svg className="w-5 h-5 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
           </svg>
           Thời tiết
@@ -88,9 +88,9 @@ export function WeatherSection({ weather, onChange }: WeatherSectionProps) {
             return (
               <div
                 key={period}
-                className={`bg-gradient-to-br from-${colorClass}-500/10 to-${colorClass}-600/5 border border-${colorClass}-500/20 rounded-lg p-4`}
+                className={`bg-gradient-to-br from-${colorClass}-50 to-${colorClass}-100/50 border border-${colorClass}-200 rounded-lg p-4`}
               >
-                <div className={`flex items-center gap-2 mb-3 text-${colorClass}-300`}>
+                <div className={`flex items-center gap-2 mb-3 text-${colorClass}-700`}>
                   {PERIOD_ICONS[period]}
                   <h4 className="font-semibold">{PERIOD_LABELS[period]}</h4>
                 </div>
@@ -98,13 +98,13 @@ export function WeatherSection({ weather, onChange }: WeatherSectionProps) {
                 <div className="space-y-3">
                   {/* Weather Condition */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">
                       Tình trạng
                     </label>
                     <select
                       value={periodData.condition}
                       onChange={(e) => handleUpdatePeriod(period, 'condition', e.target.value)}
-                      className="w-full px-3 py-2 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50"
+                      className="w-full px-3 py-2 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                     >
                       <option value="">Chọn tình trạng</option>
                       {WEATHER_CONDITIONS.map((condition) => (
@@ -117,7 +117,7 @@ export function WeatherSection({ weather, onChange }: WeatherSectionProps) {
 
                   {/* Temperature */}
                   <div>
-                    <label className="block text-xs font-medium text-slate-400 mb-1.5">
+                    <label className="block text-xs font-medium text-gray-600 mb-1.5">
                       Nhiệt độ (°C)
                     </label>
                     <div className="relative">
@@ -126,9 +126,9 @@ export function WeatherSection({ weather, onChange }: WeatherSectionProps) {
                         value={periodData.temperature}
                         onChange={(e) => handleUpdatePeriod(period, 'temperature', e.target.value)}
                         placeholder="VD: 25-30"
-                        className="w-full px-3 py-2 pr-10 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500/50"
+                        className="w-full px-3 py-2 pr-10 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500"
                       />
-                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs pointer-events-none">
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none">
                         °C
                       </div>
                     </div>

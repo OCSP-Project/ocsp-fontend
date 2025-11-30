@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { notification, Modal } from 'antd';
 import { projectInvitationService } from '@/services/project-invitation.service';
 import {
   ProjectInvitationDto,
@@ -37,16 +38,23 @@ export function InvitationsList({ projectId, refreshTrigger }: InvitationsListPr
   }, [projectId, refreshTrigger]);
 
   const handleCancel = async (invitationId: string) => {
-    if (!confirm('Bạn có chắc chắn muốn hủy lời mời này?')) {
-      return;
-    }
-
-    try {
-      await projectInvitationService.cancelInvitation(projectId, invitationId);
-      loadInvitations(); // Reload list
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Không thể hủy lời mời');
-    }
+    Modal.confirm({
+      title: "Xác nhận hủy",
+      content: "Bạn có chắc chắn muốn hủy lời mời này?",
+      okText: "Hủy lời mời",
+      cancelText: "Đóng",
+      onOk: async () => {
+        try {
+          await projectInvitationService.cancelInvitation(projectId, invitationId);
+          loadInvitations(); // Reload list
+        } catch (error: any) {
+          notification.error({
+            message: "Lỗi",
+            description: error.response?.data?.message || 'Không thể hủy lời mời',
+          });
+        }
+      },
+    });
   };
 
   const formatDate = (dateString: string) => {

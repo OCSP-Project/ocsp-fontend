@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { notification } from "antd";
 import { buildingElementsApi } from "@/lib/building-elements/building-elements.api";
 import type {
   BuildingElement,
@@ -49,7 +50,10 @@ export default function ComponentTrackingPanel({
   const handleSaveTracking = async () => {
     if (!selectedElement) return;
     if (uploadedPhotos.length === 0) {
-      alert("Vui lòng upload ít nhất 1 ảnh!");
+      notification.warning({
+        message: "Chưa upload ảnh",
+        description: "Vui lòng upload ít nhất 1 ảnh!",
+      });
       return;
     }
 
@@ -81,10 +85,16 @@ export default function ComponentTrackingPanel({
       setUploadedPhotos([]);
       setPhotoPreview([]);
       setNotes("");
-      alert("✅ Đã lưu tracking thành công!");
+      notification.success({
+        message: "Thành công",
+        description: "Đã lưu tracking thành công!",
+      });
     } catch (error: any) {
       console.error("Save tracking error:", error);
-      alert("❌ Lỗi: " + (error?.response?.data?.message || error?.message));
+      notification.error({
+        message: "Lỗi",
+        description: error?.response?.data?.message || error?.message || "Có lỗi xảy ra",
+      });
     }
   };
 

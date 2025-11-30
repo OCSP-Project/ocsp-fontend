@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Header from '@/components/layout/Header';
-import { getDiariesByMonth } from '@/lib/api/construction-diary';
-import type { ConstructionDiaryDto } from '@/types/construction-diary.types';
-import { ImageCategory } from '@/types/construction-diary.types';
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Header from "@/components/layout/Header";
+import { getDiariesByMonth } from "@/lib/api/construction-diary";
+import type { ConstructionDiaryDto } from "@/types/construction-diary.types";
+import { ImageCategory } from "@/types/construction-diary.types";
 
 export default function ConstructionDiaryPage() {
   const params = useParams();
@@ -26,7 +26,7 @@ export default function ConstructionDiaryPage() {
         const data = await getDiariesByMonth(projectId, year, month);
         setDiaries(data);
       } catch (error) {
-        console.error('Error fetching diaries:', error);
+        console.error("Error fetching diaries:", error);
       } finally {
         setLoading(false);
       }
@@ -39,12 +39,14 @@ export default function ConstructionDiaryPage() {
   const diariesByDate: Record<string, boolean> = {};
   const diariesWithIncidents: Record<string, boolean> = {};
 
-  diaries.forEach(diary => {
-    const dateStr = new Date(diary.diaryDate).toISOString().split('T')[0];
+  diaries.forEach((diary) => {
+    const dateStr = new Date(diary.diaryDate).toISOString().split("T")[0];
     diariesByDate[dateStr] = true;
 
     // Check if diary has incident images
-    const hasIncidentImages = diary.images?.some(img => img.category === ImageCategory.Incident) || false;
+    const hasIncidentImages =
+      diary.images?.some((img) => img.category === ImageCategory.Incident) ||
+      false;
     if (hasIncidentImages) {
       diariesWithIncidents[dateStr] = true;
     }
@@ -62,11 +64,15 @@ export default function ConstructionDiaryPage() {
   };
 
   const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+    );
   };
 
   const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+    );
   };
 
   const handleToday = () => {
@@ -74,19 +80,34 @@ export default function ConstructionDiaryPage() {
   };
 
   const handleDayClick = (day: number) => {
-    const selectedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    const dateStr = selectedDate.toISOString().split('T')[0];
+    const selectedDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      day
+    );
+    const dateStr = selectedDate.toISOString().split("T")[0];
     router.push(`/projects/${projectId}/diary/${dateStr}`);
   };
 
-  const { daysInMonth, startDayOfWeek, year, month } = getDaysInMonth(currentDate);
+  const { daysInMonth, startDayOfWeek, year, month } =
+    getDaysInMonth(currentDate);
 
   const monthNames = [
-    'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
-    'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'
+    "Tháng 1",
+    "Tháng 2",
+    "Tháng 3",
+    "Tháng 4",
+    "Tháng 5",
+    "Tháng 6",
+    "Tháng 7",
+    "Tháng 8",
+    "Tháng 9",
+    "Tháng 10",
+    "Tháng 11",
+    "Tháng 12",
   ];
 
-  const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+  const dayNames = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
 
   // Generate calendar grid
   const calendarDays: (number | null)[] = [];
@@ -113,18 +134,22 @@ export default function ConstructionDiaryPage() {
 
   const hasDiary = (day: number | null) => {
     if (!day) return false;
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+      day
+    ).padStart(2, "0")}`;
     return diariesByDate[dateStr] || false;
   };
 
   const hasIncident = (day: number | null) => {
     if (!day) return false;
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(
+      day
+    ).padStart(2, "0")}`;
     return diariesWithIncidents[dateStr] || false;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen bg-white">
       <Header />
 
       <div className="container mx-auto px-4 py-8">
@@ -132,12 +157,16 @@ export default function ConstructionDiaryPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Nhật ký công trình</h1>
-              <p className="text-slate-400">Quản lý nhật ký thi công theo ngày</p>
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-[#38c1b6] to-[#667eea] bg-clip-text text-transparent mb-2">
+                Nhật ký công trình
+              </h1>
+              <p className="text-gray-600">
+                Quản lý nhật ký thi công theo ngày
+              </p>
             </div>
             <button
               onClick={() => router.push(`/projects/${projectId}`)}
-              className="px-6 py-2.5 bg-slate-700/50 hover:bg-slate-600/50 text-white rounded-lg border border-slate-600/50 transition-all duration-200"
+              className="px-6 py-2.5 bg-white hover:bg-gray-50 text-gray-700 rounded-lg border border-gray-300 transition-all duration-200 shadow-sm hover:shadow-md"
             >
               ← Quay lại dự án
             </button>
@@ -145,26 +174,36 @@ export default function ConstructionDiaryPage() {
         </div>
 
         {/* Calendar Card */}
-        <div className="bg-slate-800/50 backdrop-blur-sm rounded-2xl border border-slate-700/50 shadow-2xl overflow-hidden">
+        <div className="bg-white backdrop-blur-sm rounded-2xl border border-gray-200 shadow-xl overflow-hidden">
           {/* Calendar Header */}
-          <div className="bg-gradient-to-r from-blue-600/20 to-purple-600/20 border-b border-slate-700/50 p-6">
+          <div className="bg-gradient-to-r from-[#38c1b6]/10 to-[#667eea]/10 border-b border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <button
                 onClick={handlePrevMonth}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <svg
+                  className="w-6 h-6 text-gray-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               </button>
 
               <div className="flex items-center gap-4">
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-2xl font-bold text-gray-900">
                   {monthNames[month]} {year}
                 </h2>
                 <button
                   onClick={handleToday}
-                  className="px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-lg border border-blue-500/30 transition-colors text-sm font-medium"
+                  className="px-4 py-2 bg-[#38c1b6]/10 hover:bg-[#38c1b6]/20 text-[#38c1b6] rounded-lg border border-[#38c1b6]/30 transition-colors text-sm font-medium"
                 >
                   Hôm nay
                 </button>
@@ -172,10 +211,20 @@ export default function ConstructionDiaryPage() {
 
               <button
                 onClick={handleNextMonth}
-                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-6 h-6 text-gray-700"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             </div>
@@ -189,7 +238,7 @@ export default function ConstructionDiaryPage() {
                 <div
                   key={dayName}
                   className={`text-center py-3 font-semibold text-sm ${
-                    index === 0 ? 'text-red-400' : 'text-slate-400'
+                    index === 0 ? "text-red-600" : "text-gray-600"
                   }`}
                 >
                   {dayName}
@@ -210,28 +259,52 @@ export default function ConstructionDiaryPage() {
                     onClick={() => day && handleDayClick(day)}
                     className={`
                       relative aspect-square rounded-xl transition-all duration-200
-                      ${day ? 'cursor-pointer' : 'cursor-default'}
-                      ${day && !hasEntry ? 'bg-slate-700/30 hover:bg-slate-600/50 border border-slate-600/30 hover:border-slate-500/50' : ''}
-                      ${hasEntry && !hasIncidentReport ? 'bg-gradient-to-br from-blue-500/30 to-purple-500/30 border-2 border-blue-400/50 hover:border-blue-300 shadow-lg shadow-blue-500/20' : ''}
-                      ${hasIncidentReport ? 'bg-gradient-to-br from-red-500/30 to-orange-500/30 border-2 border-red-400/50 hover:border-red-300 shadow-lg shadow-red-500/20' : ''}
-                      ${isCurrentDay ? 'ring-2 ring-yellow-400/50 ring-offset-2 ring-offset-slate-800' : ''}
+                      ${day ? "cursor-pointer" : "cursor-default"}
+                      ${
+                        day && !hasEntry
+                          ? "bg-gray-50 hover:bg-gray-100 border border-gray-200 hover:border-gray-300"
+                          : ""
+                      }
+                      ${
+                        hasEntry && !hasIncidentReport
+                          ? "bg-gradient-to-br from-[#38c1b6]/20 to-[#667eea]/20 border-2 border-[#38c1b6]/50 hover:border-[#38c1b6] shadow-lg shadow-[#38c1b6]/20"
+                          : ""
+                      }
+                      ${
+                        hasIncidentReport
+                          ? "bg-gradient-to-br from-red-100 to-orange-100 border-2 border-red-300 hover:border-red-400 shadow-lg shadow-red-200"
+                          : ""
+                      }
+                      ${
+                        isCurrentDay
+                          ? "ring-2 ring-yellow-400 ring-offset-2 ring-offset-white"
+                          : ""
+                      }
                     `}
                   >
                     {day && (
                       <>
                         <div className="absolute inset-0 flex flex-col items-center justify-center p-2">
-                          <span className={`
+                          <span
+                            className={`
                             text-lg font-semibold
-                            ${isCurrentDay ? 'text-yellow-300' : hasEntry ? 'text-white' : 'text-slate-300'}
-                          `}>
+                            ${
+                              isCurrentDay
+                                ? "text-yellow-600"
+                                : hasEntry
+                                ? "text-gray-900"
+                                : "text-gray-600"
+                            }
+                          `}
+                          >
                             {day}
                           </span>
 
                           {hasEntry && (
                             <div className="absolute bottom-2 flex gap-1">
+                              <div className="w-1.5 h-1.5 rounded-full bg-[#38c1b6]"></div>
+                              <div className="w-1.5 h-1.5 rounded-full bg-[#667eea]"></div>
                               <div className="w-1.5 h-1.5 rounded-full bg-blue-400"></div>
-                              <div className="w-1.5 h-1.5 rounded-full bg-purple-400"></div>
-                              <div className="w-1.5 h-1.5 rounded-full bg-pink-400"></div>
                             </div>
                           )}
                         </div>
@@ -253,23 +326,23 @@ export default function ConstructionDiaryPage() {
           </div>
 
           {/* Legend */}
-          <div className="border-t border-slate-700/50 bg-slate-900/30 px-6 py-4">
+          <div className="border-t border-gray-200 bg-gray-50 px-6 py-4">
             <div className="flex items-center justify-center gap-8 text-sm">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-gradient-to-br from-blue-500/30 to-purple-500/30 border-2 border-blue-400/50"></div>
-                <span className="text-slate-300">Đã có nhật ký</span>
+                <div className="w-4 h-4 rounded bg-gradient-to-br from-[#38c1b6]/20 to-[#667eea]/20 border-2 border-[#38c1b6]/50"></div>
+                <span className="text-gray-700">Đã có nhật ký</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-gradient-to-br from-red-500/30 to-orange-500/30 border-2 border-red-400/50"></div>
-                <span className="text-slate-300">Có sự cố</span>
+                <div className="w-4 h-4 rounded bg-gradient-to-br from-red-100 to-orange-100 border-2 border-red-300"></div>
+                <span className="text-gray-700">Có sự cố</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-slate-700/30 border border-slate-600/30"></div>
-                <span className="text-slate-300">Chưa có nhật ký</span>
+                <div className="w-4 h-4 rounded bg-gray-50 border border-gray-200"></div>
+                <span className="text-gray-700">Chưa có nhật ký</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded ring-2 ring-yellow-400/50 bg-slate-700/30"></div>
-                <span className="text-slate-300">Hôm nay</span>
+                <div className="w-4 h-4 rounded ring-2 ring-yellow-400 bg-gray-50"></div>
+                <span className="text-gray-700">Hôm nay</span>
               </div>
             </div>
           </div>
@@ -277,49 +350,95 @@ export default function ConstructionDiaryPage() {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <div className="bg-gradient-to-br from-blue-500/10 to-blue-600/10 border border-blue-500/20 rounded-xl p-6">
+          <div className="bg-gradient-to-br from-[#38c1b6]/10 to-[#38c1b6]/5 border border-[#38c1b6]/20 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-300 text-sm font-medium mb-1">Nhật ký tháng này</p>
-                <p className="text-3xl font-bold text-white">
-                  {loading ? '...' : diaries.length}
+                <p className="text-[#38c1b6] text-sm font-medium mb-1">
+                  Nhật ký tháng này
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {loading ? "..." : diaries.length}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <div className="w-12 h-12 bg-[#38c1b6]/20 rounded-xl flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-[#38c1b6]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
                 </svg>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-green-500/10 to-green-600/10 border border-green-500/20 rounded-xl p-6">
+          <div className="bg-gradient-to-br from-green-50 to-green-100/50 border border-green-200 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-green-300 text-sm font-medium mb-1">Tổng công việc</p>
-                <p className="text-3xl font-bold text-white">
-                  {loading ? '...' : diaries.reduce((sum, d) => sum + (d.workItems?.length || 0), 0)}
+                <p className="text-green-700 text-sm font-medium mb-1">
+                  Tổng công việc
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {loading
+                    ? "..."
+                    : diaries.reduce(
+                        (sum, d) => sum + (d.workItems?.length || 0),
+                        0
+                      )}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                  />
                 </svg>
               </div>
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-500/10 to-purple-600/10 border border-purple-500/20 rounded-xl p-6">
+          <div className="bg-gradient-to-br from-[#667eea]/10 to-[#667eea]/5 border border-[#667eea]/20 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-300 text-sm font-medium mb-1">Tổng ảnh</p>
-                <p className="text-3xl font-bold text-white">
-                  {loading ? '...' : diaries.reduce((sum, d) => sum + (d.images?.length || 0), 0)}
+                <p className="text-[#667eea] text-sm font-medium mb-1">
+                  Tổng ảnh
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {loading
+                    ? "..."
+                    : diaries.reduce(
+                        (sum, d) => sum + (d.images?.length || 0),
+                        0
+                      )}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <div className="w-12 h-12 bg-[#667eea]/20 rounded-xl flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-[#667eea]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
               </div>
             </div>

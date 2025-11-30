@@ -39,9 +39,9 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
       />
 
       {/* Basic Info */}
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 shadow-xl p-6">
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="bg-white backdrop-blur-sm rounded-xl border border-gray-200 shadow-xl p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
           Thông tin cơ bản
@@ -50,20 +50,20 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
         <div className="space-y-4">
           {/* Diary Date - Read only */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Nhật ký ngày
             </label>
             <input
               type="text"
               value={data.diaryDate ? formatDisplayDate(data.diaryDate) : ''}
               readOnly
-              className="w-full px-4 py-2.5 bg-slate-900/30 border border-slate-600/30 rounded-lg text-slate-400 cursor-not-allowed"
+              className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-gray-500 cursor-not-allowed"
             />
           </div>
 
           {/* Construction Team */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Tổ đội thi công
             </label>
             <input
@@ -71,7 +71,7 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
               value={data.team || ''}
               onChange={(e) => onChange({ ...data, team: e.target.value })}
               placeholder="Nhập tên tổ đội thi công..."
-              className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+              className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
         </div>
@@ -95,9 +95,9 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
       />
 
       {/* Reports & Notes */}
-      <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 shadow-xl p-6">
-        <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="bg-white backdrop-blur-sm rounded-xl border border-gray-200 shadow-xl p-6">
+        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
           </svg>
           Báo cáo & Ghi chú
@@ -107,20 +107,20 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
           {/* Incident Report */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-slate-300">
+              <label className="block text-sm font-medium text-gray-700">
                 Báo cáo sự cố
               </label>
               <button
                 type="button"
                 onClick={() => setIsAIModalOpen(true)}
-                className="px-3 py-1.5 bg-gradient-to-r from-purple-600/20 to-pink-600/20 hover:from-purple-600/30 hover:to-pink-600/30 border border-purple-500/50 text-purple-300 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 border border-purple-300 text-purple-700 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 Tư vấn AI
                 {getIncidentImages().length > 0 && (
-                  <span className="px-1.5 py-0.5 bg-red-500/20 text-red-300 rounded text-xs">
+                  <span className="px-1.5 py-0.5 bg-red-100 text-red-700 rounded text-xs">
                     {getIncidentImages().length}
                   </span>
                 )}
@@ -131,13 +131,13 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
               onChange={(e) => onChange({ ...data, incidentReport: e.target.value })}
               placeholder="Mô tả các sự cố xảy ra trong ngày (nếu có)..."
               rows={4}
-              className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 resize-none"
+              className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
             />
           </div>
 
           {/* Recommendations */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Đề xuất - Kiến nghị
             </label>
             <textarea
@@ -145,13 +145,13 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
               onChange={(e) => onChange({ ...data, recommendations: e.target.value })}
               placeholder="Nhập các đề xuất, kiến nghị về công trình..."
               rows={8}
-              className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 resize-y"
+              className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-y"
             />
           </div>
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Ghi chú
             </label>
             <textarea
@@ -159,7 +159,7 @@ export function DiaryInfoSection({ data, onChange }: DiaryInfoSectionProps) {
               onChange={(e) => onChange({ ...data, notes: e.target.value })}
               placeholder="Ghi chú thêm về tình hình thi công..."
               rows={4}
-              className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 resize-none"
+              className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 resize-none"
             />
           </div>
         </div>

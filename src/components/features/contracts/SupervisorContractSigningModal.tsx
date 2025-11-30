@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { notification } from 'antd';
 import { SignaturePad } from '@/components/common/SignaturePad';
 import { supervisorContractsApi, paymentsApi, type SupervisorContractDto } from '@/lib/contracts/contracts.api';
 import { DownloadOutlined, CloseOutlined, CheckOutlined } from '@ant-design/icons';
@@ -41,7 +42,10 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
       const data = await supervisorContractsApi.getById(initialContract.id);
       setContract(data);
     } catch (error: any) {
-      alert('Lỗi tải hợp đồng: ' + (error.response?.data?.message || error.message));
+      notification.error({
+        message: "Lỗi",
+        description: 'Lỗi tải hợp đồng: ' + (error.response?.data?.message || error.message),
+      });
     } finally {
       setLoading(false);
     }
@@ -87,13 +91,19 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
 
   const handleSign = async () => {
     if (!signatureBase64) {
-      alert('Vui lòng ký tên trước!');
+      notification.warning({
+        message: "Chưa ký tên",
+        description: "Vui lòng ký tên trước!",
+      });
       return;
     }
 
     // Enforce payment before signing (only for homeowner)
     if (isHomeowner && !paymentPaidServer) {
-      alert('Bạn cần thanh toán phí đăng ký giám sát viên trước khi ký hợp đồng.');
+      notification.warning({
+        message: "Chưa thanh toán",
+        description: "Bạn cần thanh toán phí đăng ký giám sát viên trước khi ký hợp đồng.",
+      });
       return;
     }
 
@@ -103,16 +113,22 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
         ? await supervisorContractsApi.signByHomeowner(contract.id, { signatureBase64 })
         : await supervisorContractsApi.signBySupervisor(contract.id, { signatureBase64 });
 
-      alert('Ký hợp đồng thành công!');
+      notification.success({
+        message: "Thành công",
+        description: "Ký hợp đồng thành công!",
+      });
       
       if (onSigned) {
         onSigned(updatedContract);
       }
-      
+
       onClose();
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.response?.data || error.message || 'Lỗi không xác định';
-      alert('Lỗi ký hợp đồng: ' + errorMsg);
+      notification.error({
+        message: "Lỗi",
+        description: 'Lỗi ký hợp đồng: ' + errorMsg,
+      });
     } finally {
       setSigning(false);
     }
@@ -219,7 +235,10 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
                       try {
                         const amount = contract.monthlyPrice;
                         if (!amount || amount <= 0) {
-                          alert('Không xác định được số tiền thanh toán');
+                          notification.error({
+                            message: "Lỗi",
+                            description: "Không xác định được số tiền thanh toán",
+                          });
                           return;
                         }
                         const redirectUrl = `${window.location.origin}/projects?tab=contracts`;
@@ -233,10 +252,16 @@ export const SupervisorContractSigningModal: React.FC<SupervisorContractSigningM
                         if (res?.payUrl) {
                           window.location.href = res.payUrl;
                         } else {
-                          alert('Không lấy được liên kết thanh toán');
+                          notification.error({
+                            message: "Lỗi",
+                            description: "Không lấy được liên kết thanh toán",
+                          });
                         }
                       } catch (e: any) {
-                        alert(e?.response?.data || e?.message || 'Khởi tạo thanh toán MoMo thất bại');
+                        notification.error({
+                          message: "Lỗi",
+                          description: e?.response?.data || e?.message || 'Khởi tạo thanh toán MoMo thất bại',
+                        });
                       }
                     }}
                   >

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { notification } from 'antd';
 import { projectsApi } from '@/lib/projects/projects.api';
 
 interface ProjectMember {
@@ -120,7 +121,10 @@ export function AssignedUsersDropdown({
       // Revert on error
       setSelectedUserIds(previousSelectedIds);
       console.error('Error updating assigned users:', error);
-      alert('Không thể cập nhật người thực hiện. Vui lòng thử lại.');
+      notification.error({
+        message: "Lỗi",
+        description: "Không thể cập nhật người thực hiện. Vui lòng thử lại.",
+      });
     } finally {
       setIsUpdating(false);
     }
@@ -141,7 +145,10 @@ export function AssignedUsersDropdown({
     } catch (error) {
       setSelectedUserIds(previousSelectedIds);
       console.error('Error removing user:', error);
-      alert('Không thể xóa người thực hiện. Vui lòng thử lại.');
+      notification.error({
+        message: "Lỗi",
+        description: "Không thể xóa người thực hiện. Vui lòng thử lại.",
+      });
     } finally {
       setIsUpdating(false);
     }

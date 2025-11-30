@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { notification } from 'antd';
 import { FileTextOutlined, EyeOutlined, CalendarOutlined, UserOutlined, CheckCircleOutlined, EditOutlined, ProjectOutlined } from '@ant-design/icons';
 import { contractsApi, paymentsApi, escrowApi, supervisorContractsApi, type ContractListItemDto, type ContractDetailDto, type ContractItemDto, type SupervisorContractListItemDto, type SupervisorContractDto } from '@/lib/contracts/contracts.api';
 import { proposalsApi } from '@/lib/proposals/proposals.api';
@@ -323,7 +324,10 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
       setSelectedProposal(proposal as any); // Type compatibility fix
     } catch (error: any) {
       console.error('Failed to load proposal:', error);
-      alert('Lỗi tải thông tin proposal: ' + (error.message || 'Unknown error'));
+      notification.error({
+        message: "Lỗi",
+        description: 'Lỗi tải thông tin proposal: ' + (error.message || 'Unknown error'),
+      });
       setShowProposalModal(false);
     } finally {
       setLoadingProposal(false);
@@ -561,7 +565,10 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                                 setSigningSupervisorContract(contractDetail);
                                 setShowSupervisorSigningModal(true);
                               } catch (error) {
-                                alert('Lỗi tải hợp đồng: ' + (error instanceof Error ? error.message : 'Unknown error'));
+                                notification.error({
+                                  message: "Lỗi",
+                                  description: 'Lỗi tải hợp đồng: ' + (error instanceof Error ? error.message : 'Unknown error'),
+                                });
                               }
                             }}
                             className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { notification } from 'antd';
 import { contractorQuotesApi, type QuoteRequestDetailDto, type ProjectDocumentDto } from '@/lib/quotes/quotes.contractor.api';
 import { projectsApi } from '@/lib/projects/projects.api';
 import { proposalsApi, type CreateProposalDto, type UpdateProposalDto, type ProposalDto as ApiProposalDto } from '@/lib/proposals/proposals.api';
@@ -133,16 +134,28 @@ export default function InvitesSection({}: Props) {
   const resetForm = () => { setExcelFile(null); };
 
   const onUploadExcel = async (quoteId: string) => {
-    if (!excelFile) { alert('Vui lòng chọn file .xlsx'); return; }
+    if (!excelFile) {
+      notification.warning({
+        message: "Chưa chọn file",
+        description: "Vui lòng chọn file .xlsx",
+      });
+      return;
+    }
     try {
       setUploading(true);
       await proposalsApi.uploadExcel(quoteId, excelFile);
       setShowFormFor(null);
       resetForm();
       await loadInvites();
-      alert('Đã tải file Excel. Hệ thống sẽ xử lý và sinh proposal.');
+      notification.success({
+        message: "Thành công",
+        description: "Đã tải file Excel. Hệ thống sẽ xử lý và sinh proposal.",
+      });
     } catch (e: any) {
-      alert(e?.response?.data || e?.message || 'Tải file thất bại');
+      notification.error({
+        message: "Lỗi",
+        description: e?.response?.data || e?.message || 'Tải file thất bại',
+      });
     } finally {
       setUploading(false);
     }
@@ -155,21 +168,33 @@ export default function InvitesSection({}: Props) {
       setProposalDetail(proposal);
       setShowProposalDetail(quoteId);
     } catch (e: any) {
-      alert(e?.response?.data || e?.message || 'Không thể tải proposal');
+      notification.error({
+        message: "Lỗi",
+        description: e?.response?.data || e?.message || 'Không thể tải proposal',
+      });
     }
   };
 
   const onCreateProposal = async (_quoteId: string) => {
-    alert('Tạo proposal trực tiếp đã được thay bằng upload Excel.');
+    notification.info({
+      message: "Thông báo",
+      description: "Tạo proposal trực tiếp đã được thay bằng upload Excel.",
+    });
   };
 
   const onSubmitProposal = async (proposalId: string) => {
     try {
       await proposalsApi.submit(proposalId);
       await loadInvites();
-      alert('Đã nộp Proposal');
+      notification.success({
+        message: "Thành công",
+        description: "Đã nộp Proposal",
+      });
     } catch (e: any) {
-      alert(e?.response?.data || e?.message || 'Submit Proposal thất bại');
+      notification.error({
+        message: "Lỗi",
+        description: e?.response?.data || e?.message || 'Submit Proposal thất bại',
+      });
     }
   };
 
@@ -181,12 +206,18 @@ export default function InvitesSection({}: Props) {
       setEditingQuoteId(quoteId);
       setEditProposalModalVisible(true);
     } catch (e: any) {
-      alert(e?.response?.data || e?.message || 'Không thể tải proposal để chỉnh sửa');
+      notification.error({
+        message: "Lỗi",
+        description: e?.response?.data || e?.message || 'Không thể tải proposal để chỉnh sửa',
+      });
     }
   };
 
   const onSaveDraft = async (_quoteId: string) => {
-    alert('Lưu nháp trực tiếp đã được thay bằng upload Excel.');
+    notification.info({
+      message: "Thông báo",
+      description: "Lưu nháp trực tiếp đã được thay bằng upload Excel.",
+    });
   };
 
   const handleEditProposalSuccess = async () => {
@@ -273,9 +304,15 @@ export default function InvitesSection({}: Props) {
       a.remove();
       window.URL.revokeObjectURL(url);
       
-      alert('Đã tải template Excel thành công!');
+      notification.success({
+        message: "Thành công",
+        description: "Đã tải template Excel thành công!",
+      });
     } catch (e: any) {
-      alert('Tải template thất bại: ' + (e?.message || 'Lỗi không xác định'));
+      notification.error({
+        message: "Lỗi",
+        description: 'Tải template thất bại: ' + (e?.message || 'Lỗi không xác định'),
+      });
     }
   };
 
@@ -284,7 +321,10 @@ export default function InvitesSection({}: Props) {
       const blob = await projectsApi.downloadDocumentById(doc.id);
       downloadBlob(blob, doc.fileName);
     } catch (e: any) {
-      alert(e?.response?.data?.message || e?.message || 'Không thể tải tài liệu');
+      notification.error({
+        message: "Lỗi",
+        description: e?.response?.data?.message || e?.message || 'Không thể tải tài liệu',
+      });
     }
   };
 

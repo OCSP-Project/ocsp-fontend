@@ -76,15 +76,15 @@ export default function ProjectsPage() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "active":
-        return "text-green-400 bg-green-400/10 border-green-400/30";
+        return "text-green-600 bg-green-50 border-green-200";
       case "completed":
-        return "text-blue-400 bg-blue-400/10 border-blue-400/30";
+        return "text-blue-600 bg-blue-50 border-blue-200";
       case "onhold":
-        return "text-yellow-400 bg-yellow-400/10 border-yellow-400/30";
+        return "text-yellow-600 bg-yellow-50 border-yellow-200";
       case "draft":
-        return "text-gray-400 bg-gray-400/10 border-gray-400/30";
+        return "text-gray-600 bg-gray-50 border-gray-200";
       default:
-        return "text-slate-400 bg-slate-400/10 border-slate-400/30";
+        return "text-gray-600 bg-gray-50 border-gray-200";
     }
   };
 
@@ -92,9 +92,9 @@ export default function ProjectsPage() {
     return (
       <>
         <Header />
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-slate-100 pt-20">
+        <div className="min-h-[calc(100vh-4rem)] bg-white text-gray-700 pt-20">
           <div className="max-w-6xl mx-auto px-4 py-10">
-            <div className="text-slate-300">Loading projects...</div>
+            <div className="text-gray-500">Loading projects...</div>
           </div>
         </div>
       </>
@@ -104,29 +104,29 @@ export default function ProjectsPage() {
     return (
       <>
         <Header />
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-slate-100 pt-20">
+        <div className="min-h-[calc(100vh-4rem)] bg-white text-gray-700 pt-20">
           <div className="max-w-6xl mx-auto px-4 py-10">
-            <div className="text-rose-400">{error}</div>
+            <div className="text-red-600">{error}</div>
           </div>
         </div>
       </>
     );
 
   const cardCls =
-    "bg-white/10 backdrop-blur-xl rounded-xl border border-white/15 shadow-lg p-5 text-slate-100";
+    "bg-white backdrop-blur-xl rounded-xl border border-gray-200 shadow-lg p-5 text-gray-700 hover:shadow-xl transition-shadow";
   const titleCls =
-    "text-xl font-semibold bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent tracking-wide";
+    "text-xl font-semibold bg-gradient-to-r from-[#38c1b6] to-[#667eea] bg-clip-text text-transparent tracking-wide";
   const btnPrimary =
-    "inline-flex items-center justify-center rounded-md bg-gradient-to-r from-teal-500 to-purple-600 text-white px-4 py-2 font-semibold hover:opacity-90 transition shadow-lg shadow-teal-500/20";
+    "inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[#38c1b6] to-[#667eea] text-white px-4 py-2 font-semibold hover:opacity-90 transition shadow-lg hover:shadow-xl";
 
   return (
     <>
       <Header />
-      <div className="min-h-[100vh] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-slate-100 pt-20">
+      <div className="min-h-[100vh] bg-white text-gray-700 pt-20">
         <div className="max-w-6xl mx-auto px-4 py-10">
           {activeTab === "projects" && (
             <div className="flex items-center justify-between mb-6">
-              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-teal-300 to-purple-300 bg-clip-text text-transparent">
+              <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[#38c1b6] to-[#667eea] bg-clip-text text-transparent">
                 Dự án của tôi
               </h1>
               <Link href="/projects/create" className={btnPrimary}>
@@ -139,10 +139,10 @@ export default function ProjectsPage() {
             (projects.length === 0 ? (
               <div className={cardCls}>
                 <div className="text-center py-12">
-                  <div className="text-2xl text-slate-400 mb-4">
+                  <div className="text-2xl text-gray-400 mb-4">
                     Chưa có dự án nào
                   </div>
-                  <div className="text-slate-500 mb-6">
+                  <div className="text-gray-500 mb-6">
                     Bắt đầu tạo dự án đầu tiên của bạn
                   </div>
                   <Link href="/projects/create" className={btnPrimary}>
@@ -155,7 +155,7 @@ export default function ProjectsPage() {
                 {projects.map((project) => (
                   <div key={project.id} className={cardCls}>
                     <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-semibold text-lg text-slate-100 line-clamp-2">
+                      <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
                         {project.name}
                       </h3>
                       <span
@@ -167,60 +167,58 @@ export default function ProjectsPage() {
                       </span>
                     </div>
 
-                    <p className="text-slate-400 text-sm mb-4 line-clamp-2">
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
                       {project.description}
                     </p>
 
                     <div className="space-y-2 mb-4">
                       <div className="flex items-center text-sm">
-                        <span className="text-slate-500 w-20">Địa chỉ:</span>
-                        <span className="text-slate-300">
-                          {project.address}
-                        </span>
+                        <span className="text-gray-500 w-20">Địa chỉ:</span>
+                        <span className="text-gray-700">{project.address}</span>
                       </div>
                       <div className="flex items-center text-sm">
-                        <span className="text-slate-500 w-20">Diện tích:</span>
-                        <span className="text-slate-300">
+                        <span className="text-gray-500 w-20">Diện tích:</span>
+                        <span className="text-gray-700">
                           {project.floorArea}m²
                         </span>
                       </div>
                       <div className="flex items-center text-sm">
-                        <span className="text-slate-500 w-20">Số tầng:</span>
-                        <span className="text-slate-300">
+                        <span className="text-gray-500 w-20">Số tầng:</span>
+                        <span className="text-gray-700">
                           {project.numberOfFloors}
                         </span>
                       </div>
                       <div className="flex items-center text-sm">
-                        <span className="text-slate-500 w-20">Ngân sách:</span>
-                        <span className="text-slate-300">
+                        <span className="text-gray-500 w-20">Ngân sách:</span>
+                        <span className="text-gray-700">
                           {formatCurrency(project.budget)}
                         </span>
                       </div>
                       <div className="flex items-center text-sm">
-                        <span className="text-slate-500 w-20">
+                        <span className="text-gray-500 w-20">
                           Ngày bắt đầu:
                         </span>
-                        <span className="text-slate -300">
+                        <span className="text-gray-700">
                           {formatDate(project.startDate)}
                         </span>
                       </div>
                       {project.estimatedCompletionDate && (
                         <div className="flex items-center text-sm">
-                          <span className="text-slate-500 w-20">Dự kiến:</span>
-                          <span className="text-slate-300">
+                          <span className="text-gray-500 w-20">Dự kiến:</span>
+                          <span className="text-gray-700">
                             {formatDate(project.estimatedCompletionDate)}
                           </span>
                         </div>
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-white/10">
-                      <div className="text-xs text-slate-500">
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-200">
+                      <div className="text-xs text-gray-500">
                         Tạo: {formatDate(project.createdAt)}
                       </div>
                       <Link
                         href={`/projects/${project.id}`}
-                        className="text-teal-400 hover:text-teal-300 text-sm font-medium transition"
+                        className="text-[#38c1b6] hover:text-[#667eea] text-sm font-medium transition"
                       >
                         Xem chi tiết →
                       </Link>

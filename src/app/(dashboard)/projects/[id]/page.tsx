@@ -233,15 +233,15 @@ export default function ProjectDetailPage() {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case "active":
-        return "text-green-400 bg-green-400/10 border-green-400/30";
+        return "text-green-600 bg-green-50 border-green-200";
       case "completed":
-        return "text-blue-400 bg-blue-400/10 border-blue-400/30";
+        return "text-blue-600 bg-blue-50 border-blue-200";
       case "onhold":
-        return "text-yellow-400 bg-yellow-400/10 border-yellow-400/30";
+        return "text-yellow-600 bg-yellow-50 border-yellow-200";
       case "draft":
-        return "text-gray-400 bg-gray-400/10 border-gray-400/30";
+        return "text-gray-600 bg-gray-50 border-gray-200";
       default:
-        return "text-stone-400 bg-stone-400/10 border-stone-400/30";
+        return "text-gray-600 bg-gray-50 border-gray-200";
     }
   };
 
@@ -293,9 +293,9 @@ export default function ProjectDetailPage() {
     return (
       <>
         <Header />
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-stone-100 pt-20">
+        <div className="min-h-[calc(100vh-4rem)] bg-white text-gray-700 pt-20">
           <div className="max-w-6xl mx-auto px-4 py-10">
-            <div className="text-stone-300">Loading project...</div>
+            <div className="text-gray-500">Loading project...</div>
           </div>
         </div>
       </>
@@ -305,9 +305,9 @@ export default function ProjectDetailPage() {
     return (
       <>
         <Header />
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-stone-100 pt-20">
+        <div className="min-h-[calc(100vh-4rem)] bg-white text-gray-700 pt-20">
           <div className="max-w-6xl mx-auto px-4 py-10">
-            <div className="text-rose-400">{error}</div>
+            <div className="text-red-600">{error}</div>
           </div>
         </div>
       </>
@@ -317,42 +317,42 @@ export default function ProjectDetailPage() {
     return (
       <>
         <Header />
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-stone-100 pt-20">
+        <div className="min-h-[calc(100vh-4rem)] bg-white text-gray-700 pt-20">
           <div className="max-w-6xl mx-auto px-4 py-10">
-            <div className="text-stone-200">Project not found</div>
+            <div className="text-gray-600">Project not found</div>
           </div>
         </div>
       </>
     );
 
   const inputCls =
-    "w-full rounded-md border border-white/15 bg-stone-900/60 text-stone-100 placeholder-stone-400 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition";
+    "w-full rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#38c1b6] focus:border-[#38c1b6] transition";
   const cardCls =
-    "bg-white/10 backdrop-blur-xl rounded-xl border border-white/15 shadow-lg p-5 text-stone-100";
+    "bg-white backdrop-blur-xl rounded-xl border border-gray-200 shadow-lg p-5 text-gray-700 hover:shadow-xl transition-shadow";
   const titleCls =
-    "text-xl font-semibold bg-gradient-to-r from-teal-400 to-purple-400 bg-clip-text text-transparent tracking-wide";
+    "text-xl font-semibold bg-gradient-to-r from-[#38c1b6] to-[#667eea] bg-clip-text text-transparent tracking-wide";
   const btnPrimary =
-    "inline-flex items-center justify-center rounded-md bg-gradient-to-r from-teal-500 to-purple-600 text-white px-4 py-2 font-semibold hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition shadow-lg shadow-teal-500/20";
+    "inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[#38c1b6] to-[#667eea] text-white px-4 py-2 font-semibold hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition shadow-lg hover:shadow-xl";
   const btnGhost =
-    "inline-flex items-center justify-center rounded-md border border-white/20 px-3 py-2 text-stone-200 hover:bg-white/10 transition";
-  const labelCls = "text-sm text-stone-300 mb-1 block";
+    "inline-flex items-center justify-center rounded-lg border border-gray-300 px-3 py-2 text-gray-700 hover:bg-gray-50 transition";
+  const labelCls = "text-sm text-gray-700 mb-1 block font-medium";
 
   return (
     <>
       <Header />
-      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-950/30 via-slate-900 to-purple-950/30 text-stone-100 pt-20">
+      <div className="min-h-[calc(100vh-4rem)] bg-white text-gray-700 pt-20">
         <div className="max-w-6xl mx-auto px-4 py-10">
           <div className="flex items-center justify-between mb-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <Link
                   href="/projects"
-                  className="text-stone-400 hover:text-stone-300 transition"
+                  className="text-gray-500 hover:text-[#38c1b6] transition"
                 >
                   ← Dự án
                 </Link>
-                <span className="text-stone-500">/</span>
-                <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-teal-300 to-purple-300 bg-clip-text text-transparent">
+                <span className="text-gray-400">/</span>
+                <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[#38c1b6] to-[#667eea] bg-clip-text text-transparent">
                   {project.name}
                 </h1>
               </div>
@@ -364,7 +364,7 @@ export default function ProjectDetailPage() {
                 >
                   {project.status}
                 </span>
-                <span className="text-stone-400 text-sm">
+                <span className="text-gray-500 text-sm">
                   Dự án ID: {project.id.slice(0, 8)}...
                 </span>
               </div>
@@ -389,14 +389,14 @@ export default function ProjectDetailPage() {
           </div>
 
           {supervisorContract && supervisorContract.status === "Completed" && (
-            <div className="mb-4 p-3 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
+            <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700">
               ✓ Dự án đã được đăng ký giám sát viên thành công!
             </div>
           )}
 
           {search.get("resultCode") !== null &&
             search.get("resultCode") !== "0" && (
-              <div className="mb-4 p-3 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-300">
+              <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700">
                 ✗ Thanh toán không thành công. Vui lòng thử lại.
               </div>
             )}
@@ -404,7 +404,7 @@ export default function ProjectDetailPage() {
           {!project.supervisorId &&
             !project.hasSupervisorsAvailable &&
             project.floorArea <= 400 && (
-              <div className="mb-4 p-3 rounded-md bg-yellow-500/10 border border-yellow-500/30 text-yellow-300">
+              <div className="mb-4 p-3 rounded-lg bg-yellow-50 border border-yellow-200 text-yellow-700">
                 ℹ Hiện tại không có giám sát viên khả dụng. Vui lòng thử lại
                 sau.
               </div>
@@ -417,7 +417,7 @@ export default function ProjectDetailPage() {
               </div>
 
               {error && (
-                <div className="mb-4 p-3 rounded-md bg-rose-500/10 border border-rose-500/30 text-rose-400">
+                <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-red-700">
                   {error}
                 </div>
               )}
@@ -584,47 +584,47 @@ export default function ProjectDetailPage() {
                   <h2 className={`${titleCls} mb-4`}>Thông tin dự án</h2>
                   <div className="space-y-4">
                     <div>
-                      <div className="text-stone-500 text-sm mb-1">Mô tả</div>
-                      <div className="text-stone-100">
+                      <div className="text-gray-500 text-sm mb-1">Mô tả</div>
+                      <div className="text-gray-900">
                         {project.description || "Chưa có mô tả"}
                       </div>
                     </div>
 
                     <div>
-                      <div className="text-stone-500 text-sm mb-1">Địa chỉ</div>
-                      <div className="text-stone-100">{project.address}</div>
+                      <div className="text-gray-500 text-sm mb-1">Địa chỉ</div>
+                      <div className="text-gray-900">{project.address}</div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <div className="text-stone-500 text-sm mb-1">
+                        <div className="text-gray-500 text-sm mb-1">
                           Diện tích
                         </div>
-                        <div className="text-stone-100">
+                        <div className="text-gray-900">
                           {project.floorArea}m²
                         </div>
                       </div>
                       <div>
-                        <div className="text-stone-500 text-sm mb-1">
+                        <div className="text-gray-500 text-sm mb-1">
                           Số tầng
                         </div>
-                        <div className="text-stone-100">
+                        <div className="text-gray-900">
                           {project.numberOfFloors}
                         </div>
                       </div>
                       <div>
-                        <div className="text-stone-500 text-sm mb-1">
+                        <div className="text-gray-500 text-sm mb-1">
                           Ngân sách
                         </div>
-                        <div className="text-stone-100">
+                        <div className="text-gray-900">
                           {formatCurrency(project.budget)}
                         </div>
                       </div>
                       <div>
-                        <div className="text-stone-500 text-sm mb-1">
+                        <div className="text-gray-500 text-sm mb-1">
                           Ngày bắt đầu
                         </div>
-                        <div className="text-stone-100">
+                        <div className="text-gray-900">
                           {formatDate(project.startDate)}
                         </div>
                       </div>
@@ -632,10 +632,10 @@ export default function ProjectDetailPage() {
 
                     {project.estimatedCompletionDate && (
                       <div>
-                        <div className="text-stone-500 text-sm mb-1">
+                        <div className="text-gray-500 text-sm mb-1">
                           Ngày hoàn thành dự kiến
                         </div>
-                        <div className="text-stone-100">
+                        <div className="text-gray-900">
                           {formatDate(project.estimatedCompletionDate)}
                         </div>
                       </div>
@@ -659,56 +659,56 @@ export default function ProjectDetailPage() {
                   <div className="space-y-3">
                     <Link
                       href={`/projects/${project.id}/progress`}
-                      className="block w-full text-center py-2 px-4 bg-blue-600/20 text-blue-300 border border-blue-500/30 rounded-lg hover:bg-blue-600/30 transition"
+                      className="block w-full text-center py-2 px-4 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition"
                     >
                       Theo dõi tiến độ
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/budget`}
-                      className="block w-full text-center py-2 px-4 bg-emerald-600/20 text-emerald-300 border border-emerald-500/30 rounded-lg hover:bg-emerald-600/30 transition"
+                      className="block w-full text-center py-2 px-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition"
                     >
                       Dự toán & Gantt Chart
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/diary`}
-                      className="block w-full text-center py-2 px-4 bg-teal-600/20 text-teal-300 border border-teal-500/30 rounded-lg hover:bg-teal-600/30 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#38c1b6]/10 text-[#38c1b6] border border-[#38c1b6]/30 rounded-lg hover:bg-[#38c1b6]/20 transition"
                     >
                       Nhật ký công trình
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/resources`}
-                      className="block w-full text-center py-2 px-4 bg-orange-600/20 text-orange-300 border border-orange-500/30 rounded-lg hover:bg-orange-600/30 transition"
+                      className="block w-full text-center py-2 px-4 bg-orange-50 text-orange-700 border border-orange-200 rounded-lg hover:bg-orange-100 transition"
                     >
                       Báo cáo tài nguyên
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/chat`}
-                      className="block w-full text-center py-2 px-4 bg-green-600/20 text-green-300 border border-green-500/30 rounded-lg hover:bg-green-600/30 transition"
+                      className="block w-full text-center py-2 px-4 bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition"
                     >
                       Chat dự án
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/reports`}
-                      className="block w-full text-center py-2 px-4 bg-purple-600/20 text-purple-300 border border-purple-500/30 rounded-lg hover:bg-purple-600/30 transition"
+                      className="block w-full text-center py-2 px-4 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition"
                     >
                       Báo cáo
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/3d-model`}
-                      className="block w-full text-center py-2 px-4 bg-purple-600/20 text-purple-300 border border-purple-500/30 rounded-lg hover:bg-purple-600/30 transition"
+                      className="block w-full text-center py-2 px-4 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition"
                     >
                       Mô hình 3D
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/materials`}
-                      className="block w-full text-center py-2 px-4 bg-teal-600/20 text-teal-300 border border-teal-500/30 rounded-lg hover:bg-teal-600/30 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#38c1b6]/10 text-[#38c1b6] border border-[#38c1b6]/30 rounded-lg hover:bg-[#38c1b6]/20 transition"
                     >
                       Quản lý vật tư
                     </Link>
@@ -716,7 +716,7 @@ export default function ProjectDetailPage() {
                     {isHomeowner && (
                       <Link
                         href={`/projects/${project.id}/settings`}
-                        className="block w-full text-center py-2 px-4 bg-gray-600/20 text-gray-300 border border-gray-500/30 rounded-lg hover:bg-gray-600/30 transition"
+                        className="block w-full text-center py-2 px-4 bg-gray-50 text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-100 transition"
                       >
                         Cài đặt dự án
                       </Link>
@@ -726,12 +726,12 @@ export default function ProjectDetailPage() {
 
                 {/* Project Stats */}
                 <div className={cardCls}>
-                  <h3 className="text-lg font-semibold text-stone-100 mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Thống kê
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-stone-400">Trạng thái</span>
+                      <span className="text-gray-600">Trạng thái</span>
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
                           project.status
@@ -741,8 +741,8 @@ export default function ProjectDetailPage() {
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-stone-400">Thành viên</span>
-                      <span className="text-stone-100">
+                      <span className="text-gray-600">Thành viên</span>
+                      <span className="text-gray-900">
                         {project.participants.length}
                       </span>
                     </div>

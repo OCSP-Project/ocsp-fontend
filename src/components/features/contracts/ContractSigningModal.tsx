@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { notification } from 'antd';
 import { SignaturePad } from '@/components/common/SignaturePad';
 import { contractsApi, paymentsApi, type ContractDto } from '@/lib/contracts/contracts.api';
 import { proposalsApi } from '@/lib/proposals/proposals.api';
@@ -56,7 +57,10 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
         setProposalPriceTotal(data.totalPrice);
       }
     } catch (error: any) {
-      alert('Lỗi tải hợp đồng: ' + (error.response?.data?.message || error.message));
+      notification.error({
+        message: "Lỗi",
+        description: 'Lỗi tải hợp đồng: ' + (error.response?.data?.message || error.message),
+      });
     } finally {
       setLoading(false);
     }
@@ -83,7 +87,10 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
       console.log('PDF loaded successfully');
     } catch (error: any) {
       console.error('Error loading PDF:', error);
-      alert('Lỗi tải PDF hợp đồng: ' + (error.response?.data?.message || error.message));
+      notification.error({
+        message: "Lỗi",
+        description: 'Lỗi tải PDF hợp đồng: ' + (error.response?.data?.message || error.message),
+      });
     }
   };
 
@@ -123,18 +130,27 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
 
   const handleSign = async () => {
     if (!signatureBase64) {
-      alert('Vui lòng ký tên trước!');
+      notification.warning({
+        message: "Chưa ký tên",
+        description: "Vui lòng ký tên trước!",
+      });
       return;
     }
 
     // Enforce commission payment for contractor before signing
     if (userRole === 'contractor') {
       if (commissionRequired <= 0) {
-        alert('Không xác định được phí môi giới. Vui lòng thử lại sau.');
+        notification.error({
+          message: "Lỗi",
+          description: "Không xác định được phí môi giới. Vui lòng thử lại sau.",
+        });
         return;
       }
       if (!commissionPaid) {
-        alert('Bạn cần thanh toán phí môi giới trước khi ký hợp đồng.');
+        notification.warning({
+          message: "Chưa thanh toán",
+          description: "Bạn cần thanh toán phí môi giới trước khi ký hợp đồng.",
+        });
         return;
       }
     }
@@ -147,16 +163,22 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
         ? await contractsApi.signByHomeowner(contractId, signDto)
         : await contractsApi.signByContractor(contractId, signDto);
 
-      alert('Ký hợp đồng thành công!');
+      notification.success({
+        message: "Thành công",
+        description: "Ký hợp đồng thành công!",
+      });
       
       if (onSigned) {
         onSigned(updatedContract);
       }
-      
+
       onClose();
     } catch (error: any) {
       const errorMsg = error.response?.data?.message || error.response?.data || error.message || 'Lỗi không xác định';
-      alert('Lỗi ký hợp đồng: ' + errorMsg);
+      notification.error({
+        message: "Lỗi",
+        description: 'Lỗi ký hợp đồng: ' + errorMsg,
+      });
     } finally {
       setSigning(false);
     }
@@ -277,7 +299,10 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
                       try {
                         const amount = commissionRequired;
                         if (!amount || amount <= 0) {
-                          alert('Không xác định được số tiền phí môi giới');
+                          notification.error({
+                            message: "Lỗi",
+                            description: "Không xác định được số tiền phí môi giới",
+                          });
                           return;
                         }
                         const redirectUrl = `${window.location.origin}/projects?tab=contracts`;
@@ -291,10 +316,16 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
                         if (res?.payUrl) {
                           window.location.href = res.payUrl;
                         } else {
-                          alert('Không lấy được liên kết thanh toán');
+                          notification.error({
+                            message: "Lỗi",
+                            description: "Không lấy được liên kết thanh toán",
+                          });
                         }
                       } catch (e: any) {
-                        alert(e?.response?.data || e?.message || 'Khởi tạo thanh toán MoMo thất bại');
+                        notification.error({
+                          message: "Lỗi",
+                          description: e?.response?.data || e?.message || 'Khởi tạo thanh toán MoMo thất bại',
+                        });
                       }
                     }}
                   >

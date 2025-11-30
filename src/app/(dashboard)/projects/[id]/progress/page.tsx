@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import { notification, Modal } from "antd";
 import {
   Area,
   AreaChart,
@@ -347,7 +348,10 @@ export default function Progress() {
                       setCaption("");
                       await fetchData();
                     } catch (err: any) {
-                      alert(err?.response?.data?.message || err?.message || "Tải ảnh thất bại");
+                      notification.error({
+                        message: "Lỗi",
+                        description: err?.response?.data?.message || err?.message || "Tải ảnh thất bại",
+                      });
                     } finally {
                       setUploading(false);
                     }
@@ -391,13 +395,24 @@ export default function Progress() {
                       {user?.role === UserRole.Contractor && (
                         <button
                           onClick={async () => {
-                            if (!confirm('Xoá ảnh này?')) return;
-                            try {
-                              await projectsApi.deleteProjectMedia(projectId, m.id);
-                              await fetchData();
-                            } catch (err: any) {
-                              alert(err?.response?.data?.message || err?.message || 'Xoá ảnh thất bại');
-                            }
+                            Modal.confirm({
+                              title: "Xác nhận xóa",
+                              content: "Xoá ảnh này?",
+                              okText: "Xóa",
+                              cancelText: "Hủy",
+                              okButtonProps: { danger: true },
+                              onOk: async () => {
+                                try {
+                                  await projectsApi.deleteProjectMedia(projectId, m.id);
+                                  await fetchData();
+                                } catch (err: any) {
+                                  notification.error({
+                                    message: "Lỗi",
+                                    description: err?.response?.data?.message || err?.message || 'Xoá ảnh thất bại',
+                                  });
+                                }
+                              },
+                            });
                           }}
                           className="absolute top-2 right-2 bg-red-600/90 hover:bg-red-500 text-white text-xs px-2 py-1 rounded-md hidden group-hover:block"
                           title="Xoá ảnh"

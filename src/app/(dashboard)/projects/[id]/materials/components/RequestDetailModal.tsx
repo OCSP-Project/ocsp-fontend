@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { notification, Modal } from 'antd';
 import { X, FileText, Calendar, User, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import { MaterialRequestDetailDto, MaterialRequestStatus, parseStatusFromBackend } from '@/types/material.types';
 import { materialService } from '@/services/materialService';
@@ -48,23 +49,32 @@ export function RequestDetailModal({
   const handleClearMaterials = async () => {
     if (!requestId) return;
 
-    const confirmed = window.confirm(
-      'Bạn có chắc chắn muốn xóa tất cả vật tư đã import?\n\nYêu cầu vẫn được giữ lại và bạn có thể import lại file Excel khác.'
-    );
-
-    if (!confirmed) return;
-
-    setClearing(true);
-    try {
-      await materialService.clearImportedMaterials(requestId);
-      alert('Đã xóa dữ liệu thành công');
-      onClose();
-      onReload?.();
-    } catch (err: any) {
-      alert(err.message || 'Không thể xóa dữ liệu');
-    } finally {
-      setClearing(false);
-    }
+    Modal.confirm({
+      title: "Xác nhận xóa",
+      content: "Bạn có chắc chắn muốn xóa tất cả vật tư đã import?\n\nYêu cầu vẫn được giữ lại và bạn có thể import lại file Excel khác.",
+      okText: "Xóa",
+      cancelText: "Hủy",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        setClearing(true);
+        try {
+          await materialService.clearImportedMaterials(requestId);
+          notification.success({
+            message: "Thành công",
+            description: "Đã xóa dữ liệu thành công",
+          });
+          onClose();
+          onReload?.();
+        } catch (err: any) {
+          notification.error({
+            message: "Lỗi",
+            description: err.message || 'Không thể xóa dữ liệu',
+          });
+        } finally {
+          setClearing(false);
+        }
+      },
+    });
   };
 
   const canClearMaterials = (): boolean => {
