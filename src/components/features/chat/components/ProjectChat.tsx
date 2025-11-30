@@ -16,7 +16,6 @@ import {
 } from "@ant-design/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { chatApi, type ConversationListItem } from "@/lib/api/chat";
-import AIConsultantBox from "./AIConsultantBox";
 import styles from "./chat-messenger.module.scss";
 
 const { TextArea } = Input;
@@ -248,9 +247,6 @@ const ProjectChat: React.FC<ProjectChatProps> = ({ projectId, onBack }) => {
                 </div>
               </div>
             </div>
-
-            {/* AI Consultant Box */}
-            <AIConsultantBox />
 
             {/* Messages Container */}
             <div className={styles.messagesContainer}>
