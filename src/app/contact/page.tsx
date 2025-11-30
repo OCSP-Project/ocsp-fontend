@@ -258,7 +258,7 @@ const ContactPage: React.FC = () => {
                     label="Tỉnh"
                     name="province"
                   >
-                    <Input placeholder="Ví dụ: Đà Nẵng" />
+                    <Input placeholder="Ví dụ: Hưng yên" />
                   </Form.Item>
                 </Space>
 
