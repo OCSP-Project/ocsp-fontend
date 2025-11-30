@@ -1,24 +1,25 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { notification, Modal } from "antd";
 import {
   MaterialDto,
   MaterialRequestDto,
   MaterialRequestDetailDto,
   MaterialRequestStatus,
-} from '@/types/material.types';
-import { materialService } from '@/services/materialService';
-import { MaterialTable } from './components/MaterialTable';
-import { MaterialDetailModal } from './components/MaterialDetailModal';
-import { ActualQuantityModal } from './components/ActualQuantityModal';
-import { MaterialRequestList } from './components/MaterialRequestList';
-import { ImportMaterialModal } from './components/ImportMaterialModal';
-import { ApprovalModal } from './components/ApprovalModal';
-import { RequestDetailModal } from './components/RequestDetailModal';
-import { Plus, RefreshCw, Package } from 'lucide-react';
-import { useAuth, UserRole } from '@/hooks/useAuth';
-import { materialNotificationHelper } from '@/utils/materialNotifications';
+} from "@/types/material.types";
+import { materialService } from "@/services/materialService";
+import { MaterialTable } from "./components/MaterialTable";
+import { MaterialDetailModal } from "./components/MaterialDetailModal";
+import { ActualQuantityModal } from "./components/ActualQuantityModal";
+import { MaterialRequestList } from "./components/MaterialRequestList";
+import { ImportMaterialModal } from "./components/ImportMaterialModal";
+import { ApprovalModal } from "./components/ApprovalModal";
+import { RequestDetailModal } from "./components/RequestDetailModal";
+import { Plus, RefreshCw, Package } from "lucide-react";
+import { useAuth, UserRole } from "@/hooks/useAuth";
+import { materialNotificationHelper } from "@/utils/materialNotifications";
 
 export default function MaterialsPage() {
   const params = useParams();
@@ -32,17 +33,28 @@ export default function MaterialsPage() {
   const [error, setError] = useState<string | null>(null);
 
   // Modal states
-  const [selectedMaterial, setSelectedMaterial] = useState<MaterialDto | null>(null);
-  const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(null);
+  const [selectedMaterial, setSelectedMaterial] = useState<MaterialDto | null>(
+    null
+  );
+  const [selectedMaterialId, setSelectedMaterialId] = useState<string | null>(
+    null
+  );
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
-  const [isActualQuantityModalOpen, setIsActualQuantityModalOpen] = useState(false);
+  const [isActualQuantityModalOpen, setIsActualQuantityModalOpen] =
+    useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importRequestId, setImportRequestId] = useState<string | null>(null);
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
-  const [approvalRequest, setApprovalRequest] = useState<MaterialRequestDetailDto | null>(null);
-  const [approvalMode, setApprovalMode] = useState<'approve' | 'reject'>('approve');
-  const [isRequestDetailModalOpen, setIsRequestDetailModalOpen] = useState(false);
-  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [approvalRequest, setApprovalRequest] =
+    useState<MaterialRequestDetailDto | null>(null);
+  const [approvalMode, setApprovalMode] = useState<"approve" | "reject">(
+    "approve"
+  );
+  const [isRequestDetailModalOpen, setIsRequestDetailModalOpen] =
+    useState(false);
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
+    null
+  );
 
   // Permissions based on user role
   const canCreateRequest = user?.role === UserRole.Contractor;
@@ -74,28 +86,28 @@ export default function MaterialsPage() {
 
           // New upload detected
           if (!oldRequest) {
-            materialNotificationHelper.add(newRequest, 'upload');
+            materialNotificationHelper.add(newRequest, "upload");
           }
           // Status changed to approved
           else if (
             oldRequest.status !== MaterialRequestStatus.Approved &&
             newRequest.status === MaterialRequestStatus.Approved
           ) {
-            materialNotificationHelper.add(newRequest, 'approved');
+            materialNotificationHelper.add(newRequest, "approved");
           }
           // Status changed to rejected
           else if (
             oldRequest.status !== MaterialRequestStatus.Rejected &&
             newRequest.status === MaterialRequestStatus.Rejected
           ) {
-            materialNotificationHelper.add(newRequest, 'rejected');
+            materialNotificationHelper.add(newRequest, "rejected");
           }
         });
       }
 
       setRequests(requestsData);
     } catch (err: any) {
-      setError(err.message || 'Không thể tải dữ liệu');
+      setError(err.message || "Không thể tải dữ liệu");
     } finally {
       setLoading(false);
     }
@@ -109,7 +121,10 @@ export default function MaterialsPage() {
       setIsImportModalOpen(true);
       await loadData();
     } catch (err: any) {
-      alert(err.message || 'Không thể tạo yêu cầu');
+      notification.error({
+        message: "Lỗi",
+        description: err.message || "Không thể tạo yêu cầu",
+      });
     }
   };
 
@@ -132,10 +147,13 @@ export default function MaterialsPage() {
     try {
       const detail = await materialService.getRequestById(request.id);
       setApprovalRequest(detail);
-      setApprovalMode('approve');
+      setApprovalMode("approve");
       setIsApprovalModalOpen(true);
     } catch (err: any) {
-      alert(err.message || 'Không thể tải chi tiết');
+      notification.error({
+        message: "Lỗi",
+        description: err.message || "Không thể tải chi tiết",
+      });
     }
   };
 
@@ -143,76 +161,108 @@ export default function MaterialsPage() {
     try {
       const detail = await materialService.getRequestById(request.id);
       setApprovalRequest(detail);
-      setApprovalMode('reject');
+      setApprovalMode("reject");
       setIsApprovalModalOpen(true);
     } catch (err: any) {
-      alert(err.message || 'Không thể tải chi tiết');
+      notification.error({
+        message: "Lỗi",
+        description: err.message || "Không thể tải chi tiết",
+      });
     }
   };
 
   const handleDeleteRequest = async (request: MaterialRequestDto) => {
-    const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn xóa yêu cầu vật tư này?\n\nThao tác này sẽ xóa toàn bộ vật tư đã import và không thể hoàn tác.`
-    );
-
-    if (!confirmed) return;
-
-    try {
-      await materialService.deleteRequest(request.id);
-      alert('Đã xóa yêu cầu thành công');
-      await loadData(); // Reload data
-    } catch (err: any) {
-      alert(err.message || 'Không thể xóa yêu cầu');
-    }
+    Modal.confirm({
+      title: "Xác nhận xóa",
+      content:
+        "Bạn có chắc chắn muốn xóa yêu cầu vật tư này?\n\nThao tác này sẽ xóa toàn bộ vật tư đã import và không thể hoàn tác.",
+      okText: "Xóa",
+      cancelText: "Hủy",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          await materialService.deleteRequest(request.id);
+          notification.success({
+            message: "Thành công",
+            description: "Đã xóa yêu cầu thành công",
+          });
+          await loadData(); // Reload data
+        } catch (err: any) {
+          notification.error({
+            message: "Lỗi",
+            description: err.message || "Không thể xóa yêu cầu",
+          });
+        }
+      },
+    });
   };
 
   const handleDeleteAllApprovedMaterials = async () => {
     if (approvedMaterials.length === 0) {
-      alert('Không có vật tư nào để xóa');
+      notification.warning({
+        message: "Cảnh báo",
+        description: "Không có vật tư nào để xóa",
+      });
       return;
     }
 
-    const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn xóa TẤT CẢ ${approvedMaterials.length} vật tư đã phê duyệt?\n\nYêu cầu vẫn được giữ lại nhưng danh sách vật tư sẽ bị xóa. Thao tác này KHÔNG THỂ HOÀN TÁC!`
-    );
+    Modal.confirm({
+      title: "Xác nhận xóa",
+      content: `Bạn có chắc chắn muốn xóa TẤT CẢ ${approvedMaterials.length} vật tư đã phê duyệt?\n\nYêu cầu vẫn được giữ lại nhưng danh sách vật tư sẽ bị xóa. Thao tác này KHÔNG THỂ HOÀN TÁC!`,
+      okText: "Xóa",
+      cancelText: "Hủy",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          // Clear materials from all approved requests (keep requests)
+          const clearPromises = Array.from(approvedRequestIds).map(
+            (requestId) => materialService.clearImportedMaterials(requestId)
+          );
 
-    if (!confirmed) return;
-
-    try {
-      // Clear materials from all approved requests (keep requests)
-      const clearPromises = Array.from(approvedRequestIds).map(requestId =>
-        materialService.clearImportedMaterials(requestId)
-      );
-
-      await Promise.all(clearPromises);
-      alert('Đã xóa tất cả vật tư thành công');
-      await loadData();
-    } catch (err: any) {
-      alert(err.message || 'Không thể xóa vật tư');
-    }
+          await Promise.all(clearPromises);
+          notification.success({
+            message: "Thành công",
+            description: "Đã xóa tất cả vật tư thành công",
+          });
+          await loadData();
+        } catch (err: any) {
+          notification.error({
+            message: "Lỗi",
+            description: err.message || "Không thể xóa vật tư",
+          });
+        }
+      },
+    });
   };
 
   // Filter materials from approved requests
   // Backend returns status as string "Approved", not number
   const approvedRequestIds = new Set(
     requests
-      .filter((r) => r.status === 'Approved' || r.status === MaterialRequestStatus.Approved)
+      .filter(
+        (r) =>
+          r.status === "Approved" || r.status === MaterialRequestStatus.Approved
+      )
       .map((r) => r.id)
   );
 
-  console.log('Debug approved materials:', {
+  console.log("Debug approved materials:", {
     totalMaterials: materials.length,
     totalRequests: requests.length,
     firstRequestStatus: requests[0]?.status,
     firstRequestStatusType: typeof requests[0]?.status,
     MaterialRequestStatusApproved: MaterialRequestStatus.Approved,
     approvedRequestIds: Array.from(approvedRequestIds),
-    materialsWithRequestId: materials.filter(m => m.materialRequestId),
+    materialsWithRequestId: materials.filter((m) => m.materialRequestId),
     firstMaterialRequestId: materials[0]?.materialRequestId,
-    allMaterialRequestIds: materials.map(m => m.materialRequestId).slice(0, 5), // first 5
+    allMaterialRequestIds: materials
+      .map((m) => m.materialRequestId)
+      .slice(0, 5), // first 5
   });
 
-  const approvedMaterials = materials.filter((m) => approvedRequestIds.has(m.materialRequestId));
+  const approvedMaterials = materials.filter((m) =>
+    approvedRequestIds.has(m.materialRequestId)
+  );
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
@@ -233,7 +283,7 @@ export default function MaterialsPage() {
             disabled={loading}
             className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors disabled:opacity-50 flex items-center gap-2"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             Làm mới
           </button>
           {canCreateRequest && (
@@ -334,7 +384,7 @@ export default function MaterialsPage() {
         isOpen={isApprovalModalOpen}
         request={approvalRequest}
         mode={approvalMode}
-        approverType={canApproveAsHomeowner ? 'homeowner' : 'supervisor'}
+        approverType={canApproveAsHomeowner ? "homeowner" : "supervisor"}
         onClose={() => {
           setIsApprovalModalOpen(false);
           setApprovalRequest(null);

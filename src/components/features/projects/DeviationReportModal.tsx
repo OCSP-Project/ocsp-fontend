@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { notification } from "antd";
 import type { DeviationType } from "@/types/model-tracking.types";
 
 interface DeviationReportModalProps {
@@ -41,12 +42,18 @@ export default function DeviationReportModal({
 
   const handleSubmit = () => {
     if (!description.trim()) {
-      alert("Vui lòng nhập mô tả sai lệch!");
+      notification.warning({
+        message: "Chưa nhập mô tả",
+        description: "Vui lòng nhập mô tả sai lệch!",
+      });
       return;
     }
 
     if (photos.length === 0) {
-      alert("Vui lòng upload ít nhất 1 ảnh chứng minh sai lệch!");
+      notification.warning({
+        message: "Chưa upload ảnh",
+        description: "Vui lòng upload ít nhất 1 ảnh chứng minh sai lệch!",
+      });
       return;
     }
 

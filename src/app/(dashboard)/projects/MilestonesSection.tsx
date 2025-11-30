@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
+import { notification, Modal } from 'antd';
 import { contractsApi, ContractListItemDto, milestonesApi, MilestoneDto, CreateMilestoneDto, BulkCreateMilestonesDto, UpdateMilestoneDto } from '@/lib/contracts/contracts.api';
 import { escrowApi, paymentsApi } from '@/lib/contracts/contracts.api';
 
@@ -86,7 +87,10 @@ export default function MilestonesSection() {
       setBulkRows([{ name: '', amountText: '', dueDate: undefined, note: '' }]);
       await fetchMilestones(selectedContractId);
     } catch (e: any) {
-      alert(e?.response?.data || e?.message || 'Bulk create failed');
+      notification.error({
+        message: "Lỗi",
+        description: e?.response?.data || e?.message || 'Bulk create failed',
+      });
     } finally {
       setLoading(false);
     }
@@ -148,14 +152,29 @@ export default function MilestonesSection() {
                 onClick={async () => {
                   if (!selectedContract || !selectedContractId) return;
                   const amount = Number(fundAmountText || '0');
-                  if (!isFinite(amount) || amount <= 0) { alert('Vui lòng nhập số tiền hợp lệ'); return; }
-                  if (amount < selectedContract.totalPrice) { alert(`Số tiền nạp tối thiểu là ${formatCurrency(selectedContract.totalPrice)}`); return; }
+                  if (!isFinite(amount) || amount <= 0) {
+                    notification.warning({
+                      message: "Số tiền không hợp lệ",
+                      description: "Vui lòng nhập số tiền hợp lệ",
+                    });
+                    return;
+                  }
+                  if (amount < selectedContract.totalPrice) {
+                    notification.warning({
+                      message: "Số tiền không đủ",
+                      description: `Số tiền nạp tối thiểu là ${formatCurrency(selectedContract.totalPrice)}`,
+                    });
+                    return;
+                  }
                   try {
                     setLoading(true);
                     const res = await paymentsApi.momoCreate({ amount, description: 'Nạp ví Escrow qua MoMo', contractId: selectedContractId });
                     window.location.href = res.payUrl;
                   } catch (e: any) {
-                    alert(e?.response?.data || e?.message || 'Khởi tạo thanh toán MoMo thất bại');
+                    notification.error({
+                      message: "Lỗi",
+                      description: e?.response?.data || e?.message || 'Khởi tạo thanh toán MoMo thất bại',
+                    });
                   } finally {
                     setLoading(false);
                   }
@@ -232,7 +251,10 @@ export default function MilestonesSection() {
                               setEditing(null);
                               await fetchMilestones(selectedContractId);
                             } catch (e: any) {
-                              alert(e?.response?.data || e?.message || 'Update failed');
+                              notification.error({
+                                message: "Lỗi",
+                                description: e?.response?.data || e?.message || 'Update failed',
+                              });
                             } finally {
                               setLoading(false);
                             }
@@ -242,16 +264,27 @@ export default function MilestonesSection() {
                         <div className="flex gap-2 justify-end">
                           <button className="px-3 py-1 rounded bg-stone-700 text-stone-200" onClick={() => setEditing({ id: m.id, name: m.name, amountText: String(m.amount), dueDate: m.dueDate || '', note: m.note || '' })}>Sửa</button>
                           <button className="px-3 py-1 rounded bg-rose-600 text-white" onClick={async () => {
-                            if (!confirm('Xóa milestone này?')) return;
-                            try {
-                              setLoading(true);
-                              await milestonesApi.delete(m.id);
-                              await fetchMilestones(selectedContractId);
-                            } catch (e: any) {
-                              alert(e?.response?.data || e?.message || 'Delete failed');
-                            } finally {
-                              setLoading(false);
-                            }
+                            Modal.confirm({
+                              title: "Xác nhận xóa",
+                              content: "Xóa milestone này?",
+                              okText: "Xóa",
+                              cancelText: "Hủy",
+                              okButtonProps: { danger: true },
+                              onOk: async () => {
+                                try {
+                                  setLoading(true);
+                                  await milestonesApi.delete(m.id);
+                                  await fetchMilestones(selectedContractId);
+                                } catch (e: any) {
+                                  notification.error({
+                                    message: "Lỗi",
+                                    description: e?.response?.data || e?.message || 'Delete failed',
+                                  });
+                                } finally {
+                                  setLoading(false);
+                                }
+                              },
+                            });
                           }}>Xóa</button>
                         </div>
                       )

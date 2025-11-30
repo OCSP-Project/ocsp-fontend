@@ -113,9 +113,10 @@ const Header: React.FC = () => {
       rotation: 180,
       duration: 0.4,
       ease: "power2.in",
-      onComplete: async () => {
-        await logout();
-        router.push("/login");
+      onComplete: () => {
+        logout().then(() => {
+          router.push("/login");
+        });
       },
     });
   };
@@ -252,7 +253,12 @@ const Header: React.FC = () => {
                       className={styles.dropdownItem}
                       onClick={() => setIsUserMenuOpen(false)}
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
                         <path
                           d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
                           stroke="currentColor"

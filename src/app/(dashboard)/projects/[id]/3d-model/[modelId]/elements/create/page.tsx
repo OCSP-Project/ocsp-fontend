@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { notification } from "antd";
 import Header from "@/components/layout/Header";
 import ModelViewer3D from "@/components/features/projects/ModelViewer3D";
 import { modelAnalysisApi } from "@/lib/model-analysis/model-analysis.api";
@@ -39,7 +40,10 @@ export default function CreateElementPage() {
     e.preventDefault();
 
     if (selectedMeshes.length === 0) {
-      alert("⚠️ Vui lòng chọn ít nhất 1 mesh từ model 3D!");
+      notification.warning({
+        message: "Chưa chọn mesh",
+        description: "Vui lòng chọn ít nhất 1 mesh từ model 3D!",
+      });
       return;
     }
 
@@ -52,10 +56,16 @@ export default function CreateElementPage() {
         meshIndices: selectedMeshes,
       });
 
-      alert("✅ Đã tạo element thành công!");
+      notification.success({
+        message: "Thành công",
+        description: "Đã tạo element thành công!",
+      });
       router.push(`/projects/${projectId}/3d-model/${modelId}/tracking`);
     } catch (error: any) {
-      alert("❌ Lỗi: " + (error?.response?.data?.message || error?.message));
+      notification.error({
+        message: "Lỗi",
+        description: error?.response?.data?.message || error?.message || "Có lỗi xảy ra",
+      });
     }
   };
 

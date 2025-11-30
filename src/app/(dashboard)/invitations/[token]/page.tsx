@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { notification } from 'antd';
 import { projectInvitationService } from '@/services/project-invitation.service';
 import { ProjectInvitationDto, InvitationStatus } from '@/types/project-invitation.types';
 import Header from '@/components/layout/Header';
@@ -45,11 +46,17 @@ export default function InvitationAcceptPage() {
         }, 1500);
       } else {
         // Show rejection message
-        alert('Bạn đã từ chối lời mời');
+        notification.info({
+          message: "Thông báo",
+          description: "Bạn đã từ chối lời mời",
+        });
         router.push('/projects');
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Không thể phản hồi lời mời');
+      notification.error({
+        message: "Lỗi",
+        description: error.response?.data?.message || 'Không thể phản hồi lời mời',
+      });
       setResponding(false);
     }
   };

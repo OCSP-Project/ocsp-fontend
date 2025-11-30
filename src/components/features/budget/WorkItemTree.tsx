@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { WorkItemDto, WorkItemStatus, WorkItemStatusLabels } from '@/types/work-item.types';
+import { WorkItemDto, WorkItemStatus, WorkItemStatusLabels, parseWorkItemStatus } from '@/types/work-item.types';
 import { getStatusColor } from './utils';
 
 interface WorkItemTreeProps {
@@ -170,8 +170,8 @@ function WorkItemTreeNode({
 
         {/* Status Column - Read only */}
         <div className="col-span-2 flex items-center">
-          <span className={`px-2 py-1 rounded-md text-xs font-medium ${getStatusBadgeColor(item.status)}`}>
-            {WorkItemStatusLabels[item.status]}
+          <span className={`px-2 py-1 rounded-md text-xs font-medium ${getStatusBadgeColor(parseWorkItemStatus(item.status))}`}>
+            {WorkItemStatusLabels[parseWorkItemStatus(item.status)]}
           </span>
         </div>
 
@@ -189,7 +189,7 @@ function WorkItemTreeNode({
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div
-                  className={`h-2 rounded-full ${getStatusColor(item.status, item.progress).progressBar}`}
+                  className={`h-2 rounded-full ${getStatusColor(parseWorkItemStatus(item.status), item.progress).progressBar}`}
                   style={{ width: `${item.progress}%` }}
                 />
               </div>

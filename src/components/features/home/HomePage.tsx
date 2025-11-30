@@ -5,6 +5,14 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import Image from "next/image";
 import Link from "next/link";
+import Snowfall from "react-snowfall";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Autoplay, EffectFade, Pagination } from "swiper/modules";
+
+// Import Swiper styles
+import "swiper/css";
+import "swiper/css/effect-fade";
+import "swiper/css/pagination";
 
 import styles from "./HomePage.module.scss";
 
@@ -37,14 +45,13 @@ const HomePage: React.FC = () => {
 
   // Animation setup
   useEffect(() => {
-    // Fallback: ensure buttons are visible after a delay
     const fallbackTimer = setTimeout(() => {
       const buttons = document.querySelectorAll(".hero-button");
       buttons.forEach((btn) => {
         (btn as HTMLElement).style.opacity = "1";
         (btn as HTMLElement).style.visibility = "visible";
       });
-    }, 2000); // After 2 seconds, ensure buttons are visible
+    }, 2000);
 
     const ctx = gsap.context(() => {
       // Hero section animations
@@ -64,8 +71,6 @@ const HomePage: React.FC = () => {
         delay: 0.8,
       });
 
-      // Animate hero buttons
-      // Animate hero buttons
       gsap.from(".hero-button", {
         duration: 1,
         y: 30,
@@ -73,7 +78,6 @@ const HomePage: React.FC = () => {
         ease: "power2.out",
         delay: 1.1,
         stagger: 0.2,
-        // Ensure buttons are visible if animation fails
         onComplete: () => {
           const buttons = document.querySelectorAll(".hero-button");
           buttons.forEach((btn) => {
@@ -157,24 +161,24 @@ const HomePage: React.FC = () => {
       icon: "🏗️",
       title: "THI CÔNG XÂY DỰNG",
       description:
-        "Dịch vụ thi công chuyên nghiệp với đội ngũ thầu xây dựng có kinh nghiệm",
+        "Dịch vụ thi công chuyên nghiệp với đội ngũ thầu xây dựng giàu kinh nghiệm và tận tâm",
       features: [
-        "Thiết kế kiến trúc",
-        "Thi công hoàn thiện",
-        "Giám sát chất lượng",
+        "Thiết kế kiến trúc sáng tạo",
+        "Thi công hoàn thiện chất lượng cao",
+        "Giám sát chặt chẽ từng công đoạn",
       ],
     },
     {
       icon: "👨‍💼",
-      title: "GIÁM SÁT CÔNG TRÌNH",
-      description: "Giám sát viên có chứng chỉ đảm bảo tiến độ và chất lượng",
-      features: ["Kiểm tra tiến độ", "Báo cáo định kỳ", "Kiểm soát chất lượng"],
+      title: "GIÁM SÁT CHUYÊN NGHIỆP",
+      description: "Giám sát viên có chứng chỉ hành nghề, đảm bảo tiến độ và chất lượng tối ưu",
+      features: ["Kiểm tra tiến độ hàng ngày", "Báo cáo chi tiết định kỳ", "Kiểm soát chất lượng nghiêm ngặt"],
     },
     {
       icon: "💰",
-      title: "QUẢN LÝ TÀI CHÍNH",
-      description: "Hệ thống thanh toán an toàn theo tiến độ công việc",
-      features: ["Escrow payment", "Báo cáo chi phí", "Thanh toán linh hoạt"],
+      title: "THANH TOÁN THÔNG MINH",
+      description: "Hệ thống thanh toán an toàn, minh bạch theo từng giai đoạn công việc",
+      features: ["Escrow payment bảo mật", "Báo cáo chi phí chi tiết", "Thanh toán linh hoạt đa dạng"],
     },
   ];
 
@@ -184,7 +188,7 @@ const HomePage: React.FC = () => {
       title: "BIỆT THỰ HIỆN ĐẠI",
       category: "RESIDENTIAL",
       image: "/images/projects/project1.jpg",
-      description: "Thiết kế hiện đại với không gian mở",
+      description: "Thiết kế hiện đại với không gian mở thoáng đãng",
     },
     {
       id: "2",
@@ -205,68 +209,111 @@ const HomePage: React.FC = () => {
       title: "RESORT BOUTIQUE",
       category: "HOSPITALITY",
       image: "/images/projects/project4.jpg",
-      description: "Hòa quyện với thiên nhiên",
+      description: "Hòa quyện hoàn hảo với thiên nhiên",
     },
     {
       id: "5",
       title: "NHÀ MÁY SẢN XUẤT",
       category: "INDUSTRIAL",
       image: "/images/projects/project5.jpg",
-      description: "Tối ưu hóa quy trình sản xuất",
+      description: "Tối ưu hóa quy trình sản xuất hiệu quả",
     },
     {
       id: "6",
       title: "TRUNG TÂM THƯƠNG MẠI",
       category: "COMMERCIAL",
       image: "/images/projects/project6.jpg",
-      description: "Điểm đến mua sắm hiện đại",
+      description: "Điểm đến mua sắm hiện đại bậc nhất",
     },
   ];
 
   return (
     <main className={styles.homePage}>
+      {/* Snowfall Effect */}
+      <Snowfall
+        color="#ffffff"
+        snowflakeCount={50}
+        style={{
+          position: "fixed",
+          width: "100vw",
+          height: "100vh",
+          zIndex: 10,
+          pointerEvents: "none",
+        }}
+      />
+
       {/* Hero Section */}
       <section ref={heroRef} className={styles.heroSection}>
-        <div className={styles.heroBackground}>
-          <Image
-            src="/images/page/homePage/bgHome.png"
-            alt="OCSP Background"
-            fill
-            className={styles.backgroundImage}
-            priority
-          />
-          <div className={styles.overlay} />
+        {/* Background Carousel */}
+        <div className={styles.heroCarousel}>
+          <Swiper
+            modules={[Autoplay, EffectFade, Pagination]}
+            effect="fade"
+            autoplay={{
+              delay: 5000,
+              disableOnInteraction: false,
+            }}
+            pagination={{
+              clickable: true,
+            }}
+            loop={true}
+            className={styles.swiper}
+          >
+            <SwiperSlide>
+              <div className={styles.slideWrapper}>
+                <Image
+                  src="/images/page/homePage/bgHome.png"
+                  alt="OCSP Construction"
+                  fill
+                  className={styles.slideImage}
+                  priority
+                />
+                <div className={styles.slideOverlay} />
+              </div>
+            </SwiperSlide>
+            <SwiperSlide>
+              <div className={styles.slideWrapper}>
+                <Image
+                  src="/images/page/homePage/layout1.png"
+                  alt="Modern Construction"
+                  fill
+                  className={styles.slideImage}
+                />
+                <div className={styles.slideOverlay} />
+              </div>
+            </SwiperSlide>
+          </Swiper>
         </div>
 
         <div className={styles.container}>
           <div className={styles.heroContent}>
-            <h1 className={`${styles.heroTitle} hero-title`}>
-              XÂY DỰNG
-              <br />
-              TƯƠNG LAI
-            </h1>
+            <div className={styles.heroCard}>
+              <h1 className={`${styles.heroTitle} hero-title`}>
+                XÂY DỰNG
+                <br />
+                <span className={styles.gradientText}>TƯƠNG LAI</span>
+              </h1>
 
-            <p className={`${styles.heroSubtitle} hero-subtitle`}>
-              Kết nối chủ đầu tư với các thầu xây dựng và giám sát viên uy tín.
-              <br />
-              Nền tảng quản lý dự án toàn diện với công nghệ AI tiên tiến.
-            </p>
+              <p className={`${styles.heroSubtitle} hero-subtitle`}>
+                Kết nối chủ đầu tư với thầu xây dựng và giám sát viên uy tín
+                <br />
+                Nền tảng quản lý dự án toàn diện với công nghệ AI tiên tiến
+              </p>
 
-            <div className={styles.heroButtons}>
-              <Link
-                href="/projects/create"
-                className={`${styles.heroButton} hero-button`}
-              >
-                BẮT ĐẦU <br />
-                DỰ ÁN
-              </Link>
-              <Link
-                href="/contact"
-                className={`${styles.heroButtonSecondary} hero-button`}
-              >
-                ĐĂNG KÝ NHÀ THẦU,  <br />
-                GIÁM SÁT VIÊN
-              </Link>
+              <div className={styles.heroButtons}>
+                <Link
+                  href="/projects/create"
+                  className={`${styles.heroButton} hero-button`}
+                >
+                  BẮT ĐẦU DỰ ÁN
+                </Link>
+                <Link
+                  href="/contact"
+                  className={`${styles.heroButtonSecondary} hero-button`}
+                >
+                  LIÊN HỆ TƯ VẤN
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -279,16 +326,30 @@ const HomePage: React.FC = () => {
             <div className={`${styles.aboutText} about-text`}>
               <span className={styles.sectionLabel}>VỀ CHÚNG TÔI</span>
               <h2 className={styles.aboutTitle}>
-                BUILD BRICK
+                XÂY DỰNG
                 <br />
-                BY BRICK
+                TỪNG VIÊN GẠCH
               </h2>
               <p className={styles.aboutDescription}>
                 OCSP là nền tảng kết nối hàng đầu trong lĩnh vực xây dựng tại
                 Việt Nam. Chúng tôi tạo cầu nối tin cậy giữa chủ đầu tư và các
-                nhà thầu chuyên nghiệp, đảm bảo mọi dự án được thực hiện với
-                chất lượng cao nhất.
+                nhà thầu chuyên nghiệp, với sứ mệnh mang đến giải pháp xây dựng
+                thông minh, minh bạch và hiệu quả.
               </p>
+              <div className={styles.aboutStats}>
+                <div className={styles.statItem}>
+                  <h3>500+</h3>
+                  <p>Dự án hoàn thành</p>
+                </div>
+                <div className={styles.statItem}>
+                  <h3>1000+</h3>
+                  <p>Khách hàng hài lòng</p>
+                </div>
+                <div className={styles.statItem}>
+                  <h3>50+</h3>
+                  <p>Thầu xây dựng</p>
+                </div>
+              </div>
               <Link href="/about" className={styles.aboutButton}>
                 TÌM HIỂU THÊM
               </Link>
@@ -317,11 +378,16 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* The Art of Innovation */}
-
       {/* Services Section */}
       <section ref={servicesRef} className={styles.servicesSection}>
         <div className={styles.container}>
+          <div className={styles.sectionHeader}>
+            <span className={styles.sectionLabel}>DỊCH VỤ CỦA CHÚNG TÔI</span>
+            <h2 className={styles.sectionTitle}>
+              Giải pháp toàn diện cho mọi dự án
+            </h2>
+          </div>
+
           <div className={styles.servicesGrid}>
             {services.map((service, index) => (
               <div key={index} className={`${styles.serviceCard} service-card`}>
@@ -332,34 +398,45 @@ const HomePage: React.FC = () => {
                 </p>
                 <ul className={styles.serviceFeatures}>
                   {service.features.map((feature, idx) => (
-                    <li key={idx}>{feature}</li>
+                    <li key={idx}>
+                      <span className={styles.checkIcon}>✓</span>
+                      {feature}
+                    </li>
                   ))}
                 </ul>
               </div>
             ))}
           </div>
-
-          {/* <div className={styles.servicesBottom}>
-              <h3 className={styles.servicesBottomTitle}>
-                DESIGNS
-                <br />
-                FOR A<br />
-                SUSTAINABLE
-                <br />
-                LIFE
-              </h3>
-            </div> */}
         </div>
       </section>
 
       {/* Solutions Section */}
       <section className={styles.solutionsSection}>
         <div className={styles.container}>
-          <div className={styles.solutionsHeader}>
-            <span className={styles.sectionLabel}>GIẢI PHÁP CHO DỰ ÁN</span>
+          <div className={styles.solutionsContent}>
             <h2 className={styles.solutionsTitle}>
-              Dành cho mọi loại dự án xây dựng
+              Công nghệ AI
+              <br />
+              <span className={styles.gradientText}>Tư vấn thông minh 24/7</span>
             </h2>
+            <p className={styles.solutionsDescription}>
+              Hệ thống AI tiên tiến giúp bạn quản lý dự án hiệu quả, từ ước tính chi phí
+              đến giám sát tiến độ thi công một cách tự động và chính xác
+            </p>
+            <div className={styles.solutionsFeatures}>
+              <div className={styles.featureItem}>
+                <span className={styles.featureIcon}>🤖</span>
+                <span>Tư vấn AI thông minh</span>
+              </div>
+              <div className={styles.featureItem}>
+                <span className={styles.featureIcon}>📊</span>
+                <span>Phân tích dữ liệu real-time</span>
+              </div>
+              <div className={styles.featureItem}>
+                <span className={styles.featureIcon}>🔔</span>
+                <span>Cảnh báo tiến độ tự động</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -367,8 +444,15 @@ const HomePage: React.FC = () => {
       {/* Projects Gallery */}
       <section ref={projectsRef} className={styles.projectsSection}>
         <div className={styles.container}>
+          <div className={styles.sectionHeader}>
+            <span className={styles.sectionLabel}>DỰ ÁN TIÊU BIỂU</span>
+            <h2 className={styles.sectionTitle}>
+              Những công trình chúng tôi tự hào
+            </h2>
+          </div>
+
           <div className={styles.projectsGrid}>
-            {projects.map((project, index) => (
+            {projects.map((project) => (
               <div
                 key={project.id}
                 className={`${styles.projectCard} project-card`}
@@ -396,56 +480,12 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Build Vision Section */}
-      <section className={styles.buildVisionSection}>
-        <div className={styles.buildVisionContent}>
-          <div className={styles.buildVisionText}>
-            <h2>
-              BUILD
-              <br />
-              VISION
-            </h2>
-          </div>
-          <div className={styles.buildVisionImage}>
-            <Image
-              src="/images/vision/city-view.jpg"
-              alt="City Vision"
-              fill
-              className={styles.visionImg}
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* Precision Section */}
-      <section className={styles.precisionSection}>
-        <div className={styles.container}>
-          <div className={styles.precisionContent}>
-            <span className={styles.sectionLabel}>CHẤT LƯỢNG</span>
-            <h2 className={styles.precisionTitle}>
-              PRECISION
-              <br />
-              IN <span className={styles.highlight}>EVERY</span>
-              <br />
-              DESIGN
-            </h2>
-            <p className={styles.precisionDescription}>
-              Mỗi dự án được thực hiện với độ chính xác cao nhất, từ khâu thiết
-              kế đến thi công hoàn thiện.
-            </p>
-            <Link href="/projects" className={styles.precisionButton}>
-              XEM DỰ ÁN
-            </Link>
-          </div>
-        </div>
-      </section>
-
       {/* CTA Section */}
       <section ref={ctaRef} className={styles.ctaSection}>
         <div className={styles.container}>
           <div className={`${styles.ctaContent} cta-content`}>
-            <h2>Sẵn sàng khởi tạo dự án của bạn?</h2>
-            <p>Tham gia cùng hàng nghìn khách hàng đã tin tướng OCSP</p>
+            <h2>Sẵn sàng khởi động dự án của bạn?</h2>
+            <p>Tham gia cùng hàng nghìn khách hàng đã tin tưởng OCSP</p>
             <div className={styles.ctaButtons}>
               <Link href="/register" className={styles.ctaPrimaryButton}>
                 BẮT ĐẦU NGAY

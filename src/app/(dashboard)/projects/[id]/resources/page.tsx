@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { notification, Modal } from 'antd';
 import Header from '@/components/layout/Header';
 import { projectDailyResourceApi, type ProjectDailyResourceDto, type ProjectDailyResourceListDto, type CreateProjectDailyResourceDto } from '@/lib/resources/project-daily-resource.api';
 import { useAuth, UserRole } from '@/hooks/useAuth';
@@ -202,22 +203,30 @@ export default function ProjectResourcesPage() {
       setShowCreateForm(true);
     } catch (error) {
       console.error('Error fetching full resource details:', error);
-      alert('Không thể tải chi tiết báo cáo để chỉnh sửa');
+      notification.error({
+        message: "Lỗi",
+        description: "Không thể tải chi tiết báo cáo để chỉnh sửa",
+      });
     }
   };
 
   const onDelete = async (id: string) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa báo cáo tài nguyên này?')) {
-      return;
-    }
-
-    try {
-      setError(null);
-      await projectDailyResourceApi.deleteDailyResource(id);
-      await fetchResources(); // Refresh list
-    } catch (e: any) {
-      setError(e?.response?.data?.message || e?.message || 'Không thể xóa báo cáo tài nguyên');
-    }
+    Modal.confirm({
+      title: "Xác nhận xóa",
+      content: "Bạn có chắc chắn muốn xóa báo cáo tài nguyên này?",
+      okText: "Xóa",
+      cancelText: "Hủy",
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        try {
+          setError(null);
+          await projectDailyResourceApi.deleteDailyResource(id);
+          await fetchResources(); // Refresh list
+        } catch (e: any) {
+          setError(e?.response?.data?.message || e?.message || 'Không thể xóa báo cáo tài nguyên');
+        }
+      },
+    });
   };
 
   const formatDate = (dateString: string) => {

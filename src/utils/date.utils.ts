@@ -14,11 +14,12 @@ export const formatDate = (date: string | Date, format: 'short' | 'long' | 'full
     return 'Invalid date';
   }
 
-  const options: Intl.DateTimeFormatOptions = {
+  const formatOptions: Record<'short' | 'long' | 'full', Intl.DateTimeFormatOptions> = {
     short: { year: 'numeric', month: '2-digit', day: '2-digit' },
     long: { year: 'numeric', month: 'long', day: 'numeric' },
     full: { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
-  }[format];
+  };
+  const options = formatOptions[format];
 
   return d.toLocaleDateString('en-US', options);
 };

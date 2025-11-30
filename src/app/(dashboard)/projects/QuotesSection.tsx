@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { notification } from 'antd';
 import type { ProjectResponseDto } from '@/lib/projects/projects.api';
 import { quotesApi } from '@/lib/quotes/quotes.api';
 import { contractorsApi } from '@/lib/api/contractors';
@@ -216,7 +217,10 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
 
   const handleDownloadExcel = async (proposal: ProposalDto) => {
     if (!proposal.excelFileUrl) {
-      alert('Không có file Excel để tải xuống');
+      notification.warning({
+        message: "Không có file",
+        description: "Không có file Excel để tải xuống",
+      });
       return;
     }
 
@@ -231,7 +235,10 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
       a.remove();
       window.URL.revokeObjectURL(url);
     } catch (e: any) {
-      alert('Tải file Excel thất bại: ' + (e?.response?.data?.message || e?.message || 'Lỗi không xác định'));
+      notification.error({
+        message: "Lỗi",
+        description: 'Tải file Excel thất bại: ' + (e?.response?.data?.message || e?.message || 'Lỗi không xác định'),
+      });
     }
   };
 
@@ -256,7 +263,10 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
       }, 5000);
       
     } catch (e: any) {
-      alert('Gửi yêu cầu chỉnh sửa thất bại: ' + (e?.response?.data?.message || e?.message || 'Lỗi không xác định'));
+      notification.error({
+        message: "Lỗi",
+        description: 'Gửi yêu cầu chỉnh sửa thất bại: ' + (e?.response?.data?.message || e?.message || 'Lỗi không xác định'),
+      });
     } finally {
       setRequestingRevision(null);
     }

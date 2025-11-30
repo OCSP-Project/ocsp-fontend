@@ -57,6 +57,7 @@ export interface ProjectDetailDto {
   hasSupervisorsAvailable: boolean; // Có supervisor availableNow=true không
   participants: ProjectParticipantDto[];
   supervisorPackagePaymentStatus?: string;
+  updatedAt?: string;
 }
 
 export interface ProjectParticipantDto {

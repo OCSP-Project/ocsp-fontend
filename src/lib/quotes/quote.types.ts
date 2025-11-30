@@ -10,6 +10,7 @@ export interface QuoteRequestDto {
   scope: string;
   status: string; // QuoteStatus as string (e.g., "Draft")
   inviteeUserIds: string[];
+  dueDate?: string;
 }
 
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { notification } from 'antd';
 import { projectInvitationService } from '@/services/project-invitation.service';
 import {
   ProjectParticipantRole,
@@ -36,7 +37,10 @@ export function InviteMembersModal({
     e.preventDefault();
 
     if (!selectedRole) {
-      alert('Vui lòng chọn vai trò');
+      notification.warning({
+        message: "Chưa chọn vai trò",
+        description: "Vui lòng chọn vai trò",
+      });
       return;
     }
 
@@ -47,7 +51,10 @@ export function InviteMembersModal({
       .filter(email => email.length > 0);
 
     if (emailList.length === 0) {
-      alert('Vui lòng nhập ít nhất một email');
+      notification.warning({
+        message: "Chưa nhập email",
+        description: "Vui lòng nhập ít nhất một email",
+      });
       return;
     }
 
@@ -74,7 +81,10 @@ export function InviteMembersModal({
         }, 2000);
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra khi gửi lời mời');
+      notification.error({
+        message: "Lỗi",
+        description: error.response?.data?.message || 'Có lỗi xảy ra khi gửi lời mời',
+      });
     } finally {
       setLoading(false);
     }
