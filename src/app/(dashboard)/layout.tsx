@@ -292,6 +292,21 @@ export default function DashboardLayout({
               </div>
             )}
 
+            {/* AI Consultant - For All Users */}
+            <div>
+              <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-4">
+                Trợ lý AI
+              </div>
+              <div className="space-y-1">
+                <Link
+                  href="/ai-consultant"
+                  className={getActivePathClass("/ai-consultant")}
+                >
+                  AI Tư vấn Xây dựng
+                </Link>
+              </div>
+            </div>
+
             {/* Common Navigation */}
             <div>
               <div className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3 px-4">

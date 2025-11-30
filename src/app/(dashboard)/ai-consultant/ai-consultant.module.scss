@@ -1,0 +1,457 @@
+// AI Consultant Page - Full page chat interface
+.pageContainer {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 80px);
+  background: linear-gradient(to bottom right, rgba(56, 193, 182, 0.05), rgba(102, 126, 234, 0.05));
+}
+
+// ===============================================
+// HEADER
+// ===============================================
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
+  color: white;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(56, 193, 182, 0.2);
+
+  .headerLeft {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    .iconWrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(255, 255, 255, 0.3);
+
+      .icon {
+        font-size: 28px;
+        color: white;
+      }
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+
+    p {
+      margin: 4px 0 0;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+  }
+
+  .rateLimitBadge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 15px;
+    font-weight: 600;
+
+    :global(.anticon) {
+      font-size: 18px;
+    }
+  }
+}
+
+// ===============================================
+// MESSAGES CONTAINER
+// ===============================================
+.messagesContainer {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px;
+  background: linear-gradient(to bottom, #f8f9fa, #ffffff);
+
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #d1d1d6;
+    border-radius: 4px;
+
+    &:hover {
+      background: #b0b5b8;
+    }
+  }
+
+  .emptyState {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 60px 20px;
+
+    .emptyIcon {
+      font-size: 96px;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h2 {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0 0 32px 0;
+    }
+
+    .suggestions {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      text-align: left;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e8e8e8;
+
+      h3 {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1a1a1a;
+        margin: 0 0 20px 0;
+      }
+
+      ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+          padding: 16px 0;
+          border-bottom: 1px solid #f0f0f0;
+          font-size: 15px;
+          line-height: 1.6;
+          color: #4a5568;
+
+          &:last-child {
+            border-bottom: none;
+          }
+
+          strong {
+            color: #38c1b6;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+  }
+}
+
+.messageWrapper {
+  display: flex;
+  margin-bottom: 24px;
+  animation: messageSlideIn 0.3s ease;
+
+  &.userMessage {
+    justify-content: flex-end;
+
+    .messageBubble {
+      background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
+      color: white;
+      border-radius: 20px 20px 4px 20px;
+      box-shadow: 0 2px 12px rgba(56, 193, 182, 0.25);
+
+      .messageTime {
+        color: rgba(255, 255, 255, 0.85);
+      }
+    }
+  }
+
+  &.aiMessage {
+    justify-content: flex-start;
+    gap: 12px;
+
+    .messageBubble {
+      background: white;
+      color: #1a1a1a;
+      border-radius: 20px 20px 20px 4px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e8e8e8;
+
+      .messageTime {
+        color: #8e8e93;
+      }
+    }
+  }
+
+  .avatar {
+    flex-shrink: 0;
+    background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
+    color: white;
+    font-size: 20px;
+
+    :global(.anticon) {
+      font-size: 20px;
+    }
+  }
+}
+
+.messageBubble {
+  max-width: 700px;
+  padding: 16px 20px;
+  word-wrap: break-word;
+
+  .messageContent {
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+    white-space: pre-wrap;
+  }
+
+  .messageTime {
+    font-size: 12px;
+    text-align: right;
+    font-weight: 500;
+  }
+}
+
+.loadingMessage {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+
+  .loadingBubble {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: white;
+    border-radius: 20px 20px 20px 4px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e8e8e8;
+
+    span {
+      font-size: 14px;
+      color: #8e8e93;
+    }
+  }
+}
+
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ===============================================
+// INPUT AREA
+// ===============================================
+.inputArea {
+  padding: 24px 32px;
+  background: white;
+  border-top: 1px solid #e8e8e8;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+
+  .rateLimitWarning {
+    padding: 12px 20px;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 12px;
+  }
+
+  .inputWrapper {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    max-width: 1200px;
+    margin: 0 auto;
+
+    .textArea {
+      flex: 1;
+
+      :global(textarea.ant-input) {
+        border-radius: 24px;
+        border: 2px solid #e8e8e8;
+        padding: 12px 20px;
+        font-size: 15px;
+        resize: none;
+        background: #f7f7f8;
+        transition: all 0.2s ease;
+
+        &:hover {
+          border-color: #38c1b6;
+          background: white;
+        }
+
+        &:focus {
+          border-color: #38c1b6;
+          box-shadow: 0 0 0 4px rgba(56, 193, 182, 0.1);
+          background: white;
+        }
+
+        &::placeholder {
+          color: #b0b5b8;
+        }
+      }
+    }
+
+    .sendButton {
+      border-radius: 50%;
+      width: 52px;
+      height: 52px;
+      min-width: 52px;
+      padding: 0;
+      background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
+      border: none;
+      box-shadow: 0 4px 12px rgba(56, 193, 182, 0.3);
+      transition: all 0.2s ease;
+
+      &:hover:not(:disabled) {
+        background: linear-gradient(135deg, #2ba89e 0%, #5568d3 100%);
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(56, 193, 182, 0.4);
+      }
+
+      &:active:not(:disabled) {
+        transform: scale(0.95);
+      }
+
+      &:disabled {
+        background: #e8e8e8;
+        color: #b0b5b8;
+        box-shadow: none;
+      }
+
+      :global(.anticon) {
+        font-size: 20px;
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 1024px) {
+  .header {
+    padding: 20px 24px;
+
+    .headerLeft {
+      gap: 12px;
+
+      .iconWrapper {
+        width: 48px;
+        height: 48px;
+
+        .icon {
+          font-size: 24px;
+        }
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      p {
+        font-size: 13px;
+      }
+    }
+
+    .rateLimitBadge {
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+  }
+
+  .messagesContainer {
+    padding: 24px 20px;
+  }
+
+  .inputArea {
+    padding: 20px 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+
+    .rateLimitBadge {
+      align-self: flex-end;
+    }
+  }
+
+  .messagesContainer {
+    padding: 20px 16px;
+
+    .emptyState {
+      padding: 40px 16px;
+
+      .emptyIcon {
+        font-size: 72px;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+
+      .suggestions {
+        padding: 24px 20px;
+
+        h3 {
+          font-size: 18px;
+        }
+
+        ul li {
+          font-size: 14px;
+        }
+      }
+    }
+  }
+
+  .messageBubble {
+    max-width: 85%;
+    padding: 12px 16px;
+
+    .messageContent {
+      font-size: 14px;
+    }
+  }
+
+  .inputArea {
+    padding: 16px;
+
+    .inputWrapper {
+      .sendButton {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+      }
+    }
+  }
+}
