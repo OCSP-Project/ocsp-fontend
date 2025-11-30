@@ -22,7 +22,6 @@ import {
 } from "@ant-design/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { chatApi, type ConversationListItem } from "@/lib/api/chat";
-import AIConsultantBox from "./AIConsultantBox";
 import styles from "./chat-messenger.module.scss";
 
 const { TextArea } = Input;
@@ -292,9 +291,6 @@ const ChatMessengerList: React.FC = () => {
             />
           </div>
         </div>
-
-        {/* AI Consultant Box */}
-        <AIConsultantBox />
 
         <div className={styles.conversationTabs}>
           <Tabs
