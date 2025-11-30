@@ -22,6 +22,7 @@ import {
 } from "@ant-design/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { chatApi, type ConversationListItem } from "@/lib/api/chat";
+import AIConsultantBox from "./AIConsultantBox";
 import styles from "./chat-messenger.module.scss";
 
 const { TextArea } = Input;
@@ -72,6 +73,13 @@ const ChatMessengerList: React.FC = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  const getParticipantName = (
+    participants: { userId: string; username: string }[]
+  ) => {
+    const other = participants.find((p) => p.userId !== user?.id);
+    return other?.username || "Unknown";
+  };
+
   useEffect(() => {
     if (user?.id) {
       fetchConversations();
@@ -80,16 +88,25 @@ const ChatMessengerList: React.FC = () => {
 
   useEffect(() => {
     if (searchQuery.trim()) {
-      const filtered = conversations.filter((conv) =>
-        conv.lastMessage?.content
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
-      );
+      const query = searchQuery.toLowerCase();
+      const filtered = conversations.filter((conv) => {
+        // Search in participant names
+        const participantName = getParticipantName(
+          conv.participants
+        ).toLowerCase();
+        const matchesParticipantName = participantName.includes(query);
+
+        // Search in last message content
+        const matchesMessageContent =
+          conv.lastMessage?.content.toLowerCase().includes(query) ?? false;
+
+        return matchesParticipantName || matchesMessageContent;
+      });
       setFilteredConversations(filtered);
     } else {
       setFilteredConversations(conversations);
     }
-  }, [searchQuery, conversations]);
+  }, [searchQuery, conversations, user?.id]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -235,13 +252,6 @@ const ChatMessengerList: React.FC = () => {
     return text.substring(0, 50) + "...";
   };
 
-  const getParticipantName = (
-    participants: { userId: string; username: string }[]
-  ) => {
-    const other = participants.find((p) => p.userId !== user?.id);
-    return other?.username || "Unknown";
-  };
-
   if (loading) {
     return (
       <div className={styles.messengerContainer}>
@@ -281,6 +291,9 @@ const ChatMessengerList: React.FC = () => {
             />
           </div>
         </div>
+
+        {/* AI Consultant Box */}
+        <AIConsultantBox />
 
         <div className={styles.conversationTabs}>
           <Tabs
