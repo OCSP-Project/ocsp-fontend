@@ -84,7 +84,8 @@ const ChatMessengerList: React.FC = () => {
     if (user?.id) {
       fetchConversations();
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     if (searchQuery.trim()) {
@@ -106,7 +107,7 @@ const ChatMessengerList: React.FC = () => {
     } else {
       setFilteredConversations(conversations);
     }
-  }, [searchQuery, conversations, user?.id]);
+  }, [searchQuery, conversations]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
