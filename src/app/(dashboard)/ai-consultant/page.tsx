@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Input, Button, message as antdMessage, Spin, Avatar, Empty } from "antd";
+import {
+  Input,
+  Button,
+  message as antdMessage,
+  Spin,
+  Avatar,
+  Empty,
+} from "antd";
 import {
   SendOutlined,
   RobotOutlined,
@@ -108,13 +115,17 @@ export default function AIConsultantPage() {
               <h3>Tôi có thể tư vấn về:</h3>
               <ul>
                 <li>
-                  <strong>Kỹ thuật xây dựng:</strong> Thi công móng, cột, dầm, sàn, tường, mái. Vật liệu xây dựng, quy trình thi công theo TCVN.
+                  <strong>Kỹ thuật xây dựng:</strong> Thi công móng, cột, dầm,
+                  sàn, tường, mái. Vật liệu xây dựng, quy trình thi công theo
+                  TCVN.
                 </li>
                 <li>
-                  <strong>Pháp luật xây dựng:</strong> Luật Xây dựng 2014, thủ tục cấp phép, quy chuẩn kỹ thuật quốc gia (QCVN).
+                  <strong>Pháp luật xây dựng:</strong> Luật Xây dựng 2014, thủ
+                  tục cấp phép, quy chuẩn kỹ thuật quốc gia (QCVN).
                 </li>
                 <li>
-                  <strong>An toàn lao động:</strong> TCVN 5308:2022, trang bị bảo hộ, biện pháp an toàn khi làm việc trên cao.
+                  <strong>An toàn lao động:</strong> TCVN 5308:2022, trang bị
+                  bảo hộ, biện pháp an toàn khi làm việc trên cao.
                 </li>
               </ul>
             </div>
@@ -172,7 +183,7 @@ export default function AIConsultantPage() {
             value={currentMessage}
             onChange={(e) => setCurrentMessage(e.target.value)}
             placeholder="Hỏi về kỹ thuật, pháp luật hoặc an toàn xây dựng..."
-            autoSize={{ minRows: 1, maxRows: 4 }}
+            autoSize={{ minRows: 1, maxRows: 5 }}
             onPressEnter={(e) => {
               if (e.shiftKey) return;
               e.preventDefault();
