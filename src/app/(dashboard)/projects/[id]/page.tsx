@@ -15,7 +15,10 @@ import {
 } from "@/lib/projects/projects.api";
 import { MembersSection } from "@/components/features/project-invitations/MembersSection";
 import { ProjectParticipantRole } from "@/types/project-invitation.types";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth, UserRole } from "@/hooks/useAuth";
+import { chatApi, type ConversationListItem } from "@/lib/api/chat";
+import { MessageOutlined, UserAddOutlined } from "@ant-design/icons";
+import { message as antdMessage } from "antd";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -31,6 +34,9 @@ export default function ProjectDetailPage() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   const [project, setProject] = useState<ProjectDetailDto | null>(null);
+  const [projectConversation, setProjectConversation] =
+    useState<ConversationListItem | null>(null);
+  const [loadingConversation, setLoadingConversation] = useState(false);
 
   // Check if current user is the project homeowner
   const isHomeowner = useMemo(() => {
@@ -81,6 +87,24 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     fetchProject();
   }, [projectId]);
+
+  // Load project conversation
+  useEffect(() => {
+    if (user?.id && projectId) {
+      loadProjectConversation();
+    }
+  }, [user?.id, projectId]);
+
+  const loadProjectConversation = async () => {
+    if (!user?.id) return;
+    try {
+      const conversations = await chatApi.getUserConversations(user.id);
+      const projectConv = conversations.find((c) => c.projectId === projectId);
+      setProjectConversation(projectConv || null);
+    } catch (error) {
+      console.error("Failed to load project conversation:", error);
+    }
+  };
 
   // Handle MoMo payment callback
   useEffect(() => {
@@ -243,6 +267,98 @@ export default function ProjectDetailPage() {
       default:
         return "text-gray-600 bg-gray-50 border-gray-200";
     }
+  };
+
+  const handleChatWithMember = async (memberUserId: string) => {
+    if (!user?.id) return;
+    try {
+      const response = await chatApi.startConversation({
+        userIds: [user.id, memberUserId],
+        chatType: "consultation",
+      });
+
+      // Route based on user role
+      let chatRoute = "/chat";
+      if (user.role === UserRole.Contractor) {
+        chatRoute = "/contractor/chat";
+      } else if (user.role === UserRole.Supervisor) {
+        // Supervisor can use the general chat route
+        chatRoute = "/chat";
+      }
+      // Homeowner uses default /chat
+
+      router.push(`${chatRoute}?conversationId=${response.conversationId}`);
+    } catch (error) {
+      console.error("Failed to start conversation:", error);
+      antdMessage.error("Không thể tạo cuộc trò chuyện");
+    }
+  };
+
+  const handleProjectChat = async () => {
+    if (!user?.id || !project) return;
+
+    try {
+      setLoadingConversation(true);
+      const participantIds = project.participants.map((p) => p.userId);
+
+      if (projectConversation) {
+        // Conversation exists, join all participants who are not already in
+        const existingParticipantIds = projectConversation.participants.map(
+          (p) => p.userId
+        );
+        const newParticipantIds = participantIds.filter(
+          (id) => !existingParticipantIds.includes(id)
+        );
+
+        if (newParticipantIds.length > 0) {
+          await chatApi.joinUsersToConversation(
+            projectConversation.id,
+            newParticipantIds
+          );
+          await loadProjectConversation();
+        }
+        router.push(`/projects/${projectId}/chat`);
+      } else {
+        // Create new conversation with all participants
+        const response = await chatApi.startConversation({
+          projectId: projectId,
+          userIds: participantIds,
+          chatType: "project",
+        });
+        await loadProjectConversation();
+        router.push(`/projects/${projectId}/chat`);
+      }
+    } catch (error) {
+      console.error("Failed to handle project chat:", error);
+      antdMessage.error("Không thể tạo/join cuộc trò chuyện dự án");
+    } finally {
+      setLoadingConversation(false);
+    }
+  };
+
+  const handleJoinMemberToProjectChat = async (memberUserId: string) => {
+    if (!projectConversation) {
+      antdMessage.warning("Cuộc trò chuyện dự án chưa được tạo");
+      return;
+    }
+
+    try {
+      await chatApi.joinUsersToConversation(projectConversation.id, [
+        memberUserId,
+      ]);
+      await loadProjectConversation();
+      antdMessage.success("Đã thêm thành viên vào cuộc trò chuyện");
+    } catch (error) {
+      console.error("Failed to join member:", error);
+      antdMessage.error("Không thể thêm thành viên vào cuộc trò chuyện");
+    }
+  };
+
+  const isMemberInProjectChat = (memberUserId: string) => {
+    if (!projectConversation) return false;
+    return projectConversation.participants.some(
+      (p) => p.userId === memberUserId
+    );
   };
 
   // Supervisor registration logic
@@ -685,12 +801,13 @@ export default function ProjectDetailPage() {
                       Báo cáo tài nguyên
                     </Link>
 
-                    <Link
-                      href={`/projects/${project.id}/chat`}
-                      className="block w-full text-center py-2 px-4 bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition"
+                    <button
+                      onClick={handleProjectChat}
+                      disabled={loadingConversation}
+                      className="block w-full text-center py-2 px-4 bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Chat dự án
-                    </Link>
+                      {loadingConversation ? "Đang xử lý..." : "Chat dự án"}
+                    </button>
 
                     <Link
                       href={`/projects/${project.id}/reports`}
@@ -746,6 +863,78 @@ export default function ProjectDetailPage() {
                         {project.participants.length}
                       </span>
                     </div>
+                  </div>
+                </div>
+
+                {/* Members List */}
+                <div className={cardCls}>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Thành viên dự án
+                  </h3>
+                  <div className="space-y-3">
+                    {project.participants.length === 0 ? (
+                      <div className="text-gray-500 text-sm text-center py-4">
+                        Chưa có thành viên
+                      </div>
+                    ) : (
+                      project.participants.map((participant) => {
+                        const isInChat = isMemberInProjectChat(
+                          participant.userId
+                        );
+                        const isCurrentUser = participant.userId === user?.id;
+
+                        return (
+                          <div
+                            key={participant.userId}
+                            className="flex items-center justify-between p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition"
+                          >
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-gray-900">
+                                  {participant.userName}
+                                </span>
+                                {isCurrentUser && (
+                                  <span className="text-xs text-gray-500">
+                                    (Bạn)
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {participant.role}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {!isCurrentUser && (
+                                <button
+                                  onClick={() =>
+                                    handleChatWithMember(participant.userId)
+                                  }
+                                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                  title="Nhắn tin riêng"
+                                >
+                                  <MessageOutlined />
+                                </button>
+                              )}
+                              {!isCurrentUser &&
+                                !isInChat &&
+                                projectConversation && (
+                                  <button
+                                    onClick={() =>
+                                      handleJoinMemberToProjectChat(
+                                        participant.userId
+                                      )
+                                    }
+                                    className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition"
+                                    title="Thêm vào chat dự án"
+                                  >
+                                    <UserAddOutlined />
+                                  </button>
+                                )}
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </div>

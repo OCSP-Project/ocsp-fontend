@@ -10,12 +10,10 @@ import {
   message as antdMessage,
   Button,
 } from "antd";
-import {
-  SendOutlined,
-  ArrowLeftOutlined,
-} from "@ant-design/icons";
+import { SendOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { chatApi, type ConversationListItem } from "@/lib/api/chat";
+import { projectsApi } from "@/lib/projects/projects.api";
 import styles from "./chat-messenger.module.scss";
 
 const { TextArea } = Input;
@@ -38,19 +36,39 @@ const ProjectChat: React.FC<ProjectChatProps> = ({ projectId, onBack }) => {
   const router = useRouter();
   const { user } = useAuth();
 
-  const [conversation, setConversation] = useState<ConversationListItem | null>(null);
+  const [conversation, setConversation] = useState<ConversationListItem | null>(
+    null
+  );
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [currentMessage, setCurrentMessage] = useState("");
   const [sendingMessage, setSendingMessage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [creatingConversation, setCreatingConversation] = useState(false);
+  const [projectName, setProjectName] = useState<string>("Dự án");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Fetch project name
+  useEffect(() => {
+    if (!projectId) return;
+
+    const fetchProjectName = async () => {
+      try {
+        const project = await projectsApi.getProject(projectId);
+        setProjectName(project.name);
+      } catch (error) {
+        console.error("Failed to fetch project name:", error);
+        setProjectName("Dự án");
+      }
+    };
+
+    fetchProjectName();
+  }, [projectId]);
 
   // Find or create conversation for this project
   useEffect(() => {
@@ -75,7 +93,9 @@ const ProjectChat: React.FC<ProjectChatProps> = ({ projectId, onBack }) => {
           // Need to create conversation - but we need project participants
           // For now, show message to start conversation
           setConversation(null);
-          antdMessage.info("Cuộc trò chuyện sẽ được tạo khi có tin nhắn đầu tiên");
+          antdMessage.info(
+            "Cuộc trò chuyện sẽ được tạo khi có tin nhắn đầu tiên"
+          );
         }
       } catch (error) {
         console.error("Failed to load conversation:", error);
@@ -99,9 +119,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({ projectId, onBack }) => {
           ...msg,
           isOwn: msg.senderId === user!.id,
           senderName:
-            msg.senderId === user!.id
-              ? "Bạn"
-              : sender?.username || "Unknown",
+            msg.senderId === user!.id ? "Bạn" : sender?.username || "Unknown",
         };
       }) as MessageItem[];
 
@@ -135,7 +153,7 @@ const ProjectChat: React.FC<ProjectChatProps> = ({ projectId, onBack }) => {
           });
 
           conversationId = response.conversationId;
-          
+
           // Reload conversations to get the new one
           const conversations = await chatApi.getUserConversations(user.id);
           const newConv = conversations.find((c) => c.id === conversationId);
@@ -195,7 +213,9 @@ const ProjectChat: React.FC<ProjectChatProps> = ({ projectId, onBack }) => {
       minute: "2-digit",
     });
 
-  const getParticipantNames = (participants: { userId: string; username: string }[]) => {
+  const getParticipantNames = (
+    participants: { userId: string; username: string }[]
+  ) => {
     const others = participants
       .filter((p) => p.userId !== user?.id)
       .map((p) => p.username);
@@ -214,7 +234,10 @@ const ProjectChat: React.FC<ProjectChatProps> = ({ projectId, onBack }) => {
 
   return (
     <div className={styles.messengerContainer}>
-      <div className={styles.chatPanel} style={{ display: "flex", width: "100%" }}>
+      <div
+        className={styles.chatPanel}
+        style={{ display: "flex", width: "100%" }}
+      >
         {!conversation ? (
           <div className={styles.emptyChat}>
             <div className={styles.emptyChatContent}>
@@ -229,21 +252,18 @@ const ProjectChat: React.FC<ProjectChatProps> = ({ projectId, onBack }) => {
             <div className={styles.chatHeader}>
               <div className={styles.chatHeaderLeft}>
                 {onBack && (
-                  <button
-                    className={styles.iconButton}
-                    onClick={onBack}
-                  >
+                  <button className={styles.iconButton} onClick={onBack}>
                     <ArrowLeftOutlined />
                   </button>
                 )}
                 <Avatar size={40} className={styles.headerAvatar}>
-                  {getParticipantNames(conversation.participants).charAt(0)}
+                  {projectName.charAt(0)}
                 </Avatar>
                 <div className={styles.headerInfo}>
-                  <div className={styles.headerName}>
-                    {getParticipantNames(conversation.participants) || "Dự án"}
+                  <div className={styles.headerName}>{projectName}</div>
+                  <div className={styles.headerStatus}>
+                    Cuộc trò chuyện dự án
                   </div>
-                  <div className={styles.headerStatus}>Cuộc trò chuyện dự án</div>
                 </div>
               </div>
             </div>
@@ -339,4 +359,3 @@ const ProjectChat: React.FC<ProjectChatProps> = ({ projectId, onBack }) => {
 };
 
 export default ProjectChat;
-

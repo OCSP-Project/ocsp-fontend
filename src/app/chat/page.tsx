@@ -18,8 +18,12 @@ export default function ChatPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && (!user || user.role !== UserRole.Homeowner)) {
-      // Redirect non-homeowner users
+    if (
+      !isLoading &&
+      (!user ||
+        (user.role !== UserRole.Homeowner && user.role !== UserRole.Supervisor))
+    ) {
+      // Redirect users who are not Homeowner or Supervisor
       router.push("/");
     }
   }, [user, isLoading, router]);
@@ -33,8 +37,11 @@ export default function ChatPage() {
     );
   }
 
-  // If not authenticated or not homeowner, show access denied
-  if (!user || user.role !== UserRole.Homeowner) {
+  // If not authenticated or not homeowner/supervisor, show access denied
+  if (
+    !user ||
+    (user.role !== UserRole.Homeowner && user.role !== UserRole.Supervisor)
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-900">
         <div className="text-center">
@@ -42,7 +49,7 @@ export default function ChatPage() {
             Không có quyền truy cập
           </h1>
           <p className="text-stone-400 mb-6">
-            Chỉ chủ nhà mới có thể sử dụng tính năng chat này.
+            Chỉ chủ nhà và giám sát viên mới có thể sử dụng tính năng chat này.
           </p>
           <button
             onClick={() => router.push("/")}

@@ -22,6 +22,7 @@ import {
 } from "@ant-design/icons";
 import { useAuth } from "@/hooks/useAuth";
 import { chatApi, type ConversationListItem } from "@/lib/api/chat";
+import { projectsApi } from "@/lib/projects/projects.api";
 import styles from "./chat-messenger.module.scss";
 
 const { TextArea } = Input;
@@ -58,6 +59,9 @@ const ChatMessengerList: React.FC = () => {
   const [sendingMessage, setSendingMessage] = useState(false);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [isMobileView, setIsMobileView] = useState(false);
+  const [projectNames, setProjectNames] = useState<Map<string, string>>(
+    new Map()
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -72,19 +76,43 @@ const ChatMessengerList: React.FC = () => {
     return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
+  const getParticipantName = (
+    participants: { userId: string; username: string }[],
+    projectId?: string | null
+  ) => {
+    // If it's a project conversation, return project name
+    if (projectId && projectNames.has(projectId)) {
+      return projectNames.get(projectId) || "Dự án";
+    }
+    // Otherwise return participant name
+    const other = participants.find((p) => p.userId !== user?.id);
+    return other?.username || "Unknown";
+  };
+
   useEffect(() => {
     if (user?.id) {
       fetchConversations();
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   useEffect(() => {
     if (searchQuery.trim()) {
-      const filtered = conversations.filter((conv) =>
-        conv.lastMessage?.content
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
-      );
+      const query = searchQuery.toLowerCase();
+      const filtered = conversations.filter((conv) => {
+        // Search in participant names or project names
+        const displayName = getParticipantName(
+          conv.participants,
+          conv.projectId
+        ).toLowerCase();
+        const matchesName = displayName.includes(query);
+
+        // Search in last message content
+        const matchesMessageContent =
+          conv.lastMessage?.content.toLowerCase().includes(query) ?? false;
+
+        return matchesName || matchesMessageContent;
+      });
       setFilteredConversations(filtered);
     } else {
       setFilteredConversations(conversations);
@@ -115,7 +143,27 @@ const ChatMessengerList: React.FC = () => {
       setConversations(data);
       setFilteredConversations(data);
 
-      // Names are already present via API `participants`
+      // Fetch project names for project conversations
+      const projectIds = data
+        .filter((conv) => conv.projectId)
+        .map((conv) => conv.projectId!)
+        .filter((id, index, self) => self.indexOf(id) === index); // Remove duplicates
+
+      if (projectIds.length > 0) {
+        const projectNamesMap = new Map<string, string>();
+        await Promise.all(
+          projectIds.map(async (projectId) => {
+            try {
+              const project = await projectsApi.getProject(projectId);
+              projectNamesMap.set(projectId, project.name);
+            } catch (error) {
+              console.error(`Failed to fetch project ${projectId}:`, error);
+              projectNamesMap.set(projectId, "Dự án");
+            }
+          })
+        );
+        setProjectNames(projectNamesMap);
+      }
     } catch (error) {
       console.error("Failed to fetch conversations:", error);
       antdMessage.error("Không thể tải danh sách hội thoại");
@@ -235,13 +283,6 @@ const ChatMessengerList: React.FC = () => {
     return text.substring(0, 50) + "...";
   };
 
-  const getParticipantName = (
-    participants: { userId: string; username: string }[]
-  ) => {
-    const other = participants.find((p) => p.userId !== user?.id);
-    return other?.username || "Unknown";
-  };
-
   if (loading) {
     return (
       <div className={styles.messengerContainer}>
@@ -315,7 +356,10 @@ const ChatMessengerList: React.FC = () => {
               >
                 <div className={styles.conversationAvatar}>
                   <Avatar size={52} className={styles.avatar}>
-                    {getParticipantName(conv.participants).charAt(0)}
+                    {getParticipantName(
+                      conv.participants,
+                      conv.projectId
+                    ).charAt(0)}
                   </Avatar>
                   {conv.unreadCount > 0 && (
                     <div className={styles.unreadBadge}>{conv.unreadCount}</div>
@@ -324,7 +368,7 @@ const ChatMessengerList: React.FC = () => {
                 <div className={styles.conversationInfo}>
                   <div className={styles.nameRow}>
                     <div className={styles.name}>
-                      {getParticipantName(conv.participants)}
+                      {getParticipantName(conv.participants, conv.projectId)}
                     </div>
                     <div className={styles.time}>
                       {conv.lastMessage &&
@@ -375,15 +419,23 @@ const ChatMessengerList: React.FC = () => {
                   </button>
                 )}
                 <Avatar size={40} className={styles.headerAvatar}>
-                  {getParticipantName(selectedConversation.participants).charAt(
-                    0
-                  )}
+                  {getParticipantName(
+                    selectedConversation.participants,
+                    selectedConversation.projectId
+                  ).charAt(0)}
                 </Avatar>
                 <div className={styles.headerInfo}>
                   <div className={styles.headerName}>
-                    {getParticipantName(selectedConversation.participants)}
+                    {getParticipantName(
+                      selectedConversation.participants,
+                      selectedConversation.projectId
+                    )}
                   </div>
-                  <div className={styles.headerStatus}>Đang hoạt động</div>
+                  <div className={styles.headerStatus}>
+                    {selectedConversation.projectId
+                      ? "Cuộc trò chuyện dự án"
+                      : "Đang hoạt động"}
+                  </div>
                 </div>
               </div>
               <div className={styles.chatHeaderActions}>
