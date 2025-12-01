@@ -13,23 +13,41 @@ import {
   Divider,
   InputNumber,
 } from "antd";
+import {
+  UserOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  IdcardOutlined,
+  BankOutlined,
+  GlobalOutlined,
+  EnvironmentOutlined,
+  TeamOutlined,
+  FileTextOutlined,
+  DollarOutlined,
+  CheckCircleOutlined,
+} from "@ant-design/icons";
 import { UserRole } from "@/hooks/useAuth";
-import { registrationApi, type SubmitRegistrationRequestDto } from "@/lib/registration/registration.api";
+import {
+  registrationApi,
+  type SubmitRegistrationRequestDto,
+} from "@/lib/registration/registration.api";
 import styles from "./ContactPage.module.scss";
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { Option } = Select;
 const { TextArea } = Input;
 
 const ContactPage: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<number | undefined>(undefined);
+  const [selectedRole, setSelectedRole] = useState<number | undefined>(
+    undefined
+  );
 
   const handleSubmit = async (values: any) => {
     try {
       setLoading(true);
-      
+
       const dto: SubmitRegistrationRequestDto = {
         username: values.username,
         email: values.email,
@@ -58,13 +76,16 @@ const ContactPage: React.FC = () => {
       };
 
       await registrationApi.submit(dto);
-      message.success("Yêu cầu đăng ký đã được gửi thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất có thể.");
+      message.success(
+        "Yêu cầu đăng ký đã được gửi thành công! Chúng tôi sẽ liên hệ với bạn sớm nhất có thể."
+      );
       form.resetFields();
       setSelectedRole(undefined);
     } catch (error: any) {
       console.error("Failed to submit registration request:", error);
       message.error(
-        error?.response?.data?.message || "Không thể gửi yêu cầu đăng ký. Vui lòng thử lại sau."
+        error?.response?.data?.message ||
+          "Không thể gửi yêu cầu đăng ký. Vui lòng thử lại sau."
       );
     } finally {
       setLoading(false);
@@ -100,9 +121,10 @@ const ContactPage: React.FC = () => {
     <div className={styles.contactPage}>
       <div className={styles.container}>
         <div className={styles.header}>
-          <Title level={1}>ĐĂNG KÝ NHÀ THẦU / GIÁM SÁT VIÊN</Title>
+          <h1>ĐĂNG KÝ NHÀ THẦU / GIÁM SÁT VIÊN</h1>
           <Text type="secondary" className={styles.subtitle}>
-            Điền thông tin bên dưới để đăng ký tài khoản nhà thầu hoặc giám sát viên trên nền tảng OCSP
+            Điền thông tin bên dưới để đăng ký tài khoản nhà thầu hoặc giám sát
+            viên trên nền tảng OCSP
           </Text>
         </div>
 
@@ -115,16 +137,23 @@ const ContactPage: React.FC = () => {
             size="large"
           >
             {/* Basic Information */}
-            <Divider orientation="left">Thông tin cơ bản</Divider>
-            
+            <div className={styles.sectionHeader}>
+              <div className={styles.sectionIcon}>
+                <IdcardOutlined />
+              </div>
+              <h2 className={styles.sectionTitle}>Thông tin cơ bản</h2>
+            </div>
+
             <Form.Item
               label="Vai trò đăng ký"
               name="requestedRole"
               rules={[{ required: true, message: "Vui lòng chọn vai trò" }]}
+              className={styles.formItem}
             >
               <Select
                 placeholder="Chọn vai trò"
                 onChange={handleRoleChange}
+                suffixIcon={<IdcardOutlined />}
               >
                 <Option value={UserRole.Supervisor}>Giám sát viên</Option>
                 <Option value={UserRole.Contractor}>Nhà thầu</Option>
@@ -138,8 +167,12 @@ const ContactPage: React.FC = () => {
                 { required: true, message: "Vui lòng nhập tên người dùng" },
                 { min: 3, message: "Tên người dùng phải có ít nhất 3 ký tự" },
               ]}
+              className={styles.formItem}
             >
-              <Input placeholder="username" />
+              <Input
+                placeholder="Nhập tên người dùng"
+                prefix={<UserOutlined className={styles.inputIcon} />}
+              />
             </Form.Item>
 
             <Form.Item
@@ -149,8 +182,13 @@ const ContactPage: React.FC = () => {
                 { required: true, message: "Vui lòng nhập email" },
                 { type: "email", message: "Email không hợp lệ" },
               ]}
+              className={styles.formItem}
             >
-              <Input type="email" placeholder="user@example.com" />
+              <Input
+                type="email"
+                placeholder="user@example.com"
+                prefix={<MailOutlined className={styles.inputIcon} />}
+              />
             </Form.Item>
 
             <Form.Item
@@ -158,107 +196,186 @@ const ContactPage: React.FC = () => {
               name="phone"
               rules={[
                 { required: true, message: "Vui lòng nhập số điện thoại" },
-                { pattern: /^[0-9]{10,11}$/, message: "Số điện thoại không hợp lệ" },
+                {
+                  pattern: /^[0-9]{10,11}$/,
+                  message: "Số điện thoại không hợp lệ",
+                },
               ]}
+              className={styles.formItem}
             >
-              <Input placeholder="0123456789" />
+              <Input
+                placeholder="0123456789"
+                prefix={<PhoneOutlined className={styles.inputIcon} />}
+              />
             </Form.Item>
 
             {/* Supervisor Fields */}
             {selectedRole === UserRole.Supervisor && (
-              <>
-                <Divider orientation="left">Thông tin giám sát viên</Divider>
-                
+              <div className={styles.formSection}>
+                <div className={styles.sectionHeader}>
+                  <div className={styles.sectionIcon}>
+                    <UserOutlined />
+                  </div>
+                  <h2 className={styles.sectionTitle}>
+                    Thông tin giám sát viên
+                  </h2>
+                </div>
+
                 <Form.Item
                   label="Phòng ban"
                   name="department"
-                  rules={[{ required: true, message: "Vui lòng nhập phòng ban" }]}
+                  rules={[
+                    { required: true, message: "Vui lòng nhập phòng ban" },
+                  ]}
+                  className={styles.formItem}
                 >
-                  <Input placeholder="Ví dụ: Phòng Kỹ thuật" />
+                  <Input
+                    placeholder="Ví dụ: Phòng Kỹ thuật"
+                    prefix={<BankOutlined className={styles.inputIcon} />}
+                  />
                 </Form.Item>
 
                 <Form.Item
                   label="Chức vụ"
                   name="position"
                   rules={[{ required: true, message: "Vui lòng nhập chức vụ" }]}
+                  className={styles.formItem}
                 >
-                  <Input placeholder="Ví dụ: Giám sát viên công trình" />
+                  <Input
+                    placeholder="Ví dụ: Giám sát viên công trình"
+                    prefix={<IdcardOutlined className={styles.inputIcon} />}
+                  />
                 </Form.Item>
 
                 <Form.Item
                   label="Quận/Huyện"
                   name="district"
+                  className={styles.formItem}
                 >
-                  <Input placeholder="Ví dụ: Hải Châu, Thanh Khê" />
+                  <Input
+                    placeholder="Ví dụ: Hải Châu, Thanh Khê"
+                    prefix={
+                      <EnvironmentOutlined className={styles.inputIcon} />
+                    }
+                  />
                 </Form.Item>
-              </>
+              </div>
             )}
 
             {/* Contractor Fields */}
             {selectedRole === UserRole.Contractor && (
-              <>
-                <Divider orientation="left">Thông tin nhà thầu</Divider>
-                
+              <div className={styles.formSection}>
+                <div className={styles.sectionHeader}>
+                  <div className={styles.sectionIcon}>
+                    <BankOutlined />
+                  </div>
+                  <h2 className={styles.sectionTitle}>Thông tin nhà thầu</h2>
+                </div>
+
                 <Form.Item
                   label="Tên công ty"
                   name="companyName"
-                  rules={[{ required: true, message: "Vui lòng nhập tên công ty" }]}
+                  rules={[
+                    { required: true, message: "Vui lòng nhập tên công ty" },
+                  ]}
+                  className={styles.formItem}
                 >
-                  <Input placeholder="Tên công ty" />
+                  <Input
+                    placeholder="Tên công ty"
+                    prefix={<BankOutlined className={styles.inputIcon} />}
+                  />
                 </Form.Item>
 
                 <Form.Item
                   label="Giấy phép kinh doanh"
                   name="businessLicense"
-                  rules={[{ required: true, message: "Vui lòng nhập số giấy phép kinh doanh" }]}
+                  rules={[
+                    {
+                      required: true,
+                      message: "Vui lòng nhập số giấy phép kinh doanh",
+                    },
+                  ]}
+                  className={styles.formItem}
                 >
-                  <Input placeholder="Số giấy phép kinh doanh" />
+                  <Input
+                    placeholder="Số giấy phép kinh doanh"
+                    prefix={<FileTextOutlined className={styles.inputIcon} />}
+                  />
                 </Form.Item>
 
                 <Form.Item
                   label="Mã số thuế"
                   name="taxCode"
+                  className={styles.formItem}
                 >
-                  <Input placeholder="Mã số thuế" />
+                  <Input
+                    placeholder="Mã số thuế"
+                    prefix={<IdcardOutlined className={styles.inputIcon} />}
+                  />
                 </Form.Item>
 
                 <Form.Item
                   label="Mô tả công ty"
                   name="description"
+                  className={styles.formItem}
                 >
                   <TextArea
                     rows={4}
                     placeholder="Mô tả về công ty, lĩnh vực hoạt động, kinh nghiệm..."
+                    showCount
+                    maxLength={500}
                   />
                 </Form.Item>
 
                 <Form.Item
                   label="Website"
                   name="website"
+                  className={styles.formItem}
                 >
-                  <Input placeholder="https://example.com" />
+                  <Input
+                    placeholder="https://example.com"
+                    prefix={<GlobalOutlined className={styles.inputIcon} />}
+                  />
                 </Form.Item>
 
                 <Form.Item
                   label="Địa chỉ"
                   name="address"
+                  className={styles.formItem}
                 >
-                  <Input placeholder="Địa chỉ công ty" />
+                  <Input
+                    placeholder="Địa chỉ công ty"
+                    prefix={
+                      <EnvironmentOutlined className={styles.inputIcon} />
+                    }
+                  />
                 </Form.Item>
 
                 <Space direction="horizontal" style={{ width: "100%" }}>
                   <Form.Item
                     label="Thành phố"
                     name="city"
+                    className={styles.formItem}
                   >
-                    <Input placeholder="Ví dụ: Đà Nẵng" />
+                    <Input
+                      placeholder="Ví dụ: Đà Nẵng"
+                      prefix={
+                        <EnvironmentOutlined className={styles.inputIcon} />
+                      }
+                    />
                   </Form.Item>
 
                   <Form.Item
                     label="Tỉnh"
                     name="province"
+                    className={styles.formItem}
                   >
-                    <Input placeholder="Ví dụ: Hưng yên" />
+                    <Input
+                      placeholder="Ví dụ: Hưng Yên"
+                      prefix={
+                        <EnvironmentOutlined className={styles.inputIcon} />
+                      }
+                    />
                   </Form.Item>
                 </Space>
 
@@ -266,74 +383,105 @@ const ContactPage: React.FC = () => {
                   <Form.Item
                     label="Số năm kinh nghiệm"
                     name="yearsOfExperience"
+                    className={styles.formItem}
                   >
-                    <InputNumber
-                      style={{ width: "100%" }}
-                      placeholder="0"
-                      min={0}
-                    />
+                    <div className={styles.inputWithIcon}>
+                      <CheckCircleOutlined className={styles.inputIcon} />
+                      <InputNumber
+                        style={{ width: "100%" }}
+                        placeholder="0"
+                        min={0}
+                        className={styles.inputNumberField}
+                      />
+                    </div>
                   </Form.Item>
 
                   <Form.Item
                     label="Quy mô đội ngũ"
                     name="teamSize"
+                    className={styles.formItem}
                   >
-                    <InputNumber
-                      style={{ width: "100%" }}
-                      placeholder="0"
-                      min={1}
-                    />
+                    <div className={styles.inputWithIcon}>
+                      <TeamOutlined className={styles.inputIcon} />
+                      <InputNumber
+                        style={{ width: "100%" }}
+                        placeholder="0"
+                        min={1}
+                        className={styles.inputNumberField}
+                      />
+                    </div>
                   </Form.Item>
                 </Space>
 
                 <Form.Item
                   label="Số dự án đã hoàn thành"
                   name="completedProjects"
+                  className={styles.formItem}
                 >
-                  <InputNumber
-                    style={{ width: "100%" }}
-                    placeholder="0"
-                    min={0}
-                  />
+                  <div className={styles.inputWithIcon}>
+                    <FileTextOutlined className={styles.inputIcon} />
+                    <InputNumber
+                      style={{ width: "100%" }}
+                      placeholder="0"
+                      min={0}
+                      className={styles.inputNumberField}
+                    />
+                  </div>
                 </Form.Item>
 
                 <Space direction="horizontal" style={{ width: "100%" }}>
                   <Form.Item
                     label="Ngân sách dự án tối thiểu (VNĐ)"
                     name="minProjectBudget"
+                    className={styles.formItem}
                   >
-                    <InputNumber
-                      style={{ width: "100%" }}
-                      placeholder="0"
-                      min={0}
-                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                    />
+                    <div className={styles.inputWithIcon}>
+                      <DollarOutlined className={styles.inputIcon} />
+                      <InputNumber
+                        style={{ width: "100%" }}
+                        placeholder="0"
+                        min={0}
+                        formatter={(value) =>
+                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        className={styles.inputNumberField}
+                      />
+                    </div>
                   </Form.Item>
 
                   <Form.Item
                     label="Ngân sách dự án tối đa (VNĐ)"
                     name="maxProjectBudget"
+                    className={styles.formItem}
                   >
-                    <InputNumber
-                      style={{ width: "100%" }}
-                      placeholder="0"
-                      min={0}
-                      formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                    />
+                    <div className={styles.inputWithIcon}>
+                      <DollarOutlined className={styles.inputIcon} />
+                      <InputNumber
+                        style={{ width: "100%" }}
+                        placeholder="0"
+                        min={0}
+                        formatter={(value) =>
+                          `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        className={styles.inputNumberField}
+                      />
+                    </div>
                   </Form.Item>
                 </Space>
-              </>
+              </div>
             )}
 
-            <Form.Item>
+            <Form.Item className={styles.submitItem}>
               <Button
                 type="primary"
                 htmlType="submit"
                 loading={loading}
                 size="large"
                 block
+                icon={!loading && <CheckCircleOutlined />}
+                className={styles.submitButton}
               >
-                GỬI YÊU CẦU ĐĂNG KÝ
+                {loading ? "Đang gửi..." : "GỬI YÊU CẦU ĐĂNG KÝ"}
               </Button>
             </Form.Item>
           </Form>
@@ -344,4 +492,3 @@ const ContactPage: React.FC = () => {
 };
 
 export default ContactPage;
-
