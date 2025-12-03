@@ -132,76 +132,10 @@ export default function ComponentTrackingPanel({
         🏗️ Daily Tracking System
       </h1>
 
-      {/* Statistics Card */}
-      <div className="bg-gradient-to-br from-purple-600 to-purple-800 p-4 rounded-lg mb-5 text-center">
-        <div className="text-4xl font-bold mb-1">
-          {statistics.total_elements}
-        </div>
-        <div className="text-sm opacity-90">Tổng phần tử tracking</div>
-      </div>
-
-      {/* Project Info */}
-      <div className="bg-[#333] p-4 rounded-lg mb-5">
-        <h3 className="text-sm font-bold text-orange-400 mb-3">
-          📋 Thông tin công trình
-        </h3>
-        <div className="space-y-2">
-          <InfoItem
-            label="Tổng phần tử"
-            value={statistics.total_elements.toString()}
-          />
-          <InfoItem label="Tường" value={statistics.by_type.walls.toString()} />
-          <InfoItem label="Cột" value={statistics.by_type.columns.toString()} />
-          <InfoItem label="Sàn" value={statistics.by_type.slabs.toString()} />
-          <InfoItem label="Dầm" value={statistics.by_type.beams.toString()} />
-          <InfoItem
-            label="Tổng khối lượng"
-            value={`${statistics.total_volume.toFixed(2)} m³`}
-          />
-        </div>
-      </div>
-
-      {/* Progress Info */}
-      <div className="bg-[#333] p-4 rounded-lg mb-5">
-        <h3 className="text-sm font-bold text-orange-400 mb-3">
-          📊 Tiến độ thi công
-        </h3>
-        <div className="space-y-2">
-          <InfoItem
-            label="Hoàn thành"
-            value={statistics.by_status.completed.toString()}
-          />
-          <InfoItem
-            label="Đang thi công"
-            value={statistics.by_status.in_progress.toString()}
-          />
-          <InfoItem
-            label="Chưa bắt đầu"
-            value={statistics.by_status.not_started.toString()}
-          />
-        </div>
-        <div className="mt-4 text-center">
-          <div className="text-3xl font-bold text-green-400">
-            {statistics.completion_percentage.toFixed(1)}%
-          </div>
-          <div className="text-xs opacity-80">Tỷ lệ hoàn thành</div>
-        </div>
-      </div>
-
       {/* Selected Element - Tracking Form */}
       {selectedElement && (
         <div className="bg-blue-600 p-4 rounded-lg mb-5">
           <h3 className="text-lg font-bold mb-3">📦 {selectedElement.name}</h3>
-          <div className="space-y-2 text-sm mb-4">
-            <div>🏗️ Loại: {selectedElement.element_type}</div>
-            <div>
-              📏 Kích thước: {selectedElement.dimensions.width.toFixed(2)}m ×{" "}
-              {selectedElement.dimensions.length.toFixed(2)}m ×{" "}
-              {selectedElement.dimensions.height.toFixed(2)}m
-            </div>
-            <div>📦 Khối lượng: {selectedElement.volume_m3.toFixed(2)} m³</div>
-            <div>🏢 Tầng: {selectedElement.floor_level}</div>
-          </div>
 
           {/* Completion Percentage Slider */}
           <div className="bg-blue-700 p-3 rounded-lg mb-4">

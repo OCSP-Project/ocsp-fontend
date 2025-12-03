@@ -9,6 +9,9 @@ import { modelAnalysisApi } from "@/lib/model-analysis/model-analysis.api";
 import { buildingElementsApi } from "@/lib/building-elements/building-elements.api";
 import { Button } from "@/components/ui";
 
+// Stable empty array to prevent re-renders
+const EMPTY_ELEMENTS: any[] = [];
+
 export default function CreateElementPage() {
   const params = useParams();
   const router = useRouter();
@@ -21,6 +24,7 @@ export default function CreateElementPage() {
   const [elementType, setElementType] = useState(1); // Wall
   const [floorLevel, setFloorLevel] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [interactionMode, setInteractionMode] = useState<"view" | "selection">("view");
 
   useEffect(() => {
     const load = async () => {
@@ -204,18 +208,55 @@ export default function CreateElementPage() {
         <div className="flex-1 relative">
           <ModelViewer3D
             glbUrl={glbUrl}
-            elements={[]} // No elements yet
+            elements={EMPTY_ELEMENTS} // Stable reference to prevent re-renders
             selectionMode="mesh" // ⭐ Mesh selection mode
             onMeshesSelected={setSelectedMeshes}
+            interactionMode={interactionMode}
           />
+
+          {/* Mode toggle button */}
+          <div className="absolute top-4 right-4 flex gap-2">
+            <button
+              onClick={() => setInteractionMode("view")}
+              className={`px-4 py-2 rounded-lg font-bold transition-colors ${
+                interactionMode === "view"
+                  ? "bg-blue-600 text-white"
+                  : "bg-stone-700 text-stone-300 hover:bg-stone-600"
+              }`}
+            >
+              🔍 View Mode
+            </button>
+            <button
+              onClick={() => setInteractionMode("selection")}
+              className={`px-4 py-2 rounded-lg font-bold transition-colors ${
+                interactionMode === "selection"
+                  ? "bg-green-600 text-white"
+                  : "bg-stone-700 text-stone-300 hover:bg-stone-600"
+              }`}
+            >
+              ✏️ Selection Mode
+            </button>
+          </div>
 
           {/* Info overlay */}
           <div className="absolute bottom-4 left-4 bg-black/80 text-white p-4 rounded-lg">
             <div className="text-sm font-bold mb-2">
-              📌 Meshes đã chọn: {selectedMeshes.length}
+              {interactionMode === "view" ? "🔍 View Mode" : "✏️ Selection Mode"}
             </div>
-            <div className="text-xs text-stone-300">
-              Click vào model để chọn/bỏ chọn meshes
+            <div className="text-xs text-stone-300 space-y-1">
+              {interactionMode === "view" ? (
+                <>
+                  <div>• Left-click + drag: Xoay model</div>
+                  <div>• Right-click + drag: Pan</div>
+                  <div>• Scroll: Zoom</div>
+                </>
+              ) : (
+                <>
+                  <div>• Meshes đã chọn: {selectedMeshes.length}</div>
+                  <div>• Left-click + drag: Chọn meshes</div>
+                  <div>• Right-click: Xoay model</div>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -30,16 +30,25 @@ export default function TrackingPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const model = await modelAnalysisApi.getModelById(modelId);
-      setGlbUrl(model.fileUrl);
+      const [model, els, sum] = await Promise.all([
+        modelAnalysisApi.getModelById(modelId),
+        buildingElementsApi.getByModel(modelId),
+        buildingElementsApi.getModelSummary(modelId)
+      ]);
 
-      const els = await buildingElementsApi.getByModel(modelId);
+      console.log("🔍 Model data:", model);
+      console.log("🔍 Model fileUrl:", model.fileUrl);
       console.log("🔍 Loaded elements:", els);
       console.log("🔍 Elements count:", Array.isArray(els) ? els.length : 0);
-      setElements(els as any);
 
-      const sum = await buildingElementsApi.getModelSummary(modelId);
-      setSummary(sum);
+      // Set glbUrl first to avoid race condition
+      setGlbUrl(model.fileUrl);
+
+      // Then set elements and summary in next render
+      setTimeout(() => {
+        setElements(els as any);
+        setSummary(sum);
+      }, 0);
     } catch (error) {
       console.error("Load error:", error);
     } finally {
