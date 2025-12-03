@@ -200,46 +200,36 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
       console.log("Loading PDF for contract ID:", contractId);
 
       // First try to generate PDF if it doesn't exist - this will validate profiles on backend
+      // But don't block - always try to download existing PDF
+      let generateError: string | null = null;
       try {
         console.log("Attempting to generate PDF...");
         await contractsApi.generatePdf(contractId);
         console.log("PDF generation successful");
       } catch (error: any) {
-        console.log("PDF generation error:", error);
-        // Check if it's a profile validation error
+        console.log("PDF generation error (will try to download existing PDF):", error);
         const friendly = getFriendlyErrorMessage(
           error,
           PROFILE_INFO_ERROR,
           userRole
         );
-
-        // Check for specific profile missing errors
+        // Store error but don't block - try to download existing PDF first
         if (
           friendly.includes("HOMEOWNER_PROFILE_MISSING") ||
           friendly.includes("Chủ nhà chưa cập nhật")
         ) {
-          setProfileError(
-            "Chủ nhà chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu chủ nhà cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng."
-          );
-          setPdfError(friendly);
-          setPdfUrl("");
-          return;
+          generateError = friendly;
         }
-        // Other errors - still try to download if PDF might exist
-        console.log(
-          "PDF generation failed, will try to download existing PDF:",
-          error
-        );
       }
 
-      // Download PDF - this will also validate profiles
+      // Download PDF - if successful, PDF exists and profile validation passed
       try {
         console.log("Attempting to download PDF...");
         const blob = await contractsApi.downloadPdf(contractId);
         const url = URL.createObjectURL(blob);
         setPdfUrl(url);
         setPdfError(null);
-        setProfileError(null);
+        setProfileError(null); // PDF loaded successfully = profile is valid, clear any errors
         console.log("PDF loaded successfully");
       } catch (downloadError: any) {
         console.error("Error downloading PDF:", downloadError);
@@ -249,20 +239,24 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
           userRole
         );
 
-        // Check for specific profile missing errors
+        setPdfError(friendly);
+        setPdfUrl("");
+        
+        // Only set profile error if both generate and download failed with profile error
+        // If PDF exists and can be downloaded, profile is valid
         if (
-          friendly.includes("HOMEOWNER_PROFILE_MISSING") ||
-          friendly.includes("Chủ nhà chưa cập nhật")
+          generateError && (
+            friendly.includes("HOMEOWNER_PROFILE_MISSING") ||
+            friendly.includes("Chủ nhà chưa cập nhật")
+          )
         ) {
           setProfileError(
             "Chủ nhà chưa cập nhật thông tin cá nhân. Vui lòng yêu cầu chủ nhà cập nhật đầy đủ thông tin (Họ tên, SĐT, Địa chỉ) trong mục Hồ sơ trước khi xem hợp đồng."
           );
         } else {
-          setProfileError(friendly);
+          // PDF doesn't exist or other error - don't show profile error
+          setProfileError(null);
         }
-
-        setPdfError(friendly);
-        setPdfUrl("");
       }
     } finally {
       setPdfLoading(false);
@@ -640,22 +634,18 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
                     (userRole === "contractor" && !commissionPaid) ||
                     !pdfUrl ||
                     pdfLoading ||
-                    !!pdfError ||
-                    !!profileError
+                    !!pdfError
                   }
                   className={`w-full px-4 py-3 rounded-lg transition-colors ${
                     (userRole === "contractor" && !commissionPaid) ||
                     !pdfUrl ||
                     pdfLoading ||
-                    !!pdfError ||
-                    !!profileError
+                    !!pdfError
                       ? "bg-stone-700 text-stone-300 opacity-60 cursor-not-allowed"
                       : "bg-blue-600 hover:bg-blue-500 text-white"
                   }`}
                   title={
-                    profileError
-                      ? "Vui lòng cập nhật thông tin cá nhân trước khi ký hợp đồng"
-                      : userRole === "contractor" && !commissionPaid
+                    userRole === "contractor" && !commissionPaid
                       ? "Vui lòng thanh toán phí môi giới trước"
                       : !pdfUrl || pdfLoading
                       ? "Đang tải PDF hợp đồng..."
@@ -666,8 +656,6 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
                 >
                   {pdfLoading
                     ? "Đang tải PDF..."
-                    : profileError
-                    ? "Không thể ký (Thiếu thông tin)"
                     : pdfError
                     ? "Không thể ký (PDF lỗi)"
                     : "Bắt đầu ký tên"}
@@ -739,16 +727,14 @@ export const ContractSigningModal: React.FC<ContractSigningModalProps> = ({
             signatureBase64 &&
             (userRole !== "contractor" || commissionPaid) &&
             pdfUrl &&
-            !pdfError &&
-            !profileError && (
+            !pdfError && (
               <button
                 onClick={handleSign}
                 disabled={
                   signing ||
                   !pdfUrl ||
                   pdfLoading ||
-                  !!pdfError ||
-                  !!profileError
+                  !!pdfError
                 }
                 className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
