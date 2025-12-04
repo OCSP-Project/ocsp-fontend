@@ -26,6 +26,9 @@ import type {
   TrackingStatus,
 } from "@/types/model-tracking.types";
 
+const GPU_PICKING_ENABLED =
+  process.env.NEXT_PUBLIC_ENABLE_GPU_PICKING === "true";
+
 interface ModelViewer3DProps {
   glbUrl?: string;
   elements: BuildingElement[];
@@ -59,10 +62,14 @@ export default function ModelViewer3D({
   const controlsRef = useRef<OrbitControls | null>(null);
 
   // Traditional refs
-  const meshToElementRef = useRef<Map<THREE.Object3D, BuildingElement>>(new Map());
+  const meshToElementRef = useRef<Map<THREE.Object3D, BuildingElement>>(
+    new Map()
+  );
   const meshIndexMapRef = useRef<Map<THREE.Object3D, number>>(new Map());
   const assignedMeshIndicesRef = useRef<Set<number>>(new Set());
-  const materialCacheRef = useRef<Map<string, THREE.MeshPhongMaterial>>(new Map());
+  const materialCacheRef = useRef<Map<string, THREE.MeshPhongMaterial>>(
+    new Map()
+  );
 
   // ⭐ PHASE 1: Index-based Lookup - Reverse mapping
   const indexToMeshRef = useRef<Map<number, THREE.Mesh>>(new Map());
@@ -91,7 +98,9 @@ export default function ModelViewer3D({
   // ===== STATE =====
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedMeshIndices, setSelectedMeshIndices] = useState<number[]>(externalSelectedMeshIndices || []);
+  const [selectedMeshIndices, setSelectedMeshIndices] = useState<number[]>(
+    externalSelectedMeshIndices || []
+  );
   const [isDrawingBox, setIsDrawingBox] = useState(false);
   const [selectionBox, setSelectionBox] = useState<{
     startX: number;
@@ -117,10 +126,10 @@ export default function ModelViewer3D({
 
   const getStatusColor = (status: TrackingStatus | string): number => {
     const colors: Record<string, number> = {
-      not_started: 0xef5350,    // Red - Chưa bắt đầu
-      in_progress: 0xffa726,    // Orange - Đang thi công
-      completed: 0x4caf50,      // Green - Hoàn thành
-      on_hold: 0xff6f00,        // Dark Orange - Tạm dừng
+      not_started: 0xef5350, // Red - Chưa bắt đầu
+      in_progress: 0xffa726, // Orange - Đang thi công
+      completed: 0x4caf50, // Green - Hoàn thành
+      on_hold: 0xff6f00, // Dark Orange - Tạm dừng
     };
     return colors[status] || 0xcccccc;
   };
@@ -160,13 +169,19 @@ export default function ModelViewer3D({
 
   const updateHoveredMeshesInBoxCore = useCallback(
     (startX: number, startY: number, endX: number, endY: number) => {
-      if (!cameraRef.current || !sceneRef.current || !containerRef.current) return;
+      if (!cameraRef.current || !sceneRef.current || !containerRef.current)
+        return;
 
       const perfStart = performance.now();
 
       // ⭐ PHASE 2: Use GPU Picking if available
       // DISABLED: GPU Picking has transform issues with GLB models
-      if (false && pickingSceneRef.current && pickingTextureRef.current && rendererRef.current) {
+      if (
+        GPU_PICKING_ENABLED &&
+        pickingSceneRef.current &&
+        pickingTextureRef.current &&
+        rendererRef.current
+      ) {
         const minX = Math.min(startX, endX);
         const maxX = Math.max(startX, endX);
         const minY = Math.min(startY, endY);
@@ -176,21 +191,31 @@ export default function ModelViewer3D({
 
         if (width < 1 || height < 1) return;
 
+        const renderer = rendererRef.current;
+        if (!renderer) return;
+
         try {
           // WebGL Y coordinate is flipped (bottom-up), need to convert from screen space (top-down)
-          const canvasHeight = rendererRef.current.domElement.height;
+          const canvasHeight = renderer.domElement.height;
           const glMinY = canvasHeight - maxY; // Flip Y coordinate
           const glMaxY = canvasHeight - minY;
 
-          console.log(`🔍 Picking scene info: children=${pickingSceneRef.current.children.length}, visible meshes=${pickingSceneRef.current.children.filter((c: any) => c.visible).length}`);
+          console.log(
+            `🔍 Picking scene info: children=${
+              pickingSceneRef.current.children.length
+            }, visible meshes=${
+              pickingSceneRef.current.children.filter((c: any) => c.visible)
+                .length
+            }`
+          );
 
           // Render picking scene
-          rendererRef.current.setRenderTarget(pickingTextureRef.current);
-          rendererRef.current.render(pickingSceneRef.current, cameraRef.current);
+          renderer.setRenderTarget(pickingTextureRef.current);
+          renderer.render(pickingSceneRef.current, cameraRef.current);
 
           // Read pixels
           const pixelBuffer = new Uint8Array(width * height * 4);
-          rendererRef.current.readRenderTargetPixels(
+          renderer.readRenderTargetPixels(
             pickingTextureRef.current,
             Math.floor(minX),
             Math.floor(glMinY),
@@ -200,11 +225,11 @@ export default function ModelViewer3D({
           );
 
           // Restore normal rendering
-          rendererRef.current.setRenderTarget(null);
+          renderer.setRenderTarget(null);
 
           // DEBUG: Render picking scene to main canvas for visual debugging (temporary)
           // Uncomment to see picking scene
-          rendererRef.current.render(pickingSceneRef.current, cameraRef.current);
+          renderer.render(pickingSceneRef.current, cameraRef.current);
 
           // Parse colors
           const uniqueColors = new Set<number>();
@@ -228,12 +253,28 @@ export default function ModelViewer3D({
             }
           }
 
-          console.log(`🔍 Debug GPU Picking: uniqueColors=${uniqueColors.size}, nonZeroPixels=${nonZeroPixels}/${pixelBuffer.length/4}, colorMap size=${colorToMeshMapRef.current.size}`);
+          console.log(
+            `🔍 Debug GPU Picking: uniqueColors=${
+              uniqueColors.size
+            }, nonZeroPixels=${nonZeroPixels}/${
+              pixelBuffer.length / 4
+            }, colorMap size=${colorToMeshMapRef.current.size}`
+          );
           console.log(`🔍 Sample pixel data (first 10 RGBA):`, samplePixels);
-          console.log(`🔍 Picking colors in map:`, Array.from(colorToMeshMapRef.current.keys()).map(c => '0x' + c.toString(16).padStart(6, '0')));
+          console.log(
+            `🔍 Picking colors in map:`,
+            Array.from(colorToMeshMapRef.current.keys()).map(
+              (c) => "0x" + c.toString(16).padStart(6, "0")
+            )
+          );
 
           if (uniqueColors.size > 0) {
-            console.log(`🔍 Sample colors found:`, Array.from(uniqueColors).slice(0, 5).map(c => '0x' + c.toString(16).padStart(6, '0')));
+            console.log(
+              `🔍 Sample colors found:`,
+              Array.from(uniqueColors)
+                .slice(0, 5)
+                .map((c) => "0x" + c.toString(16).padStart(6, "0"))
+            );
           }
 
           // Convert colors to mesh indices
@@ -249,7 +290,11 @@ export default function ModelViewer3D({
           });
 
           const perfEnd = performance.now();
-          console.log(`🎯 GPU Picking: ${hoveredIndices.length} meshes in ${(perfEnd - perfStart).toFixed(2)}ms`);
+          console.log(
+            `🎯 GPU Picking: ${hoveredIndices.length} meshes in ${(
+              perfEnd - perfStart
+            ).toFixed(2)}ms`
+          );
 
           setHoveredMeshIndices(hoveredIndices);
           return;
@@ -302,13 +347,22 @@ export default function ModelViewer3D({
         const screenY = ((-worldCenter.y + 1) / 2) * rect.height;
 
         // Check if center point is inside selection box
-        if (screenX >= minX && screenX <= maxX && screenY >= minY && screenY <= maxY) {
+        if (
+          screenX >= minX &&
+          screenX <= maxX &&
+          screenY >= minY &&
+          screenY <= maxY
+        ) {
           hoveredIndices.push(meshIndex);
         }
       });
 
       const perfEnd = performance.now();
-      console.log(`🎯 CPU Selection: ${hoveredIndices.length}/${checkedCount} meshes in ${(perfEnd - perfStart).toFixed(2)}ms`);
+      console.log(
+        `🎯 CPU Selection: ${
+          hoveredIndices.length
+        }/${checkedCount} meshes in ${(perfEnd - perfStart).toFixed(2)}ms`
+      );
 
       setHoveredMeshIndices(hoveredIndices);
     },
@@ -330,73 +384,81 @@ export default function ModelViewer3D({
 
   // ===== PHASE 2: INITIALIZE GPU PICKING SCENE =====
 
-  const initializeGPUPicking = useCallback((scene: THREE.Scene, renderer: THREE.WebGLRenderer) => {
-    console.log("🎨 Initializing GPU Picking...");
+  const initializeGPUPicking = useCallback(
+    (scene: THREE.Scene, renderer: THREE.WebGLRenderer) => {
+      console.log("🎨 Initializing GPU Picking...");
 
-    // Clean up existing picking scene
-    if (pickingSceneRef.current) {
-      while (pickingSceneRef.current.children.length > 0) {
-        const child = pickingSceneRef.current.children[0];
-        pickingSceneRef.current.remove(child);
-        // Dispose materials
-        if ((child as any).material) {
-          (child as any).material.dispose();
+      // Clean up existing picking scene
+      if (pickingSceneRef.current) {
+        while (pickingSceneRef.current.children.length > 0) {
+          const child = pickingSceneRef.current.children[0];
+          pickingSceneRef.current.remove(child);
+          // Dispose materials
+          if ((child as any).material) {
+            (child as any).material.dispose();
+          }
         }
       }
-    }
 
-    const pickingScene = pickingSceneRef.current || new THREE.Scene();
-    pickingScene.background = new THREE.Color(0x000000);
-    pickingSceneRef.current = pickingScene;
+      const pickingScene = pickingSceneRef.current || new THREE.Scene();
+      pickingScene.background = new THREE.Color(0x000000);
+      pickingSceneRef.current = pickingScene;
 
-    // Dispose old picking texture
-    if (pickingTextureRef.current) {
-      pickingTextureRef.current.dispose();
-    }
-
-    const pickingTexture = new THREE.WebGLRenderTarget(
-      renderer.domElement.width,
-      renderer.domElement.height
-    );
-    pickingTextureRef.current = pickingTexture;
-
-    colorToMeshMapRef.current.clear();
-
-    let meshCount = 0;
-    scene.traverse((obj: any) => {
-      if (obj.isMesh) {
-        const meshIndex = meshIndexMapRef.current.get(obj);
-        if (meshIndex !== undefined) {
-          const color = indexToColor(meshIndex);
-
-          const pickingMaterial = new THREE.MeshBasicMaterial({
-            color: color,
-          });
-
-          const pickingMesh = new THREE.Mesh(obj.geometry, pickingMaterial);
-
-          // Decompose world matrix into position, rotation, scale
-          const position = new THREE.Vector3();
-          const quaternion = new THREE.Quaternion();
-          const scale = new THREE.Vector3();
-          obj.matrixWorld.decompose(position, quaternion, scale);
-
-          // Apply to picking mesh
-          pickingMesh.position.copy(position);
-          pickingMesh.quaternion.copy(quaternion);
-          pickingMesh.scale.copy(scale);
-
-          pickingScene.add(pickingMesh);
-          colorToMeshMapRef.current.set(color, obj);
-
-          meshCount++;
-        }
+      // Dispose old picking texture
+      if (pickingTextureRef.current) {
+        pickingTextureRef.current.dispose();
       }
-    });
 
-    console.log(`✅ GPU Picking initialized: ${meshCount} meshes`);
-    console.log(`🔍 Sample picking colors:`, Array.from(colorToMeshMapRef.current.keys()).slice(0, 5).map(c => '0x' + c.toString(16).padStart(6, '0')));
-  }, []);
+      const pickingTexture = new THREE.WebGLRenderTarget(
+        renderer.domElement.width,
+        renderer.domElement.height
+      );
+      pickingTextureRef.current = pickingTexture;
+
+      colorToMeshMapRef.current.clear();
+
+      let meshCount = 0;
+      scene.traverse((obj: any) => {
+        if (obj.isMesh) {
+          const meshIndex = meshIndexMapRef.current.get(obj);
+          if (meshIndex !== undefined) {
+            const color = indexToColor(meshIndex);
+
+            const pickingMaterial = new THREE.MeshBasicMaterial({
+              color: color,
+            });
+
+            const pickingMesh = new THREE.Mesh(obj.geometry, pickingMaterial);
+
+            // Decompose world matrix into position, rotation, scale
+            const position = new THREE.Vector3();
+            const quaternion = new THREE.Quaternion();
+            const scale = new THREE.Vector3();
+            obj.matrixWorld.decompose(position, quaternion, scale);
+
+            // Apply to picking mesh
+            pickingMesh.position.copy(position);
+            pickingMesh.quaternion.copy(quaternion);
+            pickingMesh.scale.copy(scale);
+
+            pickingScene.add(pickingMesh);
+            colorToMeshMapRef.current.set(color, obj);
+
+            meshCount++;
+          }
+        }
+      });
+
+      console.log(`✅ GPU Picking initialized: ${meshCount} meshes`);
+      console.log(
+        `🔍 Sample picking colors:`,
+        Array.from(colorToMeshMapRef.current.keys())
+          .slice(0, 5)
+          .map((c) => "0x" + c.toString(16).padStart(6, "0"))
+      );
+    },
+    []
+  );
 
   // ===== PHASE 2: INITIALIZE OCTREE =====
 
@@ -419,7 +481,9 @@ export default function ModelViewer3D({
     octreeRef.current = octree;
 
     const endTime = performance.now();
-    console.log(`✅ Octree initialized in ${(endTime - startTime).toFixed(2)}ms`);
+    console.log(
+      `✅ Octree initialized in ${(endTime - startTime).toFixed(2)}ms`
+    );
   }, []);
 
   // ===== PHASE 3: INITIALIZE WEB WORKER =====
@@ -661,7 +725,9 @@ export default function ModelViewer3D({
         meshIndices.forEach((idx) => assignedMeshIndicesRef.current.add(idx));
       });
 
-      console.log(`🚫 Assigned meshes count: ${assignedMeshIndicesRef.current.size}`);
+      console.log(
+        `🚫 Assigned meshes count: ${assignedMeshIndicesRef.current.size}`
+      );
       console.log(`🔗 Loading GLB from: ${absoluteUrl}`);
       console.log(`📋 Elements count: ${elements.length}`);
       if (elements.length > 0) {
@@ -699,11 +765,14 @@ export default function ModelViewer3D({
               let opacity = 0.95;
 
               if (meshIndex === 0) {
-                console.log(`🔍 Processing mesh 0, selectionMode: "${selectionMode}"`);
+                console.log(
+                  `🔍 Processing mesh 0, selectionMode: "${selectionMode}"`
+                );
               }
 
               if (selectionMode === "mesh") {
-                const isAssigned = assignedMeshIndicesRef.current.has(meshIndex);
+                const isAssigned =
+                  assignedMeshIndicesRef.current.has(meshIndex);
                 if (isAssigned) {
                   color = 0xff0000;
                   opacity = 0.5;
@@ -722,7 +791,14 @@ export default function ModelViewer3D({
                   meshToElementRef.current.set(obj, element);
 
                   if (meshIndex < 5) {
-                    console.log(`🎨 Mesh ${meshIndex} matched element:`, element.name, "status:", (element as any).trackingStatus, "color:", color.toString(16));
+                    console.log(
+                      `🎨 Mesh ${meshIndex} matched element:`,
+                      element.name,
+                      "status:",
+                      (element as any).trackingStatus,
+                      "color:",
+                      color.toString(16)
+                    );
                   }
                 } else if (meshIndex < 5) {
                   console.log(`⚠️ Mesh ${meshIndex} has NO matching element`);
@@ -740,11 +816,15 @@ export default function ModelViewer3D({
           console.log(`🎨 Total meshes processed: ${meshIndex}`);
 
           scene.add(root);
-          console.log(`➕ Added model to scene. Scene children count: ${scene.children.length}`);
+          console.log(
+            `➕ Added model to scene. Scene children count: ${scene.children.length}`
+          );
           scene.updateMatrixWorld(true);
 
           console.log("🔍 Sample mesh names:", meshNames);
-          console.log(`📊 Total meshes indexed: ${meshIndexMapRef.current.size}`);
+          console.log(
+            `📊 Total meshes indexed: ${meshIndexMapRef.current.size}`
+          );
 
           // ⭐ PHASE 2: Initialize optimizations
           if (rendererRef.current) {
@@ -759,10 +839,12 @@ export default function ModelViewer3D({
           const percentComplete = (progress.loaded / progress.total) * 100;
           console.log(`⏳ Loading: ${percentComplete.toFixed(2)}%`);
         },
-        (error) => {
+        (error: unknown) => {
           console.error("❌ Error loading GLB:", error);
+          const errorMessage =
+            error instanceof Error ? error.message : "Unknown error";
           console.error("❌ Error details:", {
-            message: error.message,
+            message: errorMessage,
             url: absoluteUrl,
           });
           setLoading(false);
@@ -774,7 +856,14 @@ export default function ModelViewer3D({
       });
       setLoading(false);
     }
-  }, [glbUrl, elements, selectionMode, getMaterial, initializeGPUPicking, initializeOctree]);
+  }, [
+    glbUrl,
+    elements,
+    selectionMode,
+    getMaterial,
+    initializeGPUPicking,
+    initializeOctree,
+  ]);
 
   // ⭐ PHASE 1: OPTIMIZED COLOR UPDATE WITH DIRTY TRACKING
 
@@ -788,10 +877,18 @@ export default function ModelViewer3D({
 
     // ⭐ Only update meshes that changed state
     const toUpdate = new Set([
-      ...Array.from(prevSelectedRef.current).filter((idx) => !currentSelected.has(idx)),
-      ...Array.from(prevHoveredRef.current).filter((idx) => !currentHovered.has(idx)),
-      ...Array.from(currentSelected).filter((idx) => !prevSelectedRef.current.has(idx)),
-      ...Array.from(currentHovered).filter((idx) => !prevHoveredRef.current.has(idx)),
+      ...Array.from(prevSelectedRef.current).filter(
+        (idx) => !currentSelected.has(idx)
+      ),
+      ...Array.from(prevHoveredRef.current).filter(
+        (idx) => !currentHovered.has(idx)
+      ),
+      ...Array.from(currentSelected).filter(
+        (idx) => !prevSelectedRef.current.has(idx)
+      ),
+      ...Array.from(currentHovered).filter(
+        (idx) => !prevHoveredRef.current.has(idx)
+      ),
     ]);
 
     // ⭐ Direct lookup using indexToMeshRef (O(1) instead of O(n) traverse)
@@ -838,7 +935,11 @@ export default function ModelViewer3D({
     prevHoveredRef.current = currentHovered;
 
     const perfEnd = performance.now();
-    console.log(`🎨 Color update: ${toUpdate.size} meshes in ${(perfEnd - perfStart).toFixed(2)}ms`);
+    console.log(
+      `🎨 Color update: ${toUpdate.size} meshes in ${(
+        perfEnd - perfStart
+      ).toFixed(2)}ms`
+    );
 
     if (rendererRef.current && cameraRef.current && sceneRef.current) {
       rendererRef.current.render(sceneRef.current, cameraRef.current);
@@ -874,9 +975,9 @@ export default function ModelViewer3D({
       controls.enablePan = true;
       controls.enableZoom = true;
       controls.mouseButtons = {
-        LEFT: null as any,  // Disable left click
+        LEFT: null as any, // Disable left click
         MIDDLE: THREE.MOUSE.PAN,
-        RIGHT: THREE.MOUSE.ROTATE,  // Right click to rotate
+        RIGHT: THREE.MOUSE.ROTATE, // Right click to rotate
       };
     } else {
       // In view mode or element mode, enable full controls
@@ -908,7 +1009,9 @@ export default function ModelViewer3D({
               child.material.color.setHex(0x2196f3);
             } else {
               child.material.emissive.setHex(0x000000);
-              child.material.color.setHex(getStatusColor(element.tracking_status));
+              child.material.color.setHex(
+                getStatusColor(element.tracking_status)
+              );
             }
           }
         });
@@ -941,10 +1044,16 @@ export default function ModelViewer3D({
           intersects = octreeRef.current.rayIntersect(ray);
         } catch (error) {
           // Fallback to standard raycast
-          intersects = raycaster.intersectObjects(sceneRef.current.children, true);
+          intersects = raycaster.intersectObjects(
+            sceneRef.current.children,
+            true
+          );
         }
       } else {
-        intersects = raycaster.intersectObjects(sceneRef.current.children, true);
+        intersects = raycaster.intersectObjects(
+          sceneRef.current.children,
+          true
+        );
       }
 
       if (intersects.length > 0) {
@@ -975,7 +1084,12 @@ export default function ModelViewer3D({
       return;
     }
 
-    if (selectionMode === "mesh" && interactionMode === "selection" && isDrawingBox && selectionBox) {
+    if (
+      selectionMode === "mesh" &&
+      interactionMode === "selection" &&
+      isDrawingBox &&
+      selectionBox
+    ) {
       const endX = event.clientX - rect.left;
       const endY = event.clientY - rect.top;
 
@@ -992,7 +1106,12 @@ export default function ModelViewer3D({
   };
 
   const handleMouseDown = (event: React.MouseEvent) => {
-    if (selectionMode !== "mesh" || interactionMode !== "selection" || event.button !== 0) return;
+    if (
+      selectionMode !== "mesh" ||
+      interactionMode !== "selection" ||
+      event.button !== 0
+    )
+      return;
 
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -1039,7 +1158,8 @@ export default function ModelViewer3D({
   const handleClick = (event: React.MouseEvent) => {
     if (selectionMode !== "element") return;
 
-    if (!cameraRef.current || !sceneRef.current || !containerRef.current) return;
+    if (!cameraRef.current || !sceneRef.current || !containerRef.current)
+      return;
 
     const rect = containerRef.current.getBoundingClientRect();
     const mouse = new THREE.Vector2();
@@ -1049,7 +1169,10 @@ export default function ModelViewer3D({
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, cameraRef.current);
 
-    const intersects = raycaster.intersectObjects(sceneRef.current.children, true);
+    const intersects = raycaster.intersectObjects(
+      sceneRef.current.children,
+      true
+    );
 
     if (intersects.length > 0) {
       const clickedMesh = intersects[0].object as THREE.Object3D;
@@ -1170,13 +1293,20 @@ export default function ModelViewer3D({
     camera.updateProjectionMatrix();
 
     const direction = new THREE.Vector3(1, 0.75, 1).normalize();
-    const cameraPosition = center.clone().add(direction.multiplyScalar(distance));
+    const cameraPosition = center
+      .clone()
+      .add(direction.multiplyScalar(distance));
 
     camera.position.copy(cameraPosition);
     controls.target.copy(center);
     controls.update();
 
-    console.log("📸 Camera positioned at:", camera.position, "looking at:", center);
+    console.log(
+      "📸 Camera positioned at:",
+      camera.position,
+      "looking at:",
+      center
+    );
 
     // Force render after positioning
     if (rendererRef.current && sceneRef.current) {
@@ -1206,7 +1336,8 @@ export default function ModelViewer3D({
   };
 
   const rotateCamera = (direction: "left" | "right" | "up" | "down") => {
-    if (!cameraRef.current || !controlsRef.current || !rendererRef.current) return;
+    if (!cameraRef.current || !controlsRef.current || !rendererRef.current)
+      return;
     const controls = controlsRef.current;
     const camera = cameraRef.current;
     const renderer = rendererRef.current;
@@ -1241,7 +1372,8 @@ export default function ModelViewer3D({
   };
 
   const zoomCamera = (direction: "in" | "out") => {
-    if (!cameraRef.current || !controlsRef.current || !rendererRef.current) return;
+    if (!cameraRef.current || !controlsRef.current || !rendererRef.current)
+      return;
     const camera = cameraRef.current;
     const controls = controlsRef.current;
     const renderer = rendererRef.current;
@@ -1273,7 +1405,11 @@ export default function ModelViewer3D({
         onClick={handleClick}
         style={{
           userSelect: "none",
-          cursor: isDrawingBox ? "crosshair" : interactionMode === "selection" ? "crosshair" : "grab",
+          cursor: isDrawingBox
+            ? "crosshair"
+            : interactionMode === "selection"
+            ? "crosshair"
+            : "grab",
         }}
       >
         {selectionBox && selectionMode === "mesh" && (
@@ -1296,7 +1432,9 @@ export default function ModelViewer3D({
               top: `${hoveredElementInfo.y - 50}px`,
             }}
           >
-            <div className="text-amber-400 font-bold">📦 {hoveredElementInfo.name}</div>
+            <div className="text-amber-400 font-bold">
+              📦 {hoveredElementInfo.name}
+            </div>
             <div className="text-xs text-stone-400 mt-1">Click để chọn</div>
           </div>
         )}
@@ -1346,7 +1484,9 @@ export default function ModelViewer3D({
         <div className="space-y-1">
           {selectionMode === "mesh" ? (
             <>
-              <div className="text-yellow-300 font-bold">🎯 CHẾ ĐỘ CHỌN MESH</div>
+              <div className="text-yellow-300 font-bold">
+                🎯 CHẾ ĐỘ CHỌN MESH
+              </div>
               <div>🖱️ Kéo chuột trái: Vẽ khung chọn</div>
               <div>✅ Click lại: Bỏ chọn mesh</div>
               <div>🔄 Kéo chuột phải: Xoay camera</div>
