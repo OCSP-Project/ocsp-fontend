@@ -64,7 +64,10 @@ export default function Project3DModelIndexPage() {
         } catch (e: any) {
           notification.error({
             message: "Lỗi xóa mô hình",
-            description: e?.response?.data?.message || e?.message || "Có lỗi xảy ra khi xóa mô hình",
+            description:
+              e?.response?.data?.message ||
+              e?.message ||
+              "Có lỗi xảy ra khi xóa mô hình",
           });
         } finally {
           setDeleting(null);
@@ -79,15 +82,20 @@ export default function Project3DModelIndexPage() {
         <Header />
         <div className="min-h-[calc(100vh-4rem)] bg-white relative overflow-hidden pt-20 flex items-center justify-center">
           <div className="absolute inset-0 bg-white">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `
                 radial-gradient(circle at top left, rgba(56, 193, 182, 0.5), transparent 70%),
                 radial-gradient(circle at bottom right, rgba(102, 126, 234, 0.3), transparent 70%)
               `,
-              filter: 'blur(80px)'
-            }}></div>
+                filter: "blur(80px)",
+              }}
+            ></div>
           </div>
-          <div className="text-gray-700 relative z-10">Đang tải danh sách mô hình…</div>
+          <div className="text-gray-700 relative z-10">
+            Đang tải danh sách mô hình…
+          </div>
         </div>
       </>
     );
@@ -99,13 +107,16 @@ export default function Project3DModelIndexPage() {
         <Header />
         <div className="min-h-[calc(100vh-4rem)] bg-white relative overflow-hidden pt-20">
           <div className="absolute inset-0 bg-white">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `
                 radial-gradient(circle at top left, rgba(56, 193, 182, 0.5), transparent 70%),
                 radial-gradient(circle at bottom right, rgba(102, 126, 234, 0.3), transparent 70%)
               `,
-              filter: 'blur(80px)'
-            }}></div>
+                filter: "blur(80px)",
+              }}
+            ></div>
           </div>
           <div className="max-w-4xl mx-auto px-4 relative z-10">
             <div className="bg-red-50/90 backdrop-blur-sm border-2 border-red-200 rounded-xl p-6 text-red-700">
@@ -122,13 +133,16 @@ export default function Project3DModelIndexPage() {
       <Header />
       <div className="min-h-[calc(100vh-4rem)] bg-white relative overflow-hidden pt-16">
         <div className="absolute inset-0 bg-white">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `
               radial-gradient(circle at top left, rgba(56, 193, 182, 0.5), transparent 70%),
               radial-gradient(circle at bottom right, rgba(102, 126, 234, 0.3), transparent 70%)
             `,
-            filter: 'blur(80px)'
-          }}></div>
+              filter: "blur(80px)",
+            }}
+          ></div>
         </div>
         <div className="bg-white/95 backdrop-blur-xl border-b-2 border-gray-200 px-4 py-3 flex items-center justify-between relative z-10 shadow-sm">
           <div className="flex items-center gap-4">
@@ -138,12 +152,15 @@ export default function Project3DModelIndexPage() {
             >
               ← Quay lại
             </Link>
-            <h1 className="text-lg font-bold" style={{
-              background: 'linear-gradient(135deg, #38c1b6 0%, #667eea 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
+            <h1
+              className="text-lg font-bold"
+              style={{
+                background: "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
               Danh sách mô hình 3D
             </h1>
           </div>
@@ -154,7 +171,10 @@ export default function Project3DModelIndexPage() {
                   router.push(`/projects/${projectId}/3d-model/upload`)
                 }
                 className="text-white font-bold px-4 py-2 rounded-xl shadow-md hover:shadow-xl transition-all"
-                style={{ background: 'linear-gradient(135deg, #38c1b6 0%, #667eea 100%)' }}
+                style={{
+                  background:
+                    "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)",
+                }}
               >
                 📤 Upload mới
               </Button>
@@ -178,7 +198,7 @@ export default function Project3DModelIndexPage() {
                 Chưa có mô hình 3D
               </h2>
               <p className="text-gray-600 mb-6">
-                Dự án này chưa có mô hình 3D nào được upload.
+                Dự án này chưa có mô hình 3D nào được upload....
               </p>
               {user?.role === UserRole.Supervisor && (
                 <Button
@@ -186,7 +206,10 @@ export default function Project3DModelIndexPage() {
                     router.push(`/projects/${projectId}/3d-model/upload`)
                   }
                   className="text-white font-bold px-6 py-3 rounded-xl shadow-md hover:shadow-xl transition-all"
-                  style={{ background: 'linear-gradient(135deg, #38c1b6 0%, #667eea 100%)' }}
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)",
+                  }}
                 >
                   📤 Upload mô hình 3D
                 </Button>
@@ -209,7 +232,10 @@ export default function Project3DModelIndexPage() {
                 <div className="flex gap-2 items-center mb-2">
                   <Button
                     className="flex-1 text-white font-bold rounded-xl shadow-sm hover:shadow-md transition-all"
-                    style={{ background: 'linear-gradient(135deg, #38c1b6 0%, #667eea 100%)' }}
+                    style={{
+                      background:
+                        "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)",
+                    }}
                     onClick={() =>
                       router.push(
                         `/projects/${projectId}/3d-model/${
@@ -223,10 +249,19 @@ export default function Project3DModelIndexPage() {
                   {user?.role === UserRole.Supervisor && (
                     <Button
                       className="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-xl shadow-sm hover:shadow-md transition-all"
-                      onClick={() => handleDeleteModel((m as any).modelId || (m as any).id, m.fileName)}
-                      disabled={deleting === ((m as any).modelId || (m as any).id)}
+                      onClick={() =>
+                        handleDeleteModel(
+                          (m as any).modelId || (m as any).id,
+                          m.fileName
+                        )
+                      }
+                      disabled={
+                        deleting === ((m as any).modelId || (m as any).id)
+                      }
                     >
-                      {deleting === ((m as any).modelId || (m as any).id) ? "⏳" : "🗑️"}
+                      {deleting === ((m as any).modelId || (m as any).id)
+                        ? "⏳"
+                        : "🗑️"}
                     </Button>
                   )}
                 </div>
