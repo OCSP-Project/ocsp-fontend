@@ -35,6 +35,7 @@ interface ModelViewer3DProps {
   explodeFactor?: number;
   selectionMode?: "element" | "mesh";
   onMeshesSelected?: (meshIndices: number[]) => void;
+  selectedMeshIndices?: number[]; // ⭐ NEW: Allow parent to control selected meshes
   interactionMode?: "view" | "selection";
 }
 
@@ -47,6 +48,7 @@ export default function ModelViewer3D({
   explodeFactor = 0,
   selectionMode = "element",
   onMeshesSelected,
+  selectedMeshIndices: externalSelectedMeshIndices,
   interactionMode = "view",
 }: ModelViewer3DProps) {
   // ===== REFS =====
@@ -89,7 +91,7 @@ export default function ModelViewer3D({
   // ===== STATE =====
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedMeshIndices, setSelectedMeshIndices] = useState<number[]>([]);
+  const [selectedMeshIndices, setSelectedMeshIndices] = useState<number[]>(externalSelectedMeshIndices || []);
   const [isDrawingBox, setIsDrawingBox] = useState(false);
   const [selectionBox, setSelectionBox] = useState<{
     startX: number;
@@ -103,6 +105,13 @@ export default function ModelViewer3D({
     x: number;
     y: number;
   } | null>(null);
+
+  // ===== SYNC EXTERNAL SELECTED MESHES =====
+  useEffect(() => {
+    if (externalSelectedMeshIndices !== undefined) {
+      setSelectedMeshIndices(externalSelectedMeshIndices);
+    }
+  }, [externalSelectedMeshIndices]);
 
   // ===== HELPER FUNCTIONS =====
 

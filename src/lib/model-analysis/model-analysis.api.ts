@@ -68,6 +68,11 @@ export const modelAnalysisApi = {
     } as Project3DModel;
   },
 
+  // Delete model by ID
+  deleteModel: async (modelId: string): Promise<void> => {
+    await apiClient.delete(`${BASE_URL}/models/${modelId}`);
+  },
+
   // Get building elements (parsed from GLB)
   getBuildingElements: async (modelId: string): Promise<BuildingElement[]> => {
     try {
