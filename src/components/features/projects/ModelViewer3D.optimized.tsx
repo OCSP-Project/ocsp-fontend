@@ -35,11 +35,9 @@ interface ModelViewer3DProps {
   explodeFactor?: number;
   selectionMode?: "element" | "mesh";
   onMeshesSelected?: (meshIndices: number[]) => void;
-  selectedMeshIndices?: number[]; // ⭐ NEW: Allow parent to control selected meshes
-  interactionMode?: "view" | "selection";
 }
 
-export default function ModelViewer3D({
+export default function ModelViewer3DOptimized({
   glbUrl,
   elements,
   onElementSelect,
@@ -48,8 +46,6 @@ export default function ModelViewer3D({
   explodeFactor = 0,
   selectionMode = "element",
   onMeshesSelected,
-  selectedMeshIndices: externalSelectedMeshIndices,
-  interactionMode = "view",
 }: ModelViewer3DProps) {
   // ===== REFS =====
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,6 +59,7 @@ export default function ModelViewer3D({
   const meshIndexMapRef = useRef<Map<THREE.Object3D, number>>(new Map());
   const assignedMeshIndicesRef = useRef<Set<number>>(new Set());
   const materialCacheRef = useRef<Map<string, THREE.MeshPhongMaterial>>(new Map());
+  const meshOriginalPositionsRef = useRef<Map<THREE.Object3D, THREE.Vector3>>(new Map());
 
   // ⭐ PHASE 1: Index-based Lookup - Reverse mapping
   const indexToMeshRef = useRef<Map<number, THREE.Mesh>>(new Map());
@@ -91,7 +88,7 @@ export default function ModelViewer3D({
   // ===== STATE =====
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [selectedMeshIndices, setSelectedMeshIndices] = useState<number[]>(externalSelectedMeshIndices || []);
+  const [selectedMeshIndices, setSelectedMeshIndices] = useState<number[]>([]);
   const [isDrawingBox, setIsDrawingBox] = useState(false);
   const [selectionBox, setSelectionBox] = useState<{
     startX: number;
@@ -100,27 +97,21 @@ export default function ModelViewer3D({
     endY: number;
   } | null>(null);
   const [hoveredMeshIndices, setHoveredMeshIndices] = useState<number[]>([]);
+  const [meshSpacing, setMeshSpacing] = useState<number>(0);
   const [hoveredElementInfo, setHoveredElementInfo] = useState<{
     name: string;
     x: number;
     y: number;
   } | null>(null);
 
-  // ===== SYNC EXTERNAL SELECTED MESHES =====
-  useEffect(() => {
-    if (externalSelectedMeshIndices !== undefined) {
-      setSelectedMeshIndices(externalSelectedMeshIndices);
-    }
-  }, [externalSelectedMeshIndices]);
-
   // ===== HELPER FUNCTIONS =====
 
   const getStatusColor = (status: TrackingStatus | string): number => {
     const colors: Record<string, number> = {
-      not_started: 0xef5350,    // Red - Chưa bắt đầu
-      in_progress: 0xffa726,    // Orange - Đang thi công
-      completed: 0x4caf50,      // Green - Hoàn thành
-      on_hold: 0xff6f00,        // Dark Orange - Tạm dừng
+      not_started: 0xcccccc,
+      in_progress: 0xffa726,
+      completed: 0x4caf50,
+      on_hold: 0xf44336,
     };
     return colors[status] || 0xcccccc;
   };
@@ -165,8 +156,7 @@ export default function ModelViewer3D({
       const perfStart = performance.now();
 
       // ⭐ PHASE 2: Use GPU Picking if available
-      // DISABLED: GPU Picking has transform issues with GLB models
-      if (false && pickingSceneRef.current && pickingTextureRef.current && rendererRef.current) {
+      if (pickingSceneRef.current && pickingTextureRef.current && rendererRef.current) {
         const minX = Math.min(startX, endX);
         const maxX = Math.max(startX, endX);
         const minY = Math.min(startY, endY);
@@ -177,13 +167,6 @@ export default function ModelViewer3D({
         if (width < 1 || height < 1) return;
 
         try {
-          // WebGL Y coordinate is flipped (bottom-up), need to convert from screen space (top-down)
-          const canvasHeight = rendererRef.current.domElement.height;
-          const glMinY = canvasHeight - maxY; // Flip Y coordinate
-          const glMaxY = canvasHeight - minY;
-
-          console.log(`🔍 Picking scene info: children=${pickingSceneRef.current.children.length}, visible meshes=${pickingSceneRef.current.children.filter((c: any) => c.visible).length}`);
-
           // Render picking scene
           rendererRef.current.setRenderTarget(pickingTextureRef.current);
           rendererRef.current.render(pickingSceneRef.current, cameraRef.current);
@@ -193,7 +176,7 @@ export default function ModelViewer3D({
           rendererRef.current.readRenderTargetPixels(
             pickingTextureRef.current,
             Math.floor(minX),
-            Math.floor(glMinY),
+            Math.floor(minY),
             Math.floor(width),
             Math.floor(height),
             pixelBuffer
@@ -202,38 +185,17 @@ export default function ModelViewer3D({
           // Restore normal rendering
           rendererRef.current.setRenderTarget(null);
 
-          // DEBUG: Render picking scene to main canvas for visual debugging (temporary)
-          // Uncomment to see picking scene
-          rendererRef.current.render(pickingSceneRef.current, cameraRef.current);
-
           // Parse colors
           const uniqueColors = new Set<number>();
-          let nonZeroPixels = 0;
-          const samplePixels: number[] = [];
-
           for (let i = 0; i < pixelBuffer.length; i += 4) {
             const r = pixelBuffer[i];
             const g = pixelBuffer[i + 1];
             const b = pixelBuffer[i + 2];
-            const a = pixelBuffer[i + 3];
             const color = (r << 16) | (g << 8) | b;
 
-            if (samplePixels.length < 10) {
-              samplePixels.push(r, g, b, a);
-            }
-
             if (color !== 0) {
-              nonZeroPixels++;
               uniqueColors.add(color);
             }
-          }
-
-          console.log(`🔍 Debug GPU Picking: uniqueColors=${uniqueColors.size}, nonZeroPixels=${nonZeroPixels}/${pixelBuffer.length/4}, colorMap size=${colorToMeshMapRef.current.size}`);
-          console.log(`🔍 Sample pixel data (first 10 RGBA):`, samplePixels);
-          console.log(`🔍 Picking colors in map:`, Array.from(colorToMeshMapRef.current.keys()).map(c => '0x' + c.toString(16).padStart(6, '0')));
-
-          if (uniqueColors.size > 0) {
-            console.log(`🔍 Sample colors found:`, Array.from(uniqueColors).slice(0, 5).map(c => '0x' + c.toString(16).padStart(6, '0')));
           }
 
           // Convert colors to mesh indices
@@ -280,28 +242,13 @@ export default function ModelViewer3D({
       indexToMeshRef.current.forEach((mesh, meshIndex) => {
         checkedCount++;
 
-        // Calculate bounding box center in world space
-        if (!mesh.geometry.boundingBox) {
-          mesh.geometry.computeBoundingBox();
-        }
+        const worldPos = new THREE.Vector3();
+        mesh.getWorldPosition(worldPos);
+        worldPos.project(cameraRef.current!);
 
-        const bbox = mesh.geometry.boundingBox!;
-        const center = new THREE.Vector3();
-        bbox.getCenter(center);
+        const screenX = ((worldPos.x + 1) / 2) * rect.width;
+        const screenY = ((-worldPos.y + 1) / 2) * rect.height;
 
-        // Transform center to world space
-        const worldCenter = center.applyMatrix4(mesh.matrixWorld);
-
-        // Project to screen space
-        worldCenter.project(cameraRef.current!);
-
-        // Skip if behind camera
-        if (worldCenter.z >= 1) return;
-
-        const screenX = ((worldCenter.x + 1) / 2) * rect.width;
-        const screenY = ((-worldCenter.y + 1) / 2) * rect.height;
-
-        // Check if center point is inside selection box
         if (screenX >= minX && screenX <= maxX && screenY >= minY && screenY <= maxY) {
           hoveredIndices.push(meshIndex);
         }
@@ -333,26 +280,9 @@ export default function ModelViewer3D({
   const initializeGPUPicking = useCallback((scene: THREE.Scene, renderer: THREE.WebGLRenderer) => {
     console.log("🎨 Initializing GPU Picking...");
 
-    // Clean up existing picking scene
-    if (pickingSceneRef.current) {
-      while (pickingSceneRef.current.children.length > 0) {
-        const child = pickingSceneRef.current.children[0];
-        pickingSceneRef.current.remove(child);
-        // Dispose materials
-        if ((child as any).material) {
-          (child as any).material.dispose();
-        }
-      }
-    }
-
-    const pickingScene = pickingSceneRef.current || new THREE.Scene();
+    const pickingScene = new THREE.Scene();
     pickingScene.background = new THREE.Color(0x000000);
     pickingSceneRef.current = pickingScene;
-
-    // Dispose old picking texture
-    if (pickingTextureRef.current) {
-      pickingTextureRef.current.dispose();
-    }
 
     const pickingTexture = new THREE.WebGLRenderTarget(
       renderer.domElement.width,
@@ -374,17 +304,10 @@ export default function ModelViewer3D({
           });
 
           const pickingMesh = new THREE.Mesh(obj.geometry, pickingMaterial);
-
-          // Decompose world matrix into position, rotation, scale
-          const position = new THREE.Vector3();
-          const quaternion = new THREE.Quaternion();
-          const scale = new THREE.Vector3();
-          obj.matrixWorld.decompose(position, quaternion, scale);
-
-          // Apply to picking mesh
-          pickingMesh.position.copy(position);
-          pickingMesh.quaternion.copy(quaternion);
-          pickingMesh.scale.copy(scale);
+          pickingMesh.position.copy(obj.position);
+          pickingMesh.rotation.copy(obj.rotation);
+          pickingMesh.scale.copy(obj.scale);
+          pickingMesh.matrixWorld.copy(obj.matrixWorld);
 
           pickingScene.add(pickingMesh);
           colorToMeshMapRef.current.set(color, obj);
@@ -395,7 +318,6 @@ export default function ModelViewer3D({
     });
 
     console.log(`✅ GPU Picking initialized: ${meshCount} meshes`);
-    console.log(`🔍 Sample picking colors:`, Array.from(colorToMeshMapRef.current.keys()).slice(0, 5).map(c => '0x' + c.toString(16).padStart(6, '0')));
   }, []);
 
   // ===== PHASE 2: INITIALIZE OCTREE =====
@@ -492,10 +414,10 @@ export default function ModelViewer3D({
     controls.rotateSpeed = 0.5;
     controls.panSpeed = 0.5;
     controls.zoomSpeed = 0.8;
-    controls.enableRotate = true;
-    controls.enablePan = true;
-    controls.enableZoom = true;
-    controls.enabled = true;
+    controls.enableRotate = false;
+    controls.enablePan = false;
+    controls.enableZoom = false;
+    controls.enabled = false;
     controlsRef.current = controls;
 
     // Lighting
@@ -627,13 +549,8 @@ export default function ModelViewer3D({
     meshToElementRef.current.clear();
     meshIndexMapRef.current.clear();
     indexToMeshRef.current.clear(); // ⭐ Clear reverse map
+    meshOriginalPositionsRef.current.clear();
     assignedMeshIndicesRef.current.clear();
-
-    if (!glbUrl) {
-      console.log("⚠️ No glbUrl provided, skipping GLB load");
-      setLoading(false);
-      return;
-    }
 
     if (glbUrl) {
       let absoluteUrl = glbUrl;
@@ -662,22 +579,13 @@ export default function ModelViewer3D({
       });
 
       console.log(`🚫 Assigned meshes count: ${assignedMeshIndicesRef.current.size}`);
-      console.log(`🔗 Loading GLB from: ${absoluteUrl}`);
-      console.log(`📋 Elements count: ${elements.length}`);
-      if (elements.length > 0) {
-        console.log(`📋 First element:`, elements[0]);
-      }
 
       const loader = new GLTFLoader();
       loader.load(
         absoluteUrl,
         (gltf) => {
-          console.log("✅ GLB loaded successfully!", gltf);
           const root = gltf.scene;
           root.userData.isGLBModel = true;
-
-          console.log("📊 Root children count:", root.children.length);
-          console.log("🔍 Root object:", root);
 
           let meshIndex = 0;
           const meshNames: string[] = [];
@@ -698,10 +606,6 @@ export default function ModelViewer3D({
               let color = 0xaaaaaa;
               let opacity = 0.95;
 
-              if (meshIndex === 0) {
-                console.log(`🔍 Processing mesh 0, selectionMode: "${selectionMode}"`);
-              }
-
               if (selectionMode === "mesh") {
                 const isAssigned = assignedMeshIndicesRef.current.has(meshIndex);
                 if (isAssigned) {
@@ -714,37 +618,40 @@ export default function ModelViewer3D({
               } else {
                 const element = findElementByMeshIndex(meshIndex, elements);
                 if (element) {
-                  // Always use status color for tracking visualization
-                  color = getStatusColor(
-                    (element as any).trackingStatus || element.tracking_status
-                  );
+                  if ((element as any).color) {
+                    color = parseInt((element as any).color.replace("#", "0x"));
+                  } else {
+                    color = getStatusColor(
+                      (element as any).trackingStatus || element.tracking_status
+                    );
+                  }
                   opacity = 1.0;
                   meshToElementRef.current.set(obj, element);
-
-                  if (meshIndex < 5) {
-                    console.log(`🎨 Mesh ${meshIndex} matched element:`, element.name, "status:", (element as any).trackingStatus, "color:", color.toString(16));
-                  }
-                } else if (meshIndex < 5) {
-                  console.log(`⚠️ Mesh ${meshIndex} has NO matching element`);
                 }
               }
 
               const material = getMaterial(color, opacity);
               obj.material = material;
-              obj.visible = true; // Ensure mesh is visible
 
               meshIndex++;
             }
           });
 
-          console.log(`🎨 Total meshes processed: ${meshIndex}`);
-
           scene.add(root);
-          console.log(`➕ Added model to scene. Scene children count: ${scene.children.length}`);
           scene.updateMatrixWorld(true);
+
+          // Save original positions
+          root.traverse((obj: any) => {
+            if (obj.isMesh) {
+              const worldPos = new THREE.Vector3();
+              obj.getWorldPosition(worldPos);
+              meshOriginalPositionsRef.current.set(obj, worldPos.clone());
+            }
+          });
 
           console.log("🔍 Sample mesh names:", meshNames);
           console.log(`📊 Total meshes indexed: ${meshIndexMapRef.current.size}`);
+          console.log(`📍 Saved ${meshOriginalPositionsRef.current.size} mesh positions`);
 
           // ⭐ PHASE 2: Initialize optimizations
           if (rendererRef.current) {
@@ -755,16 +662,9 @@ export default function ModelViewer3D({
           fitCameraToObject(root);
           setLoading(false);
         },
-        (progress) => {
-          const percentComplete = (progress.loaded / progress.total) * 100;
-          console.log(`⏳ Loading: ${percentComplete.toFixed(2)}%`);
-        },
+        undefined,
         (error) => {
-          console.error("❌ Error loading GLB:", error);
-          console.error("❌ Error details:", {
-            message: error.message,
-            url: absoluteUrl,
-          });
+          console.error("Error loading GLB:", error);
           setLoading(false);
         }
       );
@@ -845,6 +745,82 @@ export default function ModelViewer3D({
     }
   }, [selectedMeshIndices, hoveredMeshIndices, selectionMode, getMaterial]);
 
+  // ===== MESH SPACING =====
+
+  useEffect(() => {
+    if (!sceneRef.current || !rendererRef.current || !cameraRef.current) return;
+
+    const scene = sceneRef.current;
+    const renderer = rendererRef.current;
+    const camera = cameraRef.current;
+
+    if (meshOriginalPositionsRef.current.size === 0) return;
+
+    if (meshSpacing === 0) {
+      meshOriginalPositionsRef.current.forEach((originalPos, mesh) => {
+        if (!originalPos || !mesh) return;
+
+        if (mesh.parent && mesh.parent !== scene) {
+          const localPos = new THREE.Vector3();
+          mesh.parent.worldToLocal(localPos.copy(originalPos));
+          mesh.position.copy(localPos);
+        } else {
+          mesh.position.copy(originalPos);
+        }
+      });
+
+      renderer.render(scene, camera);
+      return;
+    }
+
+    const bbox = new THREE.Box3();
+    meshOriginalPositionsRef.current.forEach((pos) => {
+      if (pos) bbox.expandByPoint(pos);
+    });
+
+    const modelSize = bbox.getSize(new THREE.Vector3());
+    const maxSize = Math.max(modelSize.x, modelSize.y, modelSize.z);
+    const modelCenter = bbox.getCenter(new THREE.Vector3());
+
+    let totalDistance = 0;
+    let distanceCount = 0;
+    meshOriginalPositionsRef.current.forEach((pos) => {
+      if (pos) {
+        totalDistance += pos.distanceTo(modelCenter);
+        distanceCount++;
+      }
+    });
+    const avgDistance = distanceCount > 0 ? totalDistance / distanceCount : maxSize;
+    const spacingScale = (avgDistance * meshSpacing) / 100;
+
+    meshOriginalPositionsRef.current.forEach((originalPos, mesh) => {
+      if (!originalPos || !mesh) return;
+
+      const direction = new THREE.Vector3().subVectors(originalPos, modelCenter);
+      const distance = direction.length();
+
+      if (distance < 0.001) {
+        direction.set(0, 1, 0);
+      } else {
+        direction.normalize();
+      }
+
+      const newPos = new THREE.Vector3()
+        .copy(originalPos)
+        .addScaledVector(direction, spacingScale);
+
+      if (!mesh.parent || mesh.parent === scene) {
+        mesh.position.copy(newPos);
+      } else {
+        const localPos = new THREE.Vector3();
+        mesh.parent.worldToLocal(localPos.copy(newPos));
+        mesh.position.copy(localPos);
+      }
+    });
+
+    renderer.render(scene, camera);
+  }, [meshSpacing]);
+
   // ===== VIEW MODE =====
 
   useEffect(() => {
@@ -860,36 +836,6 @@ export default function ModelViewer3D({
         break;
     }
   }, [viewMode, explodeFactor]);
-
-  // ===== UPDATE ORBIT CONTROLS BASED ON SELECTION MODE =====
-
-  useEffect(() => {
-    if (!controlsRef.current) return;
-
-    const controls = controlsRef.current;
-
-    if (selectionMode === "mesh" && interactionMode === "selection") {
-      // In mesh selection mode, disable left-click rotate to allow box selection
-      controls.enableRotate = false;
-      controls.enablePan = true;
-      controls.enableZoom = true;
-      controls.mouseButtons = {
-        LEFT: null as any,  // Disable left click
-        MIDDLE: THREE.MOUSE.PAN,
-        RIGHT: THREE.MOUSE.ROTATE,  // Right click to rotate
-      };
-    } else {
-      // In view mode or element mode, enable full controls
-      controls.enableRotate = true;
-      controls.enablePan = true;
-      controls.enableZoom = true;
-      controls.mouseButtons = {
-        LEFT: THREE.MOUSE.ROTATE,
-        MIDDLE: THREE.MOUSE.PAN,
-        RIGHT: THREE.MOUSE.PAN,
-      };
-    }
-  }, [selectionMode, interactionMode]);
 
   // ===== HIGHLIGHT SELECTED ELEMENT =====
 
@@ -975,7 +921,7 @@ export default function ModelViewer3D({
       return;
     }
 
-    if (selectionMode === "mesh" && interactionMode === "selection" && isDrawingBox && selectionBox) {
+    if (selectionMode === "mesh" && isDrawingBox && selectionBox) {
       const endX = event.clientX - rect.left;
       const endY = event.clientY - rect.top;
 
@@ -992,7 +938,7 @@ export default function ModelViewer3D({
   };
 
   const handleMouseDown = (event: React.MouseEvent) => {
-    if (selectionMode !== "mesh" || interactionMode !== "selection" || event.button !== 0) return;
+    if (selectionMode !== "mesh" || event.button !== 0) return;
 
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
@@ -1143,45 +1089,20 @@ export default function ModelViewer3D({
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
-    console.log("📦 Model Bounding Box:", {
-      min: box.min,
-      max: box.max,
-      size,
-      center,
-    });
-
     const maxSize = Math.max(size.x, size.y, size.z);
-
-    if (maxSize === 0) {
-      console.warn("⚠️ Model has zero size! Setting default camera position.");
-      camera.position.set(10, 10, 10);
-      controls.target.set(0, 0, 0);
-      controls.update();
-      return;
-    }
-
     const fitHeightDistance =
       maxSize / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
     const fitWidthDistance = fitHeightDistance / camera.aspect;
-    const distance = Math.max(fitHeightDistance, fitWidthDistance) * 1.5; // Increased from 1.2 to 1.5
+    const distance = Math.max(fitHeightDistance, fitWidthDistance) * 1.2;
 
-    camera.near = Math.max(0.01, maxSize / 100);
-    camera.far = distance * 10;
+    camera.near = Math.max(0.1, maxSize / 1000);
+    camera.far = distance * 1000;
     camera.updateProjectionMatrix();
 
     const direction = new THREE.Vector3(1, 0.75, 1).normalize();
-    const cameraPosition = center.clone().add(direction.multiplyScalar(distance));
-
-    camera.position.copy(cameraPosition);
+    camera.position.copy(center.clone().add(direction.multiplyScalar(distance)));
     controls.target.copy(center);
     controls.update();
-
-    console.log("📸 Camera positioned at:", camera.position, "looking at:", center);
-
-    // Force render after positioning
-    if (rendererRef.current && sceneRef.current) {
-      rendererRef.current.render(sceneRef.current, camera);
-    }
   };
 
   const moveForward = (distance: number) => {
@@ -1273,7 +1194,7 @@ export default function ModelViewer3D({
         onClick={handleClick}
         style={{
           userSelect: "none",
-          cursor: isDrawingBox ? "crosshair" : interactionMode === "selection" ? "crosshair" : "grab",
+          cursor: isDrawingBox ? "crosshair" : "default",
         }}
       >
         {selectionBox && selectionMode === "mesh" && (
@@ -1325,6 +1246,88 @@ export default function ModelViewer3D({
           </button>
         </div>
 
+        {/* Camera controls */}
+        <div className="bg-stone-800/90 border border-stone-600 rounded-md p-2">
+          <div className="text-xs text-stone-300 mb-1 text-center font-semibold">
+            📹 Điều khiển Camera
+          </div>
+          <div className="grid grid-cols-3 gap-1">
+            <div></div>
+            <button
+              onClick={() => rotateCamera("up")}
+              className="px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 text-stone-100 text-xs"
+            >
+              ↑
+            </button>
+            <div></div>
+            <button
+              onClick={() => rotateCamera("left")}
+              className="px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 text-stone-100 text-xs"
+            >
+              ←
+            </button>
+            <button
+              onClick={() => zoomCamera("in")}
+              className="px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 text-stone-100 text-xs"
+            >
+              +
+            </button>
+            <button
+              onClick={() => rotateCamera("right")}
+              className="px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 text-stone-100 text-xs"
+            >
+              →
+            </button>
+            <div></div>
+            <button
+              onClick={() => rotateCamera("down")}
+              className="px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 text-stone-100 text-xs"
+            >
+              ↓
+            </button>
+            <button
+              onClick={() => zoomCamera("out")}
+              className="px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 text-stone-100 text-xs col-span-3"
+            >
+              🔍 Zoom Out
+            </button>
+          </div>
+        </div>
+
+        {/* Mesh Spacing Control */}
+        <div className="bg-stone-800/90 border border-stone-600 rounded-md p-3">
+          <div className="text-xs text-stone-300 mb-2 text-center font-semibold">
+            📐 Khoảng cách Meshes
+          </div>
+          <div className="space-y-2">
+            <input
+              type="range"
+              min="0"
+              max="50"
+              step="0.5"
+              value={meshSpacing}
+              onChange={(e) => setMeshSpacing(parseFloat(e.target.value))}
+              className="w-full h-2 bg-stone-700 rounded-lg appearance-none cursor-pointer"
+              style={{
+                background: `linear-gradient(to right, #65a30d 0%, #65a30d ${
+                  (meshSpacing / 50) * 100
+                }%, #374151 ${(meshSpacing / 50) * 100}%, #374151 100%)`,
+              }}
+            />
+            <div className="flex justify-between items-center text-xs text-stone-400">
+              <span>Đóng</span>
+              <span className="text-amber-400 font-bold">{meshSpacing.toFixed(1)}%</span>
+              <span>Tách</span>
+            </div>
+            <button
+              onClick={() => setMeshSpacing(0)}
+              className="w-full px-2 py-1 rounded bg-stone-700 hover:bg-stone-600 text-stone-100 text-xs"
+            >
+              🔄 Reset
+            </button>
+          </div>
+        </div>
+
         {/* ⭐ OPTIMIZATION STATUS INDICATOR */}
         <div className="bg-emerald-900/90 border border-emerald-600 rounded-md p-2">
           <div className="text-xs text-emerald-300 mb-1 text-center font-semibold">
@@ -1342,16 +1345,14 @@ export default function ModelViewer3D({
 
       {/* Controls info */}
       <div className="absolute top-4 right-4 bg-black/80 text-white p-4 rounded-lg text-sm">
-        <h4 className="text-green-400 font-bold mb-2">🖱️ Điều khiển</h4>
+        <h4 className="text-green-400 font-bold mb-2">⌨️ Điều khiển</h4>
         <div className="space-y-1">
           {selectionMode === "mesh" ? (
             <>
               <div className="text-yellow-300 font-bold">🎯 CHẾ ĐỘ CHỌN MESH</div>
-              <div>🖱️ Kéo chuột trái: Vẽ khung chọn</div>
+              <div>🖱️ Kéo chuột: Vẽ khung chọn</div>
               <div>✅ Click lại: Bỏ chọn mesh</div>
-              <div>🔄 Kéo chuột phải: Xoay camera</div>
-              <div>🖱️ Cuộn chuột: Zoom in/out</div>
-              <div>⚙️ Chuột giữa: Di chuyển (Pan)</div>
+              <div>📹 Dùng nút: Điều khiển camera</div>
               <div>🟢 Xanh lá: Đã chọn (OK)</div>
               <div>🟡 Vàng: Trong khung chọn</div>
               <div>🔴 Đỏ: Đã được gán</div>
@@ -1359,10 +1360,9 @@ export default function ModelViewer3D({
           ) : (
             <>
               <div className="text-blue-300 font-bold">📊 CHẾ ĐỘ TRACKING</div>
-              <div>🔄 Kéo chuột trái: Xoay camera</div>
-              <div>🖱️ Cuộn chuột: Zoom in/out</div>
-              <div>⚙️ Chuột phải: Di chuyển (Pan)</div>
+              <div>📹 Dùng nút: Điều khiển camera</div>
               <div>👆 Click: Chọn element</div>
+              <div>🔍 Nút +/- : Zoom</div>
             </>
           )}
         </div>
