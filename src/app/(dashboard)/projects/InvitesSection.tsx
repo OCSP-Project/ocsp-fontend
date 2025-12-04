@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { notification } from 'antd';
+import { FileTextOutlined, DownloadOutlined } from '@ant-design/icons';
 import { contractorQuotesApi, type QuoteRequestDetailDto, type ProjectDocumentDto } from '@/lib/quotes/quotes.contractor.api';
 import { projectsApi } from '@/lib/projects/projects.api';
 import { proposalsApi, type CreateProposalDto, type UpdateProposalDto, type ProposalDto as ApiProposalDto } from '@/lib/proposals/proposals.api';
@@ -331,7 +332,7 @@ export default function InvitesSection({}: Props) {
   return (
     <div className="grid grid-cols-1 gap-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-extrabold tracking-tight text-amber-200">Lời mời báo giá</h3>
+        <h3 className="text-2xl font-extrabold tracking-tight text-amber-400">Lời mời báo giá</h3>
         <div className="flex items-center gap-3">
           <button 
             className="px-4 py-2 rounded-md bg-blue-600 hover:bg-blue-500 text-white"
@@ -543,25 +544,38 @@ export default function InvitesSection({}: Props) {
                 <div className="border-t border-stone-700/60 pt-3">
                   <div className="text-stone-400 mb-2">Dự án</div>
                   <div className="text-stone-100">{quoteDetailData.project.name} • {quoteDetailData.project.address}</div>
-                  {quoteDetailData.project.documents && quoteDetailData.project.documents.length > 0 && (
-                    <div className="mt-3">
-                      <div className="text-stone-400 mb-2">Tài liệu đính kèm</div>
+                  
+                  {/* Project Documents Section */}
+                  {quoteDetailData.project.documents && quoteDetailData.project.documents.length > 0 ? (
+                    <div className="mt-4">
+                      <div className="text-stone-400 mb-3 font-medium">Tài liệu đính kèm dự án</div>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {quoteDetailData.project.documents
                           .filter((d: ProjectDocumentDto) => d.documentType === 1 || d.documentType === 2)
-                          .slice(0, 2)
                           .map((doc: ProjectDocumentDto) => (
                             <button
                               key={doc.id}
                               onClick={() => onDownloadDocument(doc, quoteDetailData.project.id)}
-                              className="text-left p-3 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-100 border border-stone-600"
+                              className="flex items-center gap-3 text-left p-4 rounded-lg bg-stone-700 hover:bg-stone-600 text-stone-100 border border-stone-600 transition-colors group"
                             >
-                              <div className="text-sm font-medium">{doc.documentTypeName}</div>
-                              <div className="text-xs text-stone-300 truncate">{doc.fileName}</div>
+                              <FileTextOutlined className="text-amber-400 text-xl group-hover:text-amber-300" />
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-semibold text-amber-300 mb-1">{doc.documentTypeName}</div>
+                                <div className="text-xs text-stone-300 truncate">{doc.fileName}</div>
+                                {doc.fileSizeFormatted && (
+                                  <div className="text-xs text-stone-400 mt-1">{doc.fileSizeFormatted}</div>
+                                )}
+                              </div>
+                              <DownloadOutlined className="text-stone-400 group-hover:text-amber-400" />
                             </button>
                           ))}
                       </div>
+                      {quoteDetailData.project.documents.filter((d: ProjectDocumentDto) => d.documentType === 1 || d.documentType === 2).length === 0 && (
+                        <div className="text-stone-500 text-sm italic">Chưa có tài liệu Drawing hoặc Permit</div>
+                      )}
                     </div>
+                  ) : (
+                    <div className="mt-4 text-stone-500 text-sm italic">Chưa có tài liệu đính kèm</div>
                   )}
                 </div>
               </div>

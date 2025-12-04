@@ -114,7 +114,21 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
   );
 
   // Track processed orders to prevent duplicate webhook calls
+  // Use both ref (for current session) and localStorage (persists across refreshes)
   const processedOrdersRef = React.useRef<Set<string>>(new Set());
+  
+  // Load processed orders from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("processedMoMoOrders");
+      if (stored) {
+        const orderIds = JSON.parse(stored) as string[];
+        orderIds.forEach(id => processedOrdersRef.current.add(id));
+      }
+    } catch (e) {
+      console.error("Failed to load processed orders from localStorage:", e);
+    }
+  }, []);
 
   // Check MoMo payment result and call manual webhook
   useEffect(() => {
@@ -124,14 +138,26 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
     const extraData = searchParams.get("extraData");
 
     if (orderId && requestId && extraData && resultCode !== null) {
-      // Check if already processed
+      // Check if already processed (in memory or localStorage)
       if (processedOrdersRef.current.has(orderId)) {
         console.log("Webhook already processed for orderId:", orderId);
         return;
       }
 
-      // Mark as processed
+      // Mark as processed (both in memory and localStorage)
       processedOrdersRef.current.add(orderId);
+      try {
+        const stored = localStorage.getItem("processedMoMoOrders");
+        const orderIds = stored ? (JSON.parse(stored) as string[]) : [];
+        if (!orderIds.includes(orderId)) {
+          orderIds.push(orderId);
+          // Keep only last 100 orderIds to avoid localStorage bloat
+          const recentOrderIds = orderIds.slice(-100);
+          localStorage.setItem("processedMoMoOrders", JSON.stringify(recentOrderIds));
+        }
+      } catch (e) {
+        console.error("Failed to save processed order to localStorage:", e);
+      }
 
       // Call manual webhook to update payment status
       const payload = {
@@ -483,8 +509,8 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
             successMessage.includes("Lỗi") ||
             successMessage.includes("Error") ||
             successMessage.includes("không thành công")
-              ? "bg-red-600/20 border border-red-500/30 text-red-300"
-              : "bg-green-600/20 border border-green-500/30 text-green-300"
+              ? "bg-red-600/20 border border-red-500/30 text-red-500"
+              : "bg-green-600/20 border border-green-500/30 text-green-500"
           }`}
         >
           <div className="flex items-center gap-2">
@@ -492,9 +518,9 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
             successMessage.includes("Lỗi") ||
             successMessage.includes("Error") ||
             successMessage.includes("không thành công") ? (
-              <span className="text-red-400">⚠️</span>
+              <span className="text-red-500">⚠️</span>
             ) : (
-              <CheckCircleOutlined className="text-green-400" />
+              <CheckCircleOutlined className="text-green-500" />
             )}
             <span>{successMessage}</span>
           </div>
@@ -502,7 +528,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
       )}
 
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-amber-300">Hợp đồng</h2>
+        <h2 className="text-2xl font-bold text-amber-500">Hợp đồng</h2>
       </div>
 
       {contracts.length === 0 && supervisorContracts.length === 0 ? (
@@ -519,7 +545,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
           {/* Contractor Contracts */}
           {contracts.length > 0 && (
             <div>
-              <h3 className="text-xl font-semibold text-amber-300 mb-4">
+              <h3 className="text-xl font-semibold text-amber-500 mb-4">
                 Hợp đồng nhà thầu
               </h3>
               <div className="grid gap-4">
@@ -627,7 +653,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
           {/* Supervisor Contracts */}
           {supervisorContracts.length > 0 && (
             <div ref={supervisorContractRef}>
-              <h3 className="text-xl font-semibold text-amber-300 mb-4">
+              <h3 className="text-xl font-semibold text-amber-500 mb-4">
                 Hợp đồng giám sát viên
               </h3>
               <div className="grid gap-4">

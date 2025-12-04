@@ -317,7 +317,7 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
       )}
 
       <div className="flex items-center justify-between">
-        <h3 className="text-2xl font-extrabold tracking-tight text-amber-200">Yêu cầu báo giá</h3>
+        <h3 className="text-2xl font-extrabold tracking-tight text-amber-500">Yêu cầu báo giá</h3>
         <button
           className={btnPrimary}
           onClick={(e) => { e.preventDefault(); setShowForm(v => !v); }}
@@ -395,7 +395,7 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
         {listLoading ? (
           <div className="text-stone-300">Đang tải...</div>
         ) : quotes.length === 0 ? (
-          <div className="text-stone-400">Chưa có yêu cầu báo giá</div>
+          <div className="text-stone-200">Chưa có yêu cầu báo giá</div>
         ) : (
           <ul className="divide-y divide-stone-700/60">
             {quotes.map(q => (
@@ -442,7 +442,7 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
         {listLoading ? (
           <div className="text-stone-300">Đang tải proposals...</div>
         ) : proposals.length === 0 ? (
-          <div className="text-stone-400">Chưa có proposal nào</div>
+          <div className="text-stone-200">Chưa có proposal nào</div>
         ) : (
           <div className="grid gap-4">
             {proposals.map((proposal) => (
