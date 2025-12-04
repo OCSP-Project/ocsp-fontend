@@ -1,7 +1,3 @@
-# OCSP Frontend (Next.js 14 + App Router)
-
-## Quick start
-
 ```bash
 npm i
 npm run dev
