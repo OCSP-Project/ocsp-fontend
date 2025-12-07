@@ -335,9 +335,20 @@ export interface CreateSupervisorContractDto {
   monthlyPrice: number;
 }
 
+export interface CreateSupervisorContractWithSupervisorDto {
+  projectId: string;
+  supervisorId: string;
+  monthlyPrice: number;
+}
+
 export const supervisorContractsApi = {
   create: async (dto: CreateSupervisorContractDto): Promise<SupervisorContractDto> => {
     const { data } = await apiClient.post('/supervisor-contracts', dto);
+    return data;
+  },
+
+  createWithSupervisor: async (dto: CreateSupervisorContractWithSupervisorDto): Promise<SupervisorContractDto> => {
+    const { data } = await apiClient.post('/supervisor-contracts/with-supervisor', dto);
     return data;
   },
 

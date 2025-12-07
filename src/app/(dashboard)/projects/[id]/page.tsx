@@ -16,6 +16,7 @@ import {
 import { MembersSection } from "@/components/features/project-invitations/MembersSection";
 import { ProjectParticipantRole } from "@/types/project-invitation.types";
 import { useAuth, UserRole } from "@/hooks/useAuth";
+import { authApi } from "@/lib/auth/auth.api";
 import { chatApi, type ConversationListItem } from "@/lib/api/chat";
 import { MessageOutlined, UserAddOutlined } from "@ant-design/icons";
 import { message as antdMessage } from "antd";
@@ -48,7 +49,20 @@ export default function ProjectDetailPage() {
   } | null>(null);
 
   // Track which orderIds have been processed to prevent duplicate webhook calls
-  const processedOrdersRef = React.useRef<Set<string>>(new Set());
+  const getInitialProcessedOrders = (): Set<string> => {
+    // Load previously processed orders from sessionStorage
+    try {
+      const stored = sessionStorage.getItem("processedMoMoOrders");
+      if (stored) {
+        const orders = JSON.parse(stored) as string[];
+        return new Set(orders);
+      }
+    } catch (e) {
+      console.error("Failed to load processed orders from sessionStorage:", e);
+    }
+    return new Set<string>();
+  };
+  const processedOrdersRef = React.useRef<Set<string>>(getInitialProcessedOrders());
 
   const fetchProject = async () => {
     try {
@@ -88,6 +102,41 @@ export default function ProjectDetailPage() {
     fetchProject();
   }, [projectId]);
 
+  // Check if we need to refresh user data after supervisor-features payment
+  useEffect(() => {
+    // Check if there's a flag in sessionStorage indicating we just completed supervisor-features payment
+    const justCompletedPayment = sessionStorage.getItem("justCompletedSupervisorFeatures");
+    if (justCompletedPayment === "true" && user && user.role === UserRole.Homeowner && isHomeowner) {
+      // User should have Supervisor role now, but still has Homeowner role
+      // Force refresh token to get updated user data
+      console.log("Detected supervisor-features payment completion, refreshing user data...");
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        authApi.refreshToken(refreshToken)
+          .then((newTokens) => {
+            localStorage.setItem('accessToken', newTokens.accessToken);
+            localStorage.setItem('refreshToken', newTokens.refreshToken);
+            localStorage.setItem('expiresAt', newTokens.expiresAt);
+            localStorage.setItem('user', JSON.stringify(newTokens.user));
+            // Trigger auth state change
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('auth-state-change', {
+                detail: { user: newTokens.user, isAuthenticated: true }
+              }));
+            }
+            // Clear the flag
+            sessionStorage.removeItem("justCompletedSupervisorFeatures");
+          })
+          .catch((error) => {
+            console.error("Failed to refresh user data:", error);
+            sessionStorage.removeItem("justCompletedSupervisorFeatures");
+          });
+      } else {
+        sessionStorage.removeItem("justCompletedSupervisorFeatures");
+      }
+    }
+  }, [user, isHomeowner]);
+
   // Load project conversation
   useEffect(() => {
     if (user?.id && projectId) {
@@ -115,14 +164,15 @@ export default function ProjectDetailPage() {
     const extraData = search.get("extraData");
 
     if (orderId && requestId && extraData && project) {
-      // Check if this order has already been processed
+      // Check if this order has already been processed (only check ref, not sessionStorage)
+      // We only mark as processed AFTER webhook succeeds to avoid skipping valid payments
       if (processedOrdersRef.current.has(orderId)) {
         console.log("Webhook already processed for orderId:", orderId);
+        // Remove params if already processed to prevent re-processing
+        const cleanUrl = window.location.pathname;
+        window.history.replaceState({}, "", cleanUrl);
         return;
       }
-
-      // Mark this order as being processed
-      processedOrdersRef.current.add(orderId);
 
       // Display payment status
       const isSuccess = resultCode === "0";
@@ -150,13 +200,70 @@ export default function ProjectDetailPage() {
 
       paymentsApi
         .manualWebhook(payload)
-        .then(() => {
-          console.log("Manual webhook successful");
-          fetchProject(); // Refresh project data
+        .then((response) => {
+          console.log("Manual webhook successful", { orderId, resultCode, isSuccess, response });
+          
+          // Check payment purpose from extraData BEFORE marking as processed
+          const purpose = extraData
+            ? (() => {
+                try {
+                  const decoded = atob(extraData);
+                  const parsed = JSON.parse(decoded);
+                  return parsed.purpose;
+                } catch (e) {
+                  console.error("Failed to parse extraData:", e);
+                  return null;
+                }
+              })()
+            : null;
+
+          console.log("Payment purpose:", purpose, "isSuccess:", isSuccess);
+
+          // Only mark as processed if webhook succeeds AND payment is successful
+          if (isSuccess) {
+            processedOrdersRef.current.add(orderId);
+            
+            // Also store in sessionStorage to persist across reloads
+            const processedOrders = JSON.parse(sessionStorage.getItem("processedMoMoOrders") || "[]");
+            if (!processedOrders.includes(orderId)) {
+              processedOrders.push(orderId);
+              sessionStorage.setItem("processedMoMoOrders", JSON.stringify(processedOrders));
+            }
+          }
+
+          // Remove MoMo callback params from URL to prevent infinite loop
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, "", cleanUrl);
+
+          if (isSuccess && purpose === "supervisor-features") {
+            antdMessage.success(
+              "✓ Đăng ký dịch vụ giám sát thành công! Bạn đã có thể sử dụng các chức năng của giám sát viên.",
+              5000
+            );
+            // Set flag to indicate we just completed supervisor-features payment
+            // This will trigger user data refresh after reload
+            sessionStorage.setItem("justCompletedSupervisorFeatures", "true");
+            // Reload page
+            setTimeout(() => {
+              window.location.href = window.location.pathname;
+            }, 2000);
+          } else if (!isSuccess) {
+            console.error("Payment failed:", { resultCode, message: search.get("message") });
+            antdMessage.error(
+              `Thanh toán không thành công. Mã lỗi: ${resultCode}. ${search.get("message") || ""}`,
+              5000
+            );
+          } else {
+            fetchProject(); // Refresh project data
+          }
         })
         .catch((error) => {
           console.error("Manual webhook failed:", error);
-          processedOrdersRef.current.delete(orderId); // Allow retry on error
+          // Don't mark as processed if webhook fails - allow retry
+          antdMessage.error("Lỗi xử lý webhook thanh toán. Vui lòng thử lại.");
+          // Remove params on error to prevent retry loop
+          const cleanUrl = window.location.pathname;
+          window.history.replaceState({}, "", cleanUrl);
         });
     }
   }, [search, projectId, project]);
@@ -381,25 +488,71 @@ export default function ProjectDetailPage() {
       )}₫?`
     );
     if (!confirmed) return;
+    
+    // Lưu thông tin vào sessionStorage để dùng ở trang supervisor profile
+    sessionStorage.setItem('pendingSupervisorRegistration', JSON.stringify({
+      projectId: projectId,
+      monthlyPrice: monthlyPrice,
+    }));
+    
+    // Chỉ redirect đến trang supervisors để cho phép chọn supervisor
+    router.push('/supervisors');
+  };
+
+  // Supervisor features registration logic
+  const supervisorFeaturesPrice = 500000; 
+  // Check if user has supervisor features (role is Supervisor)
+  const hasSupervisorFeaturesRole = user?.role === UserRole.Supervisor;
+  const canRegisterSupervisorFeatures = isHomeowner && user?.role === UserRole.Homeowner;
+
+  const onRegisterSupervisorFeatures = async () => {
+    if (!project || !user) return;
+    const confirmed = window.confirm(
+      `Đăng ký dịch vụ sử dụng các chức năng giám sát với phí ${supervisorFeaturesPrice.toLocaleString(
+        "vi-VN"
+      )}₫?`
+    );
+    if (!confirmed) return;
     try {
       setSaving(true);
+      setError(null);
 
-      // Tạo supervisor contract trước
-      const newContract = await supervisorContractsApi.create({
-        projectId: projectId,
-        monthlyPrice: monthlyPrice,
+      // Use the same redirect URL format as supervisor payment
+      const redirectUrl = `${window.location.origin}/projects/${projectId}`;
+      
+      console.log("[Supervisor Features] Creating payment:", {
+        amount: supervisorFeaturesPrice,
+        projectId,
+        redirectUrl,
+        purpose: "supervisor-features",
       });
 
-      // Redirect đến tab contracts với contractId để highlight
-      router.push(
-        `/projects?tab=contracts&supervisorContractId=${newContract.id}`
-      );
+      const res = await paymentsApi.momoCreate({
+        amount: supervisorFeaturesPrice,
+        description: "Phí đăng ký dịch vụ sử dụng các chức năng giám sát",
+        projectId: projectId,
+        redirectUrl: redirectUrl,
+        purpose: "supervisor-features",
+      });
+
+      console.log("[Supervisor Features] Payment response:", res);
+
+      if (res?.payUrl) {
+        console.log("[Supervisor Features] Redirecting to:", res.payUrl);
+        window.location.href = res.payUrl;
+      } else {
+        console.error("[Supervisor Features] No payUrl in response:", res);
+        setError("Không lấy được liên kết thanh toán");
+      }
     } catch (e: any) {
-      setError(
+      console.error("[Supervisor Features] Payment creation error:", e);
+      const errorMessage =
         e?.response?.data?.message ||
-          e?.message ||
-          "Đăng ký giám sát viên thất bại"
-      );
+        e?.response?.data ||
+        e?.message ||
+        "Đăng ký dịch vụ giám sát thất bại";
+      setError(errorMessage);
+      antdMessage.error(`Lỗi: ${errorMessage}`);
     } finally {
       setSaving(false);
     }
@@ -486,6 +639,15 @@ export default function ProjectDetailPage() {
               </div>
             </div>
             <div className="flex gap-3">
+              {canRegisterSupervisorFeatures && (
+                <button
+                  onClick={onRegisterSupervisorFeatures}
+                  disabled={saving}
+                  className={btnPrimary}
+                >
+                  Đăng ký dịch vụ giám sát ({supervisorFeaturesPrice.toLocaleString("vi-VN")}₫)
+                </button>
+              )}
               {canRegisterSupervisor && (
                 <button
                   onClick={onRegisterSupervisor}
@@ -507,6 +669,12 @@ export default function ProjectDetailPage() {
           {supervisorContract && supervisorContract.status === "Completed" && (
             <div className="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700">
               ✓ Dự án đã được đăng ký giám sát viên thành công!
+            </div>
+          )}
+
+          {hasSupervisorFeaturesRole && isHomeowner && (
+            <div className="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700">
+              ✓ Bạn đã đăng ký sử dụng các dịch vụ giám sát. Bạn có thể sử dụng các chức năng của giám sát viên.
             </div>
           )}
 
