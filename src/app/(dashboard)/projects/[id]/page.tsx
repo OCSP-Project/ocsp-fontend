@@ -488,28 +488,15 @@ export default function ProjectDetailPage() {
       )}₫?`
     );
     if (!confirmed) return;
-    try {
-      setSaving(true);
-
-      // Tạo supervisor contract trước
-      const newContract = await supervisorContractsApi.create({
-        projectId: projectId,
-        monthlyPrice: monthlyPrice,
-      });
-
-      // Redirect đến tab contracts với contractId để highlight
-      router.push(
-        `/projects?tab=contracts&supervisorContractId=${newContract.id}`
-      );
-    } catch (e: any) {
-      setError(
-        e?.response?.data?.message ||
-          e?.message ||
-          "Đăng ký giám sát viên thất bại"
-      );
-    } finally {
-      setSaving(false);
-    }
+    
+    // Lưu thông tin vào sessionStorage để dùng ở trang supervisor profile
+    sessionStorage.setItem('pendingSupervisorRegistration', JSON.stringify({
+      projectId: projectId,
+      monthlyPrice: monthlyPrice,
+    }));
+    
+    // Chỉ redirect đến trang supervisors để cho phép chọn supervisor
+    router.push('/supervisors');
   };
 
   // Supervisor features registration logic
