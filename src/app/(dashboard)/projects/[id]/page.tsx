@@ -102,6 +102,40 @@ export default function ProjectDetailPage() {
     fetchProject();
   }, [projectId]);
 
+  // Check if we need to refresh user data after supervisor-features payment
+  useEffect(() => {
+    // Check if there's a flag in sessionStorage indicating we just completed supervisor-features payment
+    const justCompletedPayment = sessionStorage.getItem("justCompletedSupervisorFeatures");
+    if (justCompletedPayment === "true" && user && user.role === UserRole.Homeowner && isHomeowner) {
+      // User should have Supervisor role now, but still has Homeowner role
+      // Force refresh token to get updated user data
+      console.log("Detected supervisor-features payment completion, refreshing user data...");
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        authApi.refreshToken(refreshToken)
+          .then((newTokens) => {
+            localStorage.setItem('accessToken', newTokens.accessToken);
+            localStorage.setItem('refreshToken', newTokens.refreshToken);
+            localStorage.setItem('expiresAt', newTokens.expiresAt);
+            localStorage.setItem('user', JSON.stringify(newTokens.user));
+            // Trigger auth state change
+            if (typeof window !== 'undefined') {
+              window.dispatchEvent(new CustomEvent('auth-state-change', {
+                detail: { user: newTokens.user, isAuthenticated: true }
+              }));
+            }
+            // Clear the flag
+            sessionStorage.removeItem("justCompletedSupervisorFeatures");
+          })
+          .catch((error) => {
+            console.error("Failed to refresh user data:", error);
+            sessionStorage.removeItem("justCompletedSupervisorFeatures");
+          });
+      } else {
+        sessionStorage.removeItem("justCompletedSupervisorFeatures");
+      }
+    }
+  }, [user, isHomeowner]);
 
   // Load project conversation
   useEffect(() => {
@@ -206,16 +240,10 @@ export default function ProjectDetailPage() {
               "✓ Đăng ký dịch vụ giám sát thành công! Bạn đã có thể sử dụng các chức năng của giám sát viên.",
               5000
             );
-            // Force useAuth to refresh token by making it think token is expired
-            // This ensures we get the updated user with new role from backend
-            try {
-              // Set expiresAt to past date to force token refresh
-              localStorage.setItem('expiresAt', new Date(Date.now() - 1000).toISOString());
-              console.log("Forced token expiration to trigger refresh on reload");
-            } catch (e) {
-              console.error("Error setting expiresAt:", e);
-            }
-            // Reload page - useAuth will see expired token and refresh it, getting new user data
+            // Set flag to indicate we just completed supervisor-features payment
+            // This will trigger user data refresh after reload
+            sessionStorage.setItem("justCompletedSupervisorFeatures", "true");
+            // Reload page
             setTimeout(() => {
               window.location.href = window.location.pathname;
             }, 2000);
@@ -460,28 +488,15 @@ export default function ProjectDetailPage() {
       )}₫?`
     );
     if (!confirmed) return;
-    try {
-      setSaving(true);
-
-      // Tạo supervisor contract trước
-      const newContract = await supervisorContractsApi.create({
-        projectId: projectId,
-        monthlyPrice: monthlyPrice,
-      });
-
-      // Redirect đến tab contracts với contractId để highlight
-      router.push(
-        `/projects?tab=contracts&supervisorContractId=${newContract.id}`
-      );
-    } catch (e: any) {
-      setError(
-        e?.response?.data?.message ||
-          e?.message ||
-          "Đăng ký giám sát viên thất bại"
-      );
-    } finally {
-      setSaving(false);
-    }
+    
+    // Lưu thông tin vào sessionStorage để dùng ở trang supervisor profile
+    sessionStorage.setItem('pendingSupervisorRegistration', JSON.stringify({
+      projectId: projectId,
+      monthlyPrice: monthlyPrice,
+    }));
+    
+    // Chỉ redirect đến trang supervisors để cho phép chọn supervisor
+    router.push('/supervisors');
   };
 
   // Supervisor features registration logic

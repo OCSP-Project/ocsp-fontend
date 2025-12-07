@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Header from "@/components/layout/Header";
 import {
   SupervisorSearch,
   SupervisorList,
@@ -16,38 +17,46 @@ export default function SupervisorsPage() {
   };
 
   return (
-    <div className="supervisors-page">
-      {/* Header Section */}
-      <div className="bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 text-white" style={{ marginTop: '-80px', paddingTop: '80px' }}>
-        <div className="container mx-auto px-6 py-16">
-          <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6 tracking-tight">
-              DANH SÁCH GIÁM SÁT VIÊN
+    <>
+      <Header />
+      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-700 pt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          {/* Header Section */}
+          <div className="mb-10 text-center">
+            <div className="inline-block mb-4">
+              <span className="text-5xl">👷</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-[#38c1b6] via-[#4ecdc4] to-[#667eea] bg-clip-text text-transparent mb-4">
+              Danh sách giám sát viên
             </h1>
-            <p className="text-xl md:text-2xl text-slate-200 leading-relaxed">
+            <p className="text-lg md:text-xl text-gray-600 leading-relaxed max-w-3xl mx-auto">
               Tìm kiếm và kết nối với các giám sát viên chuyên nghiệp.
-              <br />
+              <br className="hidden md:block" />
+              <span className="md:inline hidden"> </span>
               Đảm bảo chất lượng công trình với đội ngũ giám sát uy tín.
             </p>
           </div>
-        </div>
-      </div>
 
-      <div className="container mx-auto px-6 py-8">
-        {/* Search Component */}
-        <SupervisorSearch onSearch={handleSearch} isLoading={isLoading} />
+          {/* Search Component */}
+          <SupervisorSearch onSearch={handleSearch} isLoading={isLoading} />
 
-        {/* Results Section */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-800">
-              Kết quả tìm kiếm ({supervisors.length})
-            </h2>
+          {/* Results Section */}
+          <div className="space-y-6 mt-10">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-1">
+                  Kết quả tìm kiếm
+                </h2>
+                <p className="text-gray-500 text-sm">
+                  Tìm thấy <span className="font-semibold text-[#38c1b6]">{supervisors.length}</span> giám sát viên
+                </p>
+              </div>
+            </div>
+
+            <SupervisorList supervisors={supervisors} isLoading={isLoading} />
           </div>
-
-          <SupervisorList supervisors={supervisors} isLoading={isLoading} />
         </div>
       </div>
-    </div>
+    </>
   );
 }
