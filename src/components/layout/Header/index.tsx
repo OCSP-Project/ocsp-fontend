@@ -17,7 +17,9 @@ interface NavItem {
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isHeaderHidden, setIsHeaderHidden] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, logout, isLoading } = useAuthContext();
@@ -36,12 +38,26 @@ const Header: React.FC = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100);
+      const currentScrollY = window.scrollY;
+
+      // Update scrolled state
+      setIsScrolled(currentScrollY > 50);
+
+      // Hide/show header based on scroll direction
+      if (currentScrollY > lastScrollY && currentScrollY > 150) {
+        // Scrolling down & past threshold -> hide header
+        setIsHeaderHidden(true);
+      } else {
+        // Scrolling up or at top -> show header
+        setIsHeaderHidden(false);
+      }
+
+      setLastScrollY(currentScrollY);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [lastScrollY]);
 
   useEffect(() => {
     // Header animation on mount - only animate after loading is complete
@@ -136,7 +152,7 @@ const Header: React.FC = () => {
   };
 
   return (
-    <header className={`${styles.header} ${isScrolled ? styles.scrolled : ""}`}>
+    <header className={`${styles.header} ${isScrolled ? styles.scrolled : ""} ${isHeaderHidden ? styles.hidden : ""}`}>
       <div className={styles.container}>
         {/* Logo */}
         <Link href="/" className={styles.logo}>
