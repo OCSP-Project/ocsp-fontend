@@ -7,6 +7,29 @@ import type {
   ScheduleNewsDto,
 } from '@/types/news';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+
+/**
+ * Server-side fetch for news (no localStorage)
+ */
+const serverFetch = async (endpoint: string): Promise<any> => {
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    cache: 'no-store',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    if (response.status === 404) {
+      return null;
+    }
+    throw new Error(`HTTP ${response.status}`);
+  }
+
+  return response.json();
+};
+
 /**
  * Get published news list (public)
  */
@@ -23,9 +46,15 @@ export const getPublishedNews = async (
 };
 
 /**
- * Get news by ID (public)
+ * Get news by ID (public) - Works on both server & client
  */
 export const getNewsById = async (id: string): Promise<News | null> => {
+  // Check if running on server (no window object)
+  if (typeof window === 'undefined') {
+    return serverFetch(`/news/${id}`);
+  }
+
+  // Client-side
   try {
     const response = await apiClient.get<News>(`/news/${id}`);
     return response.data;
