@@ -37,6 +37,7 @@ export default function DashboardLayout({
       if (pathname === "/admin") return "Bảng điều khiển";
       if (pathname === "/admin/users") return "Quản lý người dùng";
       if (pathname === "/admin/projects") return "Quản lý dự án";
+      if (pathname === "/admin/news") return "Quản lý tin tức";
       if (pathname.startsWith("/admin/reports")) return "Báo cáo";
       if (pathname.startsWith("/admin/settings")) return "Cài đặt";
       return "Quản lý hệ thống";
@@ -220,6 +221,12 @@ export default function DashboardLayout({
                     className={getActivePathClass("/admin/projects")}
                   >
                     Quản lý dự án
+                  </Link>
+                  <Link
+                    href="/admin/news"
+                    className={getActivePathClass("/admin/news")}
+                  >
+                    Quản lý tin tức
                   </Link>
                   <Link
                     href="/admin/reports"
