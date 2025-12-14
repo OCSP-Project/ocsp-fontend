@@ -61,10 +61,6 @@ const ContactPage: React.FC = () => {
         maxRate: values.maxRate,
         // Contractor fields
         companyName: values.companyName,
-        businessLicense: values.businessLicense,
-        taxCode: values.taxCode,
-        description: values.description,
-        website: values.website,
         address: values.address,
         city: values.city,
         province: values.province,
@@ -102,10 +98,6 @@ const ContactPage: React.FC = () => {
       minRate: undefined,
       maxRate: undefined,
       companyName: undefined,
-      businessLicense: undefined,
-      taxCode: undefined,
-      description: undefined,
-      website: undefined,
       address: undefined,
       city: undefined,
       province: undefined,
@@ -283,58 +275,6 @@ const ContactPage: React.FC = () => {
                   <Input
                     placeholder="Tên công ty"
                     prefix={<BankOutlined className={styles.inputIcon} />}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label="Giấy phép kinh doanh"
-                  name="businessLicense"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Vui lòng nhập số giấy phép kinh doanh",
-                    },
-                  ]}
-                  className={styles.formItem}
-                >
-                  <Input
-                    placeholder="Số giấy phép kinh doanh"
-                    prefix={<FileTextOutlined className={styles.inputIcon} />}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label="Mã số thuế"
-                  name="taxCode"
-                  className={styles.formItem}
-                >
-                  <Input
-                    placeholder="Mã số thuế"
-                    prefix={<IdcardOutlined className={styles.inputIcon} />}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label="Mô tả công ty"
-                  name="description"
-                  className={styles.formItem}
-                >
-                  <TextArea
-                    rows={4}
-                    placeholder="Mô tả về công ty, lĩnh vực hoạt động, kinh nghiệm..."
-                    showCount
-                    maxLength={500}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label="Website"
-                  name="website"
-                  className={styles.formItem}
-                >
-                  <Input
-                    placeholder="https://example.com"
-                    prefix={<GlobalOutlined className={styles.inputIcon} />}
                   />
                 </Form.Item>
 

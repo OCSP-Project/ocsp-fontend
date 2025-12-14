@@ -339,7 +339,8 @@ const UsersManagementPage: React.FC = () => {
           return (
             <Space direction="vertical" size="small">
               <div><Text type="secondary">Công ty: </Text>{record.companyName || "-"}</div>
-              <div><Text type="secondary">Giấy phép: </Text>{record.businessLicense || "-"}</div>
+              {record.yearsOfExperience && <div><Text type="secondary">Kinh nghiệm: </Text>{record.yearsOfExperience} năm</div>}
+              {record.completedProjects && <div><Text type="secondary">Dự án hoàn thành: </Text>{record.completedProjects}</div>}
             </Space>
           );
         }

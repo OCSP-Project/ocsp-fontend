@@ -1,339 +1,617 @@
 // src/features/contractors/components/ContractorCard/ContractorCard.module.scss
 .contractorCard {
-    position: relative;
-    margin-bottom: 20px;
-    
-    .card {
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #f0f0f0;
-      transition: all 0.3s ease;
-      
-      &:hover {
-        border-color: #1890ff;
-        
-        .coverImage {
-          transform: scale(1.05);
-        }
-      }
-    }
-    
-    .coverContainer {
-      position: relative;
-      height: 200px;
-      overflow: hidden;
-      
+  position: relative;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.card {
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(56, 193, 182, 0.15);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 4px 20px rgba(56, 193, 182, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.05);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+
+    &:hover {
+      border-color: rgba(56, 193, 182, 0.5);
+      box-shadow:
+        0 12px 48px rgba(56, 193, 182, 0.25),
+        0 6px 20px rgba(102, 126, 234, 0.15);
+      transform: translateY(-6px);
+
       .coverImage {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.3s ease;
+        transform: scale(1.08);
       }
-      
+
       .placeholderCover {
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-      
-      .badgeOverlay {
-        position: absolute;
-        top: 8px;
-        left: 8px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        
-        .ant-tag {
-          margin: 0;
-          border-radius: 16px;
-          font-size: 11px;
-          padding: 2px 8px;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        &::before {
+          opacity: 1;
         }
       }
-      
-      .favoriteBtn {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-        width: 36px;
-        height: 36px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-        
-        &:hover {
-          background: rgba(255, 255, 255, 1);
-          transform: scale(1.1);
-        }
-        
-        &.favorited {
-          color: #ff4d4f;
-          background: rgba(255, 77, 79, 0.1);
-        }
+
+      .gradientOverlay {
+        opacity: 0.4;
       }
     }
     
-    .cardContent {
-      padding: 0;
-      
-      .header {
-        margin-bottom: 12px;
-        
-        .title {
-          display: flex;
-          justify-content: space-between;
-          align-items: flex-start;
-          gap: 8px;
-          
-          @media (max-width: 768px) {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 4px;
-          }
-          
-          .companyName {
-            margin: 0;
-            font-size: 16px;
-            font-weight: 600;
-            color: #262626;
-            line-height: 1.3;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            
-            a {
-              color: inherit;
-              text-decoration: none;
-              transition: color 0.3s ease;
-              display: block;
-              overflow: hidden;
-              text-overflow: ellipsis;
-              white-space: nowrap;
-              
-              &:hover {
-                color: #1890ff;
-              }
-            }
-          }
-          
-          .rating {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-shrink: 0;
-            
-            .ratingText {
-              font-size: 12px;
-              color: #8c8c8c;
-              white-space: nowrap;
-            }
-          }
-        }
-      }
-      
-      .description {
-        color: #595959;
-        font-size: 13px;
-        line-height: 1.4;
-        margin-bottom: 12px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        min-height: 18px; // Ensure consistent height (1 line)
-      }
-      
-      .infoGrid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px 12px;
-        margin-bottom: 12px;
-        
-        @media (max-width: 480px) {
-          grid-template-columns: 1fr;
-          gap: 6px;
-        }
-        
-        .infoItem {
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          font-size: 12px;
-          color: #8c8c8c;
-          
-          .anticon {
-            font-size: 12px;
-            color: #bfbfbf;
-          }
-          
-          .budget {
-            font-weight: 500;
-            color: #52c41a;
-          }
-        }
-      }
-      
-      .specialties {
-        margin-bottom: 12px;
-        
-        .specialtyTag {
-          font-size: 11px;
-          margin: 2px 2px 2px 0;
-          border-radius: 12px;
-          padding: 1px 6px;
-          border: none;
-          background: #f0f7ff;
-          color: #1890ff;
-        }
-        
-        .moreTag {
-          font-size: 11px;
-          margin: 2px 2px 2px 0;
-          border-radius: 12px;
-          padding: 1px 6px;
-          border: 1px solid #d9d9d9;
-          background: #fafafa;
-          color: #8c8c8c;
-        }
-      }
-      
-      .completion {
-        border-top: 1px solid #f0f0f0;
-        padding-top: 8px;
-        
-        .completionLabel {
-          font-size: 12px;
-          color: #8c8c8c;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-        }
-      }
-    }
-    
-    // Card actions styling
-    :global(.ant-card-actions) {
-      border-top: 1px solid #f0f0f0;
-      background: #fafafa;
-      
-      > li {
-        margin: 8px 0;
-        
-        .ant-btn {
-          border: none;
-          box-shadow: none;
-          height: auto;
-          padding: 4px 8px;
-          font-size: 12px;
-          
-          &:hover {
-            color: #1890ff;
-          }
-        }
-      }
-    }
+  :global(.ant-card-body) {
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    display: flex !important;
+    align-items: stretch !important;
+    min-height: 280px !important;
+    height: auto !important;
+    overflow: hidden !important;
   }
+}
+
+.cardWrapper {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  align-items: stretch !important;
+  min-height: 280px !important;
+  gap: 0 !important;
   
-  // Animation classes for GSAP
-  .contractorCard {
-    .animate-in {
-      opacity: 0;
-      transform: translateY(20px) scale(0.95);
-    }
-    
-    .animate-in-complete {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-  
-  // Responsive adjustments
   @media (max-width: 768px) {
-    .contractorCard {
-      .coverContainer {
-        height: 160px;
-      }
-      
-      .cardContent {
-        .header .title .companyName {
-          font-size: 15px;
-        }
-        
-        .infoGrid {
-          font-size: 11px;
-        }
-      }
-    }
+    flex-direction: column !important;
+    min-height: auto;
+  }
+}
+
+.coverContainer {
+  position: relative;
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+  height: 100%;
+  min-height: 280px;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(245, 247, 250, 1) 0%, rgba(229, 235, 245, 1) 100%);
+  flex-shrink: 0;
+  z-index: 0;
+  border-radius: 20px 0 0 20px;
+  
+  @media (max-width: 992px) {
+    width: 240px;
+    min-width: 240px;
+    max-width: 240px;
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
+    height: 240px;
+    min-height: 240px;
+    border-radius: 20px 20px 0 0;
   }
   
   @media (max-width: 480px) {
-    .contractorCard {
-      .coverContainer {
-        height: 140px;
+    height: 200px;
+    min-height: 200px;
+  }
+  
+  .coverImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .placeholderCover {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(56, 193, 182, 0.1) 0%, rgba(102, 126, 234, 0.1) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at top left, rgba(56, 193, 182, 0.15), transparent 50%),
+        radial-gradient(circle at bottom right, rgba(102, 126, 234, 0.15), transparent 50%);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    svg, span {
+      position: relative;
+      z-index: 1;
+      color: #38c1b6 !important;
+      filter: drop-shadow(0 4px 12px rgba(56, 193, 182, 0.3));
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 0.6;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  
+  .gradientOverlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.1) 50%,
+      rgba(0, 0, 0, 0.2) 100%
+    );
+    opacity: 0.2;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  
+  .badgeOverlay {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 2;
+    
+    @media (max-width: 480px) {
+      top: 12px;
+      left: 12px;
+      gap: 6px;
+    }
+    
+    .badgeTag {
+      margin: 0;
+      border-radius: 20px;
+      font-size: 12px;
+      padding: 4px 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(10px);
+      font-weight: 500;
+      border: none;
+      
+      @media (max-width: 480px) {
+        font-size: 11px;
+        padding: 3px 10px;
+      }
+    }
+  }
+  
+  .favoriteBtn {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+    border: none;
+    
+    @media (max-width: 480px) {
+      width: 40px;
+      height: 40px;
+      top: 12px;
+      right: 12px;
+    }
+    
+    &:hover {
+      background: rgba(255, 255, 255, 1);
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+    
+    &.favorited {
+      color: #ff4d4f;
+      background: rgba(255, 77, 79, 0.15);
+      
+      &:hover {
+        background: rgba(255, 77, 79, 0.25);
+      }
+    }
+  }
+}
+
+.cardContent {
+  padding: 24px !important;
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: auto !important;
+  min-width: 200px !important;
+  max-width: none !important;
+  align-self: stretch;
+  overflow: visible;
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.95) !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  box-sizing: border-box;
+  border-radius: 0 20px 20px 0;
+  
+  @media (max-width: 768px) {
+    padding: 20px !important;
+    width: 100% !important;
+    min-width: 100% !important;
+    border-radius: 0 0 20px 20px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 16px !important;
+  }
+  
+  .header {
+    margin-bottom: 16px;
+    
+    .titleSection {
+      .companyName {
+        margin: 0 0 12px 0;
+          font-size: 24px;
+          font-weight: 700;
+          color: #1a1a1a;
+          line-height: 1.3;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          line-clamp: 2;
+        -webkit-box-orient: vertical;
         
-        .badgeOverlay {
-          top: 6px;
-          left: 6px;
+        @media (max-width: 768px) {
+          font-size: 22px;
+          margin-bottom: 10px;
+        }
+        
+        @media (max-width: 480px) {
+          font-size: 20px;
+          margin-bottom: 8px;
+        }
+        
+        a {
+          color: inherit;
+          text-decoration: none;
+          transition: color 0.3s ease;
+          display: block;
           
-          .ant-tag {
-            font-size: 10px;
-            padding: 1px 6px;
+          &:hover {
+            color: #38c1b6;
+          }
+        }
+      }
+      
+      .rating {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+        
+        .rateStars {
+          font-size: 16px;
+          line-height: 1;
+          
+          :global(.ant-rate-star) {
+            margin-right: 4px;
+          }
+          
+          @media (max-width: 480px) {
+            font-size: 14px;
           }
         }
         
-        .favoriteBtn {
-          top: 6px;
-          right: 6px;
-          width: 32px;
-          height: 32px;
+        .ratingText {
+          font-size: 14px;
+          color: #666;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          white-space: nowrap;
+          
+          @media (max-width: 480px) {
+            font-size: 12px;
+          }
+          
+          strong {
+            color: #1a1a1a;
+            font-weight: 600;
+          }
+          
+          .reviewCount {
+            color: #8c8c8c;
+            font-weight: 400;
+          }
         }
       }
     }
   }
   
-  // Dark mode support (if needed)
-  [data-theme='dark'] {
-    .contractorCard {
-      .card {
-        background: #1f1f1f;
-        border-color: #303030;
+  .description {
+    color: #595959;
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    min-height: 72px;
+    flex: 1;
+    
+    @media (max-width: 768px) {
+      font-size: 14px;
+      margin-bottom: 16px;
+      min-height: 64px;
+    }
+    
+    @media (max-width: 480px) {
+      font-size: 13px;
+      margin-bottom: 12px;
+      min-height: 56px;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+    }
+  }
+  
+  .infoGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 16px;
+    background: rgba(56, 193, 182, 0.05);
+    border-radius: 12px;
+    border: 1px solid rgba(56, 193, 182, 0.1);
+    
+    @media (max-width: 768px) {
+      gap: 10px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+      gap: 8px;
+      padding: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .infoItem {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #595959;
+      
+      @media (max-width: 480px) {
+        font-size: 12px;
+        gap: 6px;
+      }
+      
+      .anticon {
+        font-size: 16px;
+        color: #38c1b6;
+        flex-shrink: 0;
         
-        &:hover {
-          border-color: #177ddc;
+        @media (max-width: 480px) {
+          font-size: 14px;
         }
       }
       
-      .placeholderCover {
-        background: linear-gradient(135deg, #262626 0%, #1f1f1f 100%);
-      }
-      
-      .companyName {
-        color: #f0f0f0 !important;
-        
-        a:hover {
-          color: #177ddc !important;
-        }
-      }
-      
-      .description {
-        color: #bfbfbf;
-      }
-      
-      .completion {
-        border-top-color: #303030;
-      }
-      
-      :global(.ant-card-actions) {
-        background: #262626;
-        border-top-color: #303030;
+      .budget {
+        font-weight: 600;
+        color: #38c1b6;
       }
     }
   }
+  
+  .specialties {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    
+    @media (max-width: 480px) {
+      margin-bottom: 16px;
+      gap: 6px;
+    }
+    
+    .specialtyTag {
+      font-size: 12px;
+      margin: 0;
+      border-radius: 16px;
+      padding: 6px 12px;
+      border: none;
+      background: linear-gradient(135deg, rgba(56, 193, 182, 0.1) 0%, rgba(102, 126, 234, 0.1) 100%);
+      color: #38c1b6;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      
+      @media (max-width: 480px) {
+        font-size: 11px;
+        padding: 4px 10px;
+      }
+      
+      &:hover {
+        background: linear-gradient(135deg, rgba(56, 193, 182, 0.2) 0%, rgba(102, 126, 234, 0.2) 100%);
+        transform: translateY(-1px);
+      }
+    }
+    
+    .moreTag {
+      font-size: 12px;
+      margin: 0;
+      border-radius: 16px;
+      padding: 6px 12px;
+      border: 1px solid rgba(56, 193, 182, 0.3);
+      background: rgba(255, 255, 255, 0.8);
+      color: #8c8c8c;
+      font-weight: 500;
+      
+      @media (max-width: 480px) {
+        font-size: 11px;
+        padding: 4px 10px;
+      }
+    }
+  }
+  
+  .actionButtons {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid rgba(229, 231, 235, 0.8);
+
+    @media (max-width: 480px) {
+      padding-top: 12px;
+    }
+
+    .primaryActions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+
+      @media (max-width: 480px) {
+        gap: 6px;
+      }
+
+      .actionBtn {
+        flex: 1;
+        height: 44px;
+        border-radius: 12px;
+        border: 1px solid rgba(229, 231, 235, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+
+        @media (max-width: 480px) {
+          height: 40px;
+          font-size: 16px;
+        }
+
+        &:hover {
+          border-color: #38c1b6;
+          color: #38c1b6;
+          background: rgba(56, 193, 182, 0.08);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(56, 193, 182, 0.2);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+      }
+
+      .contactBtn {
+        flex: 1.5;
+        height: 44px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #38c1b6 0%, #667eea 100%);
+        border: none;
+        font-size: 18px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(56, 193, 182, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+
+        @media (max-width: 480px) {
+          height: 40px;
+          font-size: 16px;
+        }
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(56, 193, 182, 0.4);
+          background: linear-gradient(135deg, #2dd4bf 0%, #5b64e8 100%);
+        }
+
+        &:active {
+          transform: translateY(0);
+        }
+
+        span {
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+// Animation classes for GSAP
+.card {
+  .animate-in {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  
+  .animate-in-complete {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Dark mode support
+[data-theme='dark'] {
+  .card {
+    background: rgba(31, 31, 31, 0.95);
+    border-color: rgba(255, 255, 255, 0.1);
+    
+    &:hover {
+      border-color: rgba(56, 193, 182, 0.5);
+      box-shadow: 0 12px 40px rgba(56, 193, 182, 0.3);
+    }
+  }
+  
+  .placeholderCover {
+    background: linear-gradient(135deg, #262626 0%, #1f1f1f 100%);
+  }
+  
+  .cardContent {
+    .companyName {
+      color: #f0f0f0 !important;
+      
+      a:hover {
+        color: #38c1b6 !important;
+      }
+    }
+    
+    .description {
+      color: #bfbfbf;
+    }
+    
+    .infoGrid {
+      background: rgba(56, 193, 182, 0.1);
+      border-color: rgba(56, 193, 182, 0.2);
+    }
+    
+    .actionButtons {
+      border-top-color: rgba(255, 255, 255, 0.1);
+    }
+  }
+}

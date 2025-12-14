@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { gsap } from "gsap";
 import Link from "next/link";
 import styles from "./AIChatAssistant.module.scss";
@@ -125,6 +126,13 @@ const ContractorCard: React.FC<{ contractor: ContractorAction }> = ({
 };
 
 const AIChatAssistant: React.FC = () => {
+  const pathname = usePathname();
+
+  // Chỉ hiển thị ở trang home
+  if (pathname !== "/") {
+    return null;
+  }
+
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {

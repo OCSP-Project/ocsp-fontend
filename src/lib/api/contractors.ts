@@ -23,6 +23,8 @@ export interface ContractorSummary {
   description?: string;
   averageRating: number;
   totalReviews: number;
+  googleMapsRating?: number;
+  googleMapsReviewCount?: number;
   completedProjects: number;
   yearsOfExperience: number;
   city?: string;
@@ -58,6 +60,7 @@ export interface ContractorProfile {
   address?: string;
   city?: string;
   province?: string;
+  featuredImageUrl?: string;
   yearsOfExperience: number;
   teamSize: number;
   minProjectBudget?: number;
