@@ -115,18 +115,43 @@ const ContractorPostsPage: React.FC = () => {
 
   return (
     <RoleBasedRoute allowedRoles={[UserRole.Contractor]}>
-      <div className="posts-page">
+      <div
+        className="posts-page"
+        style={{
+          minHeight: "100vh",
+          background: "linear-gradient(135deg, rgba(56, 193, 182, 0.03) 0%, rgba(102, 126, 234, 0.03) 100%)",
+          padding: "80px 24px 24px 24px"
+        }}
+      >
         {/* Header */}
         <div className="posts-page-header">
-          <Card className="mb-6">
+          <Card
+            className="mb-6"
+            style={{
+              background: "rgba(255, 255, 255, 0.95)",
+              backdropFilter: "blur(20px)",
+              border: "1px solid rgba(255, 255, 255, 0.2)",
+              borderRadius: "20px",
+              boxShadow: "0 20px 60px rgba(0, 0, 0, 0.08)"
+            }}
+          >
             <Row justify="space-between" align="middle">
               <Col>
                 <Space>
                   <div>
-                    <Title level={2} style={{ margin: 0 }}>
+                    <Title
+                      level={2}
+                      style={{
+                        margin: 0,
+                        background: "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text"
+                      }}
+                    >
                       Bài đăng của tôi
                     </Title>
-                    <p style={{ margin: 0, color: "#666" }}>
+                    <p style={{ margin: "8px 0 0 0", color: "#666" }}>
                       Quản lý và chia sẻ các bài đăng về dự án
                     </p>
                   </div>
@@ -139,10 +164,24 @@ const ContractorPostsPage: React.FC = () => {
                   icon={<PlusOutlined />}
                   onClick={() => setPostModalVisible(true)}
                   style={{
-                    borderRadius: 8,
-                    height: 48,
-                    paddingLeft: 24,
-                    paddingRight: 24,
+                    background: "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)",
+                    border: "none",
+                    borderRadius: "12px",
+                    height: 52,
+                    paddingLeft: 32,
+                    paddingRight: 32,
+                    fontSize: 16,
+                    fontWeight: 600,
+                    boxShadow: "0 4px 15px rgba(56, 193, 182, 0.3)",
+                    transition: "all 0.3s ease"
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = "translateY(-2px)";
+                    e.currentTarget.style.boxShadow = "0 8px 25px rgba(56, 193, 182, 0.4)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 4px 15px rgba(56, 193, 182, 0.3)";
                   }}
                 >
                   Tạo bài đăng mới

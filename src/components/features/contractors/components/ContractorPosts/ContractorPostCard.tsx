@@ -152,8 +152,8 @@ const ContractorPostCard: React.FC<ContractorPostCardProps> = ({
     <Card className={styles.postCard} bordered={false} ref={cardRef}>
       {/* Header */}
       <div className={styles.postHeader}>
-        <Space size={12}>
-          <Avatar size={44} src={contractorAvatar} className={styles.avatar}>
+        <Space size={14}>
+          <Avatar size={48} src={contractorAvatar} className={styles.avatar}>
             {contractorName.charAt(0).toUpperCase()}
           </Avatar>
           <div>

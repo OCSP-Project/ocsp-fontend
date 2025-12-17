@@ -59,6 +59,7 @@ import { projectsApi } from "../../../lib/projects/projects.api";
 import ContractorPostsList from "@/components/features/contractors/components/ContractorPosts/ContractorPostsList";
 import { getContractorPosts } from "@/lib/contractors/contractor-posts.api";
 import { ContractorPost } from "@/lib/contractors/contractor-posts.types";
+import GoogleMapsReviewsDisplay from "@/components/features/contractors/components/GoogleMapsReviews/GoogleMapsReviewsDisplay";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -309,12 +310,12 @@ const ContractorDetailPage: React.FC = () => {
                       <div className={styles.rating}>
                         <Rate
                           disabled
-                          value={contractor.averageRating}
+                          value={contractor.googleMapsRating || contractor.averageRating}
                           allowHalf
                         />
                         <Text className={styles.ratingText}>
-                          {contractor.averageRating.toFixed(1)}(
-                          {contractor.totalReviews} đánh giá)
+                          {(contractor.googleMapsRating || contractor.averageRating).toFixed(1)}
+                          {contractor.googleMapsRating ? ` (${contractor.googleMapsReviewCount || 0} đánh giá từ Google Maps)` : ` (${contractor.totalReviews} đánh giá)`}
                         </Text>
                       </div>
                     </div>
@@ -629,38 +630,16 @@ const ContractorDetailPage: React.FC = () => {
             </TabPane>
 
             <TabPane tab="Đánh giá" key="reviews">
-              {contractor.recentReviews.length > 0 ? (
-                <div className={styles.reviewsList}>
-                  {contractor.recentReviews.map((review) => (
-                    <Card key={review.id} className={styles.reviewCard}>
-                      <div className={styles.reviewHeader}>
-                        <div className={styles.reviewerInfo}>
-                          <Avatar size="large">
-                            {review.reviewerName.charAt(0)}
-                          </Avatar>
-                          <div>
-                            <Title level={5}>{review.reviewerName}</Title>
-                            <Text type="secondary">
-                              {formatDate(review.createdAt)}
-                            </Text>
-                          </div>
-                        </div>
-                        <Rate disabled value={review.rating} />
-                      </div>
-                      {review.comment && (
-                        <Paragraph className={styles.reviewComment}>
-                          {review.comment}
-                        </Paragraph>
-                      )}
-                      {review.projectName && (
-                        <Tag color="blue">{review.projectName}</Tag>
-                      )}
-                    </Card>
-                  ))}
-                </div>
+              {/* Google Maps Reviews */}
+              {contractor.googleMapsDataId ? (
+                <GoogleMapsReviewsDisplay
+                  dataId={contractor.googleMapsDataId}
+                  companyName={contractor.companyName}
+                  googleMapsPlaceUrl={contractor.googleMapsPlaceUrl || undefined}
+                />
               ) : (
                 <Empty
-                  description="Chưa có đánh giá nào"
+                  description="Chưa có đánh giá Google Maps"
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
               )}

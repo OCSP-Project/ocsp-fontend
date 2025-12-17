@@ -1,12 +1,15 @@
 .postCard {
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
-  margin-bottom: 16px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 24px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   }
 
   :global(.ant-card-body) {
@@ -18,17 +21,20 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
+  padding: 20px 24px;
   border-bottom: 1px solid #f0f0f0;
 }
 
 .avatar {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   flex-shrink: 0;
+  font-size: 18px;
+  width: 48px;
+  height: 48px;
 }
 
 .contractorName {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   color: #1f2937;
   display: block;
@@ -36,9 +42,9 @@
 }
 
 .postTime {
-  font-size: 13px;
+  font-size: 14px;
   color: #6b7280;
-  margin-top: 2px;
+  margin-top: 4px;
 }
 
 .moreButton {
@@ -52,22 +58,22 @@
 }
 
 .postContent {
-  padding: 16px;
+  padding: 20px 24px;
 }
 
 .postTitle {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: #1f2937;
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   line-height: 1.5;
 }
 
 .postDescription {
-  font-size: 15px;
+  font-size: 16px;
   color: #374151;
-  line-height: 1.6;
+  line-height: 1.7;
   margin-bottom: 0;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -75,7 +81,7 @@
   :global(.ant-typography-expand) {
     color: #6b7280;
     font-weight: 500;
-    
+
     &:hover {
       color: #374151;
     }
@@ -98,38 +104,46 @@
 
 .gridSingle .imageGrid {
   grid-template-columns: 1fr;
-  
+
   .imageGridItem {
-    aspect-ratio: 16 / 10;
+    aspect-ratio: 4 / 3;
+    max-height: 500px;
   }
 }
 
 .gridTwo .imageGrid {
   grid-template-columns: repeat(2, 1fr);
-  
+  gap: 4px;
+
   .imageGridItem {
-    aspect-ratio: 1;
+    aspect-ratio: 4 / 3;
+    max-height: 400px;
   }
 }
 
 .gridThree .imageGrid {
   grid-template-columns: repeat(2, 1fr);
-  
+  gap: 4px;
+
   .imageGridItem {
     aspect-ratio: 1;
-    
+    max-height: 280px;
+
     &:first-child {
       grid-column: 1 / -1;
       aspect-ratio: 16 / 9;
+      max-height: 380px;
     }
   }
 }
 
 .gridFour .imageGrid {
   grid-template-columns: repeat(2, 1fr);
-  
+  gap: 4px;
+
   .imageGridItem {
     aspect-ratio: 1;
+    max-height: 280px;
   }
 }
 
@@ -180,7 +194,8 @@
 .carouselWrapper {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
+  max-height: 500px;
   overflow: hidden;
   background: #000;
 }
@@ -272,18 +287,18 @@
 .postActions {
   display: flex;
   align-items: center;
-  padding: 8px 16px;
+  padding: 12px 20px;
   border-top: 1px solid #f0f0f0;
-  gap: 4px;
+  gap: 8px;
 }
 
 .actionButton {
   flex: 1;
-  height: 36px;
-  font-size: 14px;
+  height: 40px;
+  font-size: 15px;
   font-weight: 500;
   color: #6b7280;
-  border-radius: 6px;
+  border-radius: 8px;
   transition: all 0.2s;
 
   &:hover {
@@ -296,7 +311,7 @@
   }
 
   :global(.anticon) {
-    font-size: 18px;
+    font-size: 20px;
   }
 }
 

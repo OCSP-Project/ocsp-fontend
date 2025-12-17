@@ -22,6 +22,10 @@ export interface Contractor {
     isActive: boolean;
     isPremium: boolean;
     profileCompletionPercentage: number;
+    googleMapsDataId?: string;
+    googleMapsPlaceUrl?: string;
+    googleMapsRating?: number;
+    googleMapsReviewCount?: number;
     specialties: ContractorSpecialty[];
     documents: ContractorDocument[];
     portfolios: ContractorPortfolio[];

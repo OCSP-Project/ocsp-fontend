@@ -48,32 +48,76 @@ const ContactPage: React.FC = () => {
     try {
       setLoading(true);
 
+      // Build DTO with only relevant fields based on selected role
       const dto: SubmitRegistrationRequestDto = {
         username: values.username,
         email: values.email,
         phone: values.phone,
         requestedRole: values.requestedRole,
-        // Supervisor fields
-        department: values.department,
-        position: values.position,
-        district: values.district,
-        minRate: values.minRate,
-        maxRate: values.maxRate,
-        // Contractor fields
-        companyName: values.companyName,
-        businessLicense: values.businessLicense,
-        taxCode: values.taxCode,
-        description: values.description,
-        website: values.website,
-        address: values.address,
-        city: values.city,
-        province: values.province,
-        yearsOfExperience: values.yearsOfExperience,
-        teamSize: values.teamSize,
-        completedProjects: values.completedProjects,
-        minProjectBudget: values.minProjectBudget,
-        maxProjectBudget: values.maxProjectBudget,
       };
+
+      console.log("Form values:", values);
+      console.log("Selected role:", values.requestedRole);
+
+      // Add Supervisor-specific fields
+      if (values.requestedRole === UserRole.Supervisor) {
+        // Required fields (always send)
+        dto.department = values.department;
+        dto.position = values.position;
+        // Optional fields
+        if (values.district) dto.district = values.district;
+        if (values.minRate !== undefined && values.minRate !== null)
+          dto.minRate = Number(values.minRate);
+        if (values.maxRate !== undefined && values.maxRate !== null)
+          dto.maxRate = Number(values.maxRate);
+      }
+
+      // Add Contractor-specific fields
+      if (values.requestedRole === UserRole.Contractor) {
+        // Required fields (always send)
+        dto.companyName = values.companyName;
+        // Optional fields
+        if (values.address) dto.address = values.address;
+        if (values.city) dto.city = values.city;
+        if (values.province) dto.province = values.province;
+        if (
+          values.yearsOfExperience !== undefined &&
+          values.yearsOfExperience !== null
+        ) {
+          dto.yearsOfExperience = Number(values.yearsOfExperience);
+        }
+        if (values.teamSize !== undefined && values.teamSize !== null) {
+          dto.teamSize = Number(values.teamSize);
+        }
+        if (
+          values.completedProjects !== undefined &&
+          values.completedProjects !== null
+        ) {
+          dto.completedProjects = Number(values.completedProjects);
+        }
+        if (
+          values.minProjectBudget !== undefined &&
+          values.minProjectBudget !== null
+        ) {
+          dto.minProjectBudget = Number(values.minProjectBudget);
+        }
+        if (
+          values.maxProjectBudget !== undefined &&
+          values.maxProjectBudget !== null
+        ) {
+          dto.maxProjectBudget = Number(values.maxProjectBudget);
+        }
+      }
+
+      // Remove null values from DTO (InputNumber sets null when empty)
+      Object.keys(dto).forEach((key) => {
+        if (dto[key as keyof typeof dto] === null) {
+          delete dto[key as keyof typeof dto];
+        }
+      });
+
+      console.log("DTO being sent:", dto);
+      console.log("DTO JSON:", JSON.stringify(dto, null, 2));
 
       await registrationApi.submit(dto);
       message.success(
@@ -83,10 +127,27 @@ const ContactPage: React.FC = () => {
       setSelectedRole(undefined);
     } catch (error: any) {
       console.error("Failed to submit registration request:", error);
-      message.error(
-        error?.response?.data?.message ||
-          "Không thể gửi yêu cầu đăng ký. Vui lòng thử lại sau."
-      );
+      console.error("Error response:", error?.response);
+      console.error("Error data:", error?.response?.data);
+      console.error("Validation errors:", error?.response?.data?.errors);
+
+      // Display validation errors if available
+      const validationErrors = error?.response?.data?.errors;
+      if (validationErrors) {
+        const errorMessages = Object.entries(validationErrors)
+          .map(
+            ([field, messages]) =>
+              `${field}: ${(messages as string[]).join(", ")}`
+          )
+          .join("\n");
+        message.error(`Validation errors:\n${errorMessages}`);
+      } else {
+        message.error(
+          error?.response?.data?.message ||
+            error?.response?.data?.title ||
+            "Không thể gửi yêu cầu đăng ký. Vui lòng thử lại sau."
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -102,10 +163,6 @@ const ContactPage: React.FC = () => {
       minRate: undefined,
       maxRate: undefined,
       companyName: undefined,
-      businessLicense: undefined,
-      taxCode: undefined,
-      description: undefined,
-      website: undefined,
       address: undefined,
       city: undefined,
       province: undefined,
@@ -287,58 +344,6 @@ const ContactPage: React.FC = () => {
                 </Form.Item>
 
                 <Form.Item
-                  label="Giấy phép kinh doanh"
-                  name="businessLicense"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Vui lòng nhập số giấy phép kinh doanh",
-                    },
-                  ]}
-                  className={styles.formItem}
-                >
-                  <Input
-                    placeholder="Số giấy phép kinh doanh"
-                    prefix={<FileTextOutlined className={styles.inputIcon} />}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label="Mã số thuế"
-                  name="taxCode"
-                  className={styles.formItem}
-                >
-                  <Input
-                    placeholder="Mã số thuế"
-                    prefix={<IdcardOutlined className={styles.inputIcon} />}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label="Mô tả công ty"
-                  name="description"
-                  className={styles.formItem}
-                >
-                  <TextArea
-                    rows={4}
-                    placeholder="Mô tả về công ty, lĩnh vực hoạt động, kinh nghiệm..."
-                    showCount
-                    maxLength={500}
-                  />
-                </Form.Item>
-
-                <Form.Item
-                  label="Website"
-                  name="website"
-                  className={styles.formItem}
-                >
-                  <Input
-                    placeholder="https://example.com"
-                    prefix={<GlobalOutlined className={styles.inputIcon} />}
-                  />
-                </Form.Item>
-
-                <Form.Item
                   label="Địa chỉ"
                   name="address"
                   className={styles.formItem}
@@ -444,6 +449,12 @@ const ContactPage: React.FC = () => {
                         formatter={(value) =>
                           `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
                         }
+                        parser={
+                          ((value: string | undefined) => {
+                            const num = value?.replace(/,/g, "");
+                            return num ? Number(num) : null;
+                          }) as any
+                        }
                         className={styles.inputNumberField}
                       />
                     </div>
@@ -462,6 +473,12 @@ const ContactPage: React.FC = () => {
                         min={0}
                         formatter={(value) =>
                           `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+                        }
+                        parser={
+                          ((value: string | undefined) => {
+                            const num = value?.replace(/,/g, "");
+                            return num ? Number(num) : null;
+                          }) as any
                         }
                         className={styles.inputNumberField}
                       />

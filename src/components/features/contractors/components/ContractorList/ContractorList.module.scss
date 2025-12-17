@@ -36,12 +36,18 @@
     .contractorGrid {
       position: relative;
       
-      // Ensure equal height cards
-      .ant-col {
+      // Ensure equal height cards and prevent overflow
+      :global(.ant-col) {
         display: flex;
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
         
         > div {
           flex: 1;
+          width: 100%;
+          max-width: 100%;
+          overflow: hidden;
         }
       }
     }

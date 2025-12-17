@@ -29,7 +29,12 @@ const ConditionalLayout: React.FC<ConditionalLayoutProps> = ({ children }) => {
   // For dashboard routes, check exact match or starts with route + "/" to avoid matching similar routes
   const shouldShowHeader = !noHeaderRoutes.some((route) => {
     // Exact match for auth routes
-    if (route === "/login" || route === "/register" || route === "/forgot-password" || route === "/reset-password") {
+    if (
+      route === "/login" ||
+      route === "/register" ||
+      route === "/forgot-password" ||
+      route === "/reset-password"
+    ) {
       return pathname === route;
     }
     // For dashboard routes, match if pathname starts with route and is followed by "/" or end of string
@@ -42,12 +47,15 @@ const ConditionalLayout: React.FC<ConditionalLayoutProps> = ({ children }) => {
     return <>{children}</>;
   }
 
-  // Regular pages - with header and chat assistant
+  // Regular pages - with header
+  // Only show chat assistant on home page
+  const isHomePage = pathname === "/";
+
   return (
     <>
       <Header />
       <main style={{ paddingTop: "80px" }}>{children}</main>
-      <AIChatAssistant />
+      {isHomePage && <AIChatAssistant />}
     </>
   );
 };
