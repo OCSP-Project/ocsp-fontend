@@ -35,6 +35,7 @@ import {
   FileTextOutlined,
   FileSearchOutlined,
   ReloadOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
 import { gsap } from "gsap";
 import RoleBasedRoute from "@/components/shared/RoleBasedRoute";
@@ -540,6 +541,20 @@ const AdminDashboard: React.FC = () => {
                   onClick={() => router.push('/admin/projects')}
                 >
                   Quản lý dự án
+                </Button>
+                <Button
+                  size="large"
+                  block
+                  icon={<ThunderboltOutlined />}
+                  className={styles.actionButton}
+                  onClick={() => router.push('/admin/rag-management')}
+                  style={{
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    border: 'none'
+                  }}
+                >
+                  RAG AI Management
                 </Button>
                 <Button
                   size="large"

@@ -171,14 +171,24 @@ const HomePage: React.FC = () => {
     {
       icon: "👨‍💼",
       title: "GIÁM SÁT CHUYÊN NGHIỆP",
-      description: "Giám sát viên có chứng chỉ hành nghề, đảm bảo tiến độ và chất lượng tối ưu",
-      features: ["Kiểm tra tiến độ hàng ngày", "Báo cáo chi tiết định kỳ", "Kiểm soát chất lượng nghiêm ngặt"],
+      description:
+        "Giám sát viên có chứng chỉ hành nghề, đảm bảo tiến độ và chất lượng tối ưu",
+      features: [
+        "Kiểm tra tiến độ hàng ngày",
+        "Báo cáo chi tiết định kỳ",
+        "Kiểm soát chất lượng nghiêm ngặt",
+      ],
     },
     {
       icon: "💰",
       title: "THANH TOÁN THÔNG MINH",
-      description: "Hệ thống thanh toán an toàn, minh bạch theo từng giai đoạn công việc",
-      features: ["Escrow payment bảo mật", "Báo cáo chi phí chi tiết", "Thanh toán linh hoạt đa dạng"],
+      description:
+        "Hệ thống thanh toán an toàn, minh bạch theo từng giai đoạn công việc",
+      features: [
+        "Escrow payment bảo mật",
+        "Báo cáo chi phí chi tiết",
+        "Thanh toán linh hoạt đa dạng",
+      ],
     },
   ];
 
@@ -379,7 +389,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Services Section */}
-      <section ref={servicesRef} className={styles.servicesSection}>
+      {/* <section ref={servicesRef} className={styles.servicesSection}>
         <div className={styles.container}>
           <div className={styles.sectionHeader}>
             <span className={styles.sectionLabel}>DỊCH VỤ CỦA CHÚNG TÔI</span>
@@ -408,7 +418,7 @@ const HomePage: React.FC = () => {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Solutions Section */}
       <section className={styles.solutionsSection}>
@@ -417,11 +427,14 @@ const HomePage: React.FC = () => {
             <h2 className={styles.solutionsTitle}>
               Công nghệ AI
               <br />
-              <span className={styles.gradientText}>Tư vấn thông minh 24/7</span>
+              <span className={styles.gradientText}>
+                Tư vấn thông minh 24/7
+              </span>
             </h2>
             <p className={styles.solutionsDescription}>
-              Hệ thống AI tiên tiến giúp bạn quản lý dự án hiệu quả, từ ước tính chi phí
-              đến giám sát tiến độ thi công một cách tự động và chính xác
+              Hệ thống AI tiên tiến giúp bạn quản lý dự án hiệu quả, từ ước tính
+              chi phí đến giám sát tiến độ thi công một cách tự động và chính
+              xác
             </p>
             <div className={styles.solutionsFeatures}>
               <div className={styles.featureItem}>

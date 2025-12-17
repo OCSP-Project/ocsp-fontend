@@ -1,13 +1,15 @@
 // src/app/contractors/page.tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Breadcrumb, Typography, Space, Button, FloatButton } from "antd";
+import React, { useEffect, useState, useRef } from "react";
+import { Breadcrumb, Typography, Space, Button, FloatButton, Card } from "antd";
 import {
   HomeOutlined,
   TeamOutlined,
   CustomerServiceOutlined,
   SendOutlined,
+  RocketOutlined,
+  ThunderboltOutlined,
 } from "@ant-design/icons";
 import { gsap } from "gsap";
 import Link from "next/link";
@@ -24,6 +26,7 @@ const ContractorsPage: React.FC = () => {
   const [favoriteContractors, setFavoriteContractors] = useState<string[]>([]);
   const [mounted, setMounted] = useState(false);
   const [showSendToAllModal, setShowSendToAllModal] = useState(false);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -34,7 +37,7 @@ const ContractorsPage: React.FC = () => {
       setFavoriteContractors(JSON.parse(saved));
     }
 
-    // Page entrance animation
+    // Simple page entrance animation
     const tl = gsap.timeline();
 
     tl.fromTo(
@@ -111,31 +114,39 @@ const ContractorsPage: React.FC = () => {
             ]}
           />
 
-          {/* Page Header */}
-          <div className={styles.pageHeader}>
+          {/* Hero Section */}
+          <div className={styles.pageHeader} ref={heroRef}>
             <div className={styles.headerContent}>
               <div className={styles.titleSection}>
-                <Title level={1} className={styles.pageTitle}>
-                  Tìm kiếm nhà thầu
-                </Title>
-                <Paragraph className={styles.pageDescription}>
-                  Kết nối với các nhà thầu uy tín và chuyên nghiệp tại Đà Nẵng.
-                  Tìm kiếm theo chuyên môn, khu vực và ngân sách phù hợp với dự
-                  án của bạn.
-                </Paragraph>
+                <div className="hero-title">
+                  <Title level={1} className={styles.pageTitle}>
+                    <span className={styles.titleGradient}>
+                      Tìm kiếm nhà thầu
+                    </span>
+                    <span className={styles.titleAccent}>chuyên nghiệp</span>
+                  </Title>
+                </div>
+                <div className="hero-description">
+                  <Paragraph className={styles.pageDescription}>
+                    Kết nối với các nhà thầu uy tín và chuyên nghiệp tại Đà
+                    Nẵng. Tìm kiếm theo chuyên môn, khu vực và ngân sách phù hợp
+                    với dự án của bạn.
+                  </Paragraph>
+                </div>
               </div>
 
               {user?.role === UserRole.Homeowner && (
-                <div className={styles.headerActions}>
-                  <Space>
+                <div className={`${styles.headerActions} hero-actions`}>
+                  <Space size="middle" wrap>
                     <Button
                       type="primary"
                       size="large"
-                      icon={<CustomerServiceOutlined />}
+                      icon={<ThunderboltOutlined />}
+                      className={styles.actionButton}
                     >
                       <Link href="/ai-assistant">Tư vấn AI</Link>
                     </Button>
-                    <Button size="large" ghost>
+                    <Button size="large" ghost className={styles.actionButton}>
                       <Link href="/dashboard/projects/create">Đăng dự án</Link>
                     </Button>
                     <Button
@@ -143,6 +154,7 @@ const ContractorsPage: React.FC = () => {
                       size="large"
                       icon={<SendOutlined />}
                       onClick={() => setShowSendToAllModal(true)}
+                      className={styles.actionButton}
                     >
                       Gửi Quote đến Tất cả
                     </Button>
@@ -150,38 +162,24 @@ const ContractorsPage: React.FC = () => {
                 </div>
               )}
             </div>
-
-            {/* Quick Stats */}
-            <div className={styles.quickStats}>
-              <div className={styles.statItem}>
-                <span className={styles.statNumber}>500+</span>
-                <span className={styles.statLabel}>Nhà thầu</span>
-              </div>
-              <div className={styles.statItem}>
-                <span className={styles.statNumber}>1000+</span>
-                <span className={styles.statLabel}>Dự án hoàn thành</span>
-              </div>
-              <div className={styles.statItem}>
-                <span className={styles.statNumber}>4.8</span>
-                <span className={styles.statLabel}>Đánh giá trung bình</span>
-              </div>
-            </div>
           </div>
         </div>
 
-        {/* Search Section */}
+        {/* Enhanced Search Section */}
         <div className="search-section">
           <div className={styles.searchSection}>
-            <ContractorSearch
-              showAdvancedFilters={true}
-              onSearch={() => {
-                // Scroll to results
-                document.querySelector(".list-section")?.scrollIntoView({
-                  behavior: "smooth",
-                  block: "start",
-                });
-              }}
-            />
+            <Card className={styles.searchCard} bordered={false}>
+              <ContractorSearch
+                showAdvancedFilters={true}
+                onSearch={() => {
+                  // Scroll to results
+                  document.querySelector(".list-section")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }}
+              />
+            </Card>
           </div>
         </div>
 
@@ -192,10 +190,10 @@ const ContractorsPage: React.FC = () => {
               showPagination={true}
               itemsPerRow={{
                 xs: 1,
-                sm: 2,
-                md: 2,
-                lg: 3,
-                xl: 4,
+                sm: 1,
+                md: 1,
+                lg: 2,
+                xl: 2,
               }}
               favoriteContractors={favoriteContractors}
               onFavorite={handleFavorite}
@@ -204,8 +202,17 @@ const ContractorsPage: React.FC = () => {
         </div>
 
         {/* Float Actions */}
-        {/* <FloatButton.Group trigger="hover" type="primary" style={{ right: 24 }}>
-          <FloatButton tooltip="Lên đầu trang" onClick={scrollToTop} />
+        <FloatButton.Group
+          trigger="hover"
+          type="primary"
+          className={styles.floatButtonGroup}
+          style={{ right: 24 }}
+        >
+          <FloatButton
+            tooltip="Lên đầu trang"
+            onClick={scrollToTop}
+            icon={<RocketOutlined />}
+          />
           {user?.role === UserRole.Homeowner && (
             <FloatButton
               tooltip="Tư vấn AI"
@@ -213,7 +220,7 @@ const ContractorsPage: React.FC = () => {
               onClick={() => window.open("/ai-assistant", "_blank")}
             />
           )}
-        </FloatButton.Group> */}
+        </FloatButton.Group>
       </div>
 
       {/* Quote Send Modal */}
