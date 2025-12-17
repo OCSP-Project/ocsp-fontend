@@ -1,11 +1,11 @@
 npm run dev
 
 # open http://localhost:3000
-
+ 
 ```
 
 <!-- npx vercel --prod --> - Đẩy thẳng từ máy. Bỏ qua GitHub, ép Vercel lấy code trong máy bạn để build Production ngay lập tức
-npx vercel login - Đăng nhập lại vào Vercel CLI khi phiên làm việc hết hạn
+npx vercel login- Đăng nhập lại vào Vercel CLI khi phiên làm việc hết hạn
 npx vercel logs
 
 > Gợi ý: copy `.env.example` thành `.env.local` và sửa giá trị khi có backend thực.

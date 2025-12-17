@@ -24,6 +24,8 @@ import {
   ThunderboltOutlined,
   InfoCircleOutlined,
   ReloadOutlined,
+  DeleteOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import RoleBasedRoute from "@/components/shared/RoleBasedRoute";
 import { UserRole } from "@/hooks/useAuth";
@@ -81,7 +83,21 @@ const RAGManagementPage: React.FC = () => {
       if (!response.ok) throw new Error("Failed to fetch contractors");
 
       const data = await response.json();
-      setContractors(data);
+
+      // Handle paginated response (support both camelCase and PascalCase)
+      if (data.contractors && Array.isArray(data.contractors)) {
+        setContractors(data.contractors);
+      } else if (data.Contractors && Array.isArray(data.Contractors)) {
+        // Handle PascalCase from C# backend
+        setContractors(data.Contractors);
+      } else if (Array.isArray(data)) {
+        // Handle direct array response (fallback)
+        setContractors(data);
+      } else {
+        console.error("Expected array but got:", data);
+        setContractors([]);
+        message.warning("Định dạng dữ liệu không hợp lệ");
+      }
     } catch (error) {
       console.error("Error fetching contractors:", error);
       message.error("Không thể tải danh sách nhà thầu");
@@ -171,6 +187,62 @@ const RAGManagementPage: React.FC = () => {
       setEmbeddingLoading(false);
       setTimeout(() => setShowProgressModal(false), 1500);
     }
+  };
+
+  // Delete all chunks
+  const deleteAllChunks = () => {
+    Modal.confirm({
+      title: "Xóa tất cả chunks?",
+      icon: <ExclamationCircleOutlined />,
+      content: "Hành động này sẽ xóa TOÀN BỘ dữ liệu embedding (contractors, documents...). Không thể hoàn tác!",
+      okText: "Xóa tất cả",
+      okType: "danger",
+      cancelText: "Hủy",
+      async onOk() {
+        try {
+          const response = await fetch(`${RAG_API_BASE}/api/v1/chunks`, {
+            method: "DELETE",
+          });
+
+          if (!response.ok) throw new Error("Failed to delete chunks");
+
+          const result = await response.json();
+          message.success(`Đã xóa ${result.deleted_count} chunks`);
+          await checkRAGHealth();
+        } catch (error) {
+          console.error("Delete error:", error);
+          message.error("Có lỗi xảy ra khi xóa chunks");
+        }
+      },
+    });
+  };
+
+  // Delete contractor chunks only
+  const deleteContractorChunks = () => {
+    Modal.confirm({
+      title: "Xóa contractor chunks?",
+      icon: <ExclamationCircleOutlined />,
+      content: "Hành động này sẽ xóa tất cả contractor embeddings. Documents và dữ liệu khác sẽ được giữ lại.",
+      okText: "Xóa contractor chunks",
+      okType: "danger",
+      cancelText: "Hủy",
+      async onOk() {
+        try {
+          const response = await fetch(`${RAG_API_BASE}/api/v1/chunks/type/contractor`, {
+            method: "DELETE",
+          });
+
+          if (!response.ok) throw new Error("Failed to delete contractor chunks");
+
+          const result = await response.json();
+          message.success(`Đã xóa ${result.deleted_count} contractor chunks`);
+          await checkRAGHealth();
+        } catch (error) {
+          console.error("Delete error:", error);
+          message.error("Có lỗi xảy ra khi xóa contractor chunks");
+        }
+      },
+    });
   };
 
   useEffect(() => {
@@ -363,24 +435,48 @@ const RAGManagementPage: React.FC = () => {
 
         {/* Actions */}
         <Card style={{ marginBottom: 24, borderRadius: 12 }}>
-          <Space>
-            <Button
-              type="primary"
-              icon={<SyncOutlined spin={embeddingLoading} />}
-              onClick={() => embedContractors()}
-              loading={embeddingLoading}
-              disabled={selectedContractors.length === 0 || ragHealth?.status !== "healthy"}
-            >
-              Embed Selected ({selectedContractors.length})
-            </Button>
-            <Button
-              icon={<DatabaseOutlined />}
-              onClick={() => embedContractors(contractors.map((c) => c.id))}
-              loading={embeddingLoading}
-              disabled={ragHealth?.status !== "healthy"}
-            >
-              Embed All Contractors
-            </Button>
+          <Space direction="vertical" size={16} style={{ width: "100%" }}>
+            {/* Embedding Actions */}
+            <Space wrap>
+              <Button
+                type="primary"
+                icon={<SyncOutlined spin={embeddingLoading} />}
+                onClick={() => embedContractors()}
+                loading={embeddingLoading}
+                disabled={selectedContractors.length === 0 || ragHealth?.status !== "healthy"}
+              >
+                Embed Selected ({selectedContractors.length})
+              </Button>
+              <Button
+                icon={<DatabaseOutlined />}
+                onClick={() => embedContractors(contractors.map((c) => c.id))}
+                loading={embeddingLoading}
+                disabled={ragHealth?.status !== "healthy"}
+              >
+                Embed All Contractors
+              </Button>
+            </Space>
+
+            {/* Delete Actions */}
+            <Space wrap>
+              <Button
+                danger
+                icon={<DeleteOutlined />}
+                onClick={deleteContractorChunks}
+                disabled={ragHealth?.status !== "healthy"}
+              >
+                Delete Contractor Chunks
+              </Button>
+              <Button
+                danger
+                type="primary"
+                icon={<DeleteOutlined />}
+                onClick={deleteAllChunks}
+                disabled={ragHealth?.status !== "healthy"}
+              >
+                Delete All Chunks
+              </Button>
+            </Space>
           </Space>
         </Card>
 
