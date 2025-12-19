@@ -339,15 +339,13 @@ const ContractorDetailPage: React.FC = () => {
                         </Button>
                         {user?.role === UserRole.Homeowner && (
                           <Button
-                            type="primary"
                             icon={<SendOutlined />}
                             onClick={handleSendQuote}
                           >
-                            Gửi Quote
+                            Gửi báo giá
                           </Button>
                         )}
                         <Button
-                          type="primary"
                           icon={<MessageOutlined />}
                           size="large"
                           onClick={handleContact}

@@ -97,22 +97,25 @@ export default function BudgetPage() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-slate-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
+      <div className="border-b border-slate-200 bg-white/90 backdrop-blur-sm px-6 py-4 shadow-sm">
+        <div className="max-w-7xl mx-auto flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Dự toán & Tiến độ
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-slate-500">
+              Quản lý dự án
+            </p>
+            <h1 className="text-2xl font-bold text-slate-900">
+              Dự toán &amp; Tiến độ
             </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Quản lý dự toán và sơ đồ Gantt
+            <p className="text-sm text-slate-600 mt-1">
+              Quản lý work items, tiến độ và sơ đồ Gantt theo thời gian thực.
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 md:justify-end">
             <button
               onClick={() => setShowImportDialog(true)}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-slate-700 shadow-sm hover:border-slate-300 hover:shadow transition"
             >
               <svg
                 className="w-5 h-5"
@@ -131,7 +134,7 @@ export default function BudgetPage() {
             </button>
             <button
               onClick={handleExport}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+              className="inline-flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-emerald-700 shadow-sm hover:bg-emerald-100 transition"
             >
               <svg
                 className="w-5 h-5"
@@ -150,7 +153,7 @@ export default function BudgetPage() {
             </button>
             <button
               onClick={handleDeleteAll}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+              className="inline-flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-4 py-2 text-rose-700 shadow-sm hover:bg-rose-100 transition"
             >
               <svg
                 className="w-5 h-5"
@@ -172,12 +175,14 @@ export default function BudgetPage() {
       </div>
 
       {/* Gantt Chart View */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden max-w-7xl w-full mx-auto px-4 md:px-6 lg:px-8 py-4">
+        <div className="h-full rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
         <GanttChartView
           projectId={projectId}
           onWorkItemSelect={handleWorkItemSelect}
           refreshTrigger={refreshTrigger}
         />
+        </div>
       </div>
 
       {/* Work Item Detail Modal */}

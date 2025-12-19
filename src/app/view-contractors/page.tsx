@@ -156,7 +156,7 @@ const ContractorsPage: React.FC = () => {
                       onClick={() => setShowSendToAllModal(true)}
                       className={styles.actionButton}
                     >
-                      Gửi Quote đến Tất cả
+                      Gửi Báo giá đến Tất cả
                     </Button>
                   </Space>
                 </div>

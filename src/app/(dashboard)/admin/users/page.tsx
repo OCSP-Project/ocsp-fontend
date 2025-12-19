@@ -162,18 +162,20 @@ const UsersManagementPage: React.FC = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    try {
-      await adminApi.deleteUser(userId);
-      message.success("Xóa người dùng thành công!");
-      fetchUsers(); // Refresh list
-    } catch (error: any) {
-      console.error("Failed to delete user:", error);
-      message.error(
-        error?.response?.data?.message || "Không thể xóa người dùng"
-      );
-    }
-  };
+  // Xóa người dùng tạm thời không được phép sử dụng trên UI admin
+  // Giữ lại handler này nếu sau này cần mở lại feature.
+  // const handleDeleteUser = async (userId: string) => {
+  //   try {
+  //     await adminApi.deleteUser(userId);
+  //     message.success("Xóa người dùng thành công!");
+  //     fetchUsers(); // Refresh list
+  //   } catch (error: any) {
+  //     console.error("Failed to delete user:", error);
+  //     message.error(
+  //       error?.response?.data?.message || "Không thể xóa người dùng"
+  //     );
+  //   }
+  // };
 
   const handleBanUser = async (userId: string) => {
     try {
@@ -366,6 +368,7 @@ const UsersManagementPage: React.FC = () => {
     {
       title: "Hành động",
       key: "actions",
+      align: "center",
       render: (_: any, record: RegistrationRequestDto) => (
         <Space>
           {record.status === 0 && (
@@ -487,6 +490,7 @@ const UsersManagementPage: React.FC = () => {
     {
       title: "Hành động",
       key: "actions",
+      align: "center",
       render: (_: any, record: UserDto) => (
         <Space>
           {record.role !== UserRole.Admin && (
@@ -526,23 +530,6 @@ const UsersManagementPage: React.FC = () => {
               )}
             </>
           )}
-          <Popconfirm
-            title="Xóa người dùng này?"
-            description="Hành động này không thể hoàn tác."
-            onConfirm={() => handleDeleteUser(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
-            okButtonProps={{ danger: true }}
-          >
-            <Button
-              danger
-              icon={<DeleteOutlined />}
-              size="small"
-              disabled={record.role === UserRole.Admin} // Không cho xóa admin
-            >
-              Xóa
-            </Button>
-          </Popconfirm>
         </Space>
       ),
     },
