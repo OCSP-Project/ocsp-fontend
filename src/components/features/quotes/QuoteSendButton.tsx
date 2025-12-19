@@ -50,7 +50,7 @@ export default function QuoteSendButton({
           paddingLeft: '12px',
         }}
       >
-        {contractorId ? 'Gửi Quote' : 'Gửi Quote đến tất cả'}
+        {contractorId ? 'Gửi báo giá' : 'Gửi báo giá đến tất cả'}
       </Button>
 
       <QuoteSendModal

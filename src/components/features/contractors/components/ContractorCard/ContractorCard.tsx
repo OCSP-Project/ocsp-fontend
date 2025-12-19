@@ -251,7 +251,7 @@ const ContractorCard: React.FC<ContractorCardProps> = ({
 
   const handleQuoteSent = () => {
     setShowSendQuoteModal(false);
-    message.success("Gửi quote thành công");
+    message.success("Gửi báo giá thành công");
   };
 
   const getCompletionColor = (percentage: number) => {
@@ -466,7 +466,7 @@ const ContractorCard: React.FC<ContractorCardProps> = ({
                   />
                 </Tooltip>
                 {user?.role === UserRole.Homeowner && (
-                  <Tooltip title="Gửi Quote">
+                  <Tooltip title="Gửi báo giá">
                     <Button
                       icon={<SendOutlined />}
                       className={styles.actionBtn}

@@ -199,12 +199,12 @@ export default function DashboardLayout({
                     >
                       Hợp đồng
                     </Link>
-                    <Link
+                    {/* <Link
                       href="/projects?tab=milestones"
                       className={getActiveTabClass("milestones")}
                     >
                       Cột mốc
-                    </Link>
+                    </Link> */}
                     <Link
                       href="/contractor/posts"
                       className={getActivePathClass("/contractor/posts")}
@@ -232,12 +232,12 @@ export default function DashboardLayout({
                     >
                       Hợp đồng
                     </Link>
-                    <Link
+                    {/* <Link
                       href="/projects?tab=milestones"
                       className={getActiveTabClass("milestones")}
                     >
                       Cột mốc
-                    </Link>
+                    </Link> */}
                   </>
                 )}
               </CollapsibleSection>
@@ -343,6 +343,18 @@ export default function DashboardLayout({
               </CollapsibleSection>
             )}
 
+            {/* Contact - For Supervisor */}
+            {isSupervisor && (
+              <CollapsibleSection sectionKey="contactSupervisor" title="Liên hệ">
+                <Link
+                  href="/chat"
+                  className={getActivePathClass("/chat")}
+                >
+                  Tin nhắn
+                </Link>
+              </CollapsibleSection>
+            )}
+
             {/* Chat - Only for Homeowner */}
             {isHomeowner && (
               <CollapsibleSection sectionKey="contact" title="Liên hệ">
@@ -367,7 +379,7 @@ export default function DashboardLayout({
               <Link href="/profile" className={getActivePathClass("/profile")}>
                 Hồ sơ cá nhân
               </Link>
-              <Link
+              {/* <Link
                 href="/notifications"
                 className={getActivePathClass("/notifications")}
               >
@@ -378,7 +390,7 @@ export default function DashboardLayout({
                 className={getActivePathClass("/settings")}
               >
                 Cài đặt tài khoản
-              </Link>
+              </Link> */}
             </CollapsibleSection>
           </nav>
 

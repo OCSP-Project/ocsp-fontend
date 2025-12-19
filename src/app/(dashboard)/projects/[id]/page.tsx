@@ -480,6 +480,12 @@ export default function ProjectDetailPage() {
       : 15000000
     : 0;
 
+  // Only the homeowner (project owner with Homeowner role) can manage these actions
+  const isHomeownerRole = user?.role === UserRole.Homeowner;
+  const canManageProjectAsHomeowner = isHomeowner && isHomeownerRole;
+  const canShowSupervisorRegistrationButton =
+    canRegisterSupervisor && canManageProjectAsHomeowner;
+
   const onRegisterSupervisor = async () => {
     if (!project) return;
     const confirmed = window.confirm(
@@ -503,7 +509,7 @@ export default function ProjectDetailPage() {
   const supervisorFeaturesPrice = 500000; 
   // Check if user has supervisor features (role is Supervisor)
   const hasSupervisorFeaturesRole = user?.role === UserRole.Supervisor;
-  const canRegisterSupervisorFeatures = isHomeowner && user?.role === UserRole.Homeowner;
+  const canRegisterSupervisorFeatures = canManageProjectAsHomeowner;
 
   const onRegisterSupervisorFeatures = async () => {
     if (!project || !user) return;
@@ -648,7 +654,7 @@ export default function ProjectDetailPage() {
                   Đăng ký dịch vụ giám sát ({supervisorFeaturesPrice.toLocaleString("vi-VN")}₫)
                 </button>
               )}
-              {canRegisterSupervisor && (
+              {canShowSupervisorRegistrationButton && (
                 <button
                   onClick={onRegisterSupervisor}
                   disabled={saving}
@@ -658,7 +664,7 @@ export default function ProjectDetailPage() {
                   ₫)
                 </button>
               )}
-              {!editing && (
+              {!editing && canManageProjectAsHomeowner && (
                 <button onClick={() => setEditing(true)} className={btnPrimary}>
                   Chỉnh sửa
                 </button>
@@ -941,59 +947,59 @@ export default function ProjectDetailPage() {
                 {/* Quick Actions */}
                 <div className={cardCls}>
                   <div className="space-y-3">
-                    <Link
+                    {/* <Link
                       href={`/projects/${project.id}/progress`}
                       className="block w-full text-center py-2 px-4 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition"
                     >
                       Theo dõi tiến độ
-                    </Link>
+                    </Link> */}
 
                     <Link
                       href={`/projects/${project.id}/budget`}
-                      className="block w-full text-center py-2 px-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#ecfdf3] text-[#166534] border border-[#bbf7d0] rounded-lg hover:bg-[#dcfce7] transition"
                     >
                       Dự toán & Gantt Chart
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/diary`}
-                      className="block w-full text-center py-2 px-4 bg-[#38c1b6]/10 text-[#38c1b6] border border-[#38c1b6]/30 rounded-lg hover:bg-[#38c1b6]/20 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#e0f2fe] text-[#075985] border border-[#bae6fd] rounded-lg hover:bg-[#dbeafe] transition"
                     >
                       Nhật ký công trình
                     </Link>
 
-                    <Link
+                    {/* <Link
                       href={`/projects/${project.id}/resources`}
                       className="block w-full text-center py-2 px-4 bg-orange-50 text-orange-700 border border-orange-200 rounded-lg hover:bg-orange-100 transition"
                     >
                       Báo cáo tài nguyên
-                    </Link>
+                    </Link> */}
 
                     <button
                       onClick={handleProjectChat}
                       disabled={loadingConversation}
-                      className="block w-full text-center py-2 px-4 bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="block w-full text-center py-2 px-4 bg-[#fff1f2] text-[#be123c] border border-[#fecdd3] rounded-lg hover:bg-[#ffe4e6] transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loadingConversation ? "Đang xử lý..." : "Chat dự án"}
                     </button>
 
                     <Link
                       href={`/projects/${project.id}/reports`}
-                      className="block w-full text-center py-2 px-4 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#eef2ff] text-[#4338ca] border border-[#c7d2fe] rounded-lg hover:bg-[#e0e7ff] transition"
                     >
                       Báo cáo
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/3d-model`}
-                      className="block w-full text-center py-2 px-4 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#fef9c3] text-[#854d0e] border border-[#fef08a] rounded-lg hover:bg-[#fef08a] transition"
                     >
                       Mô hình 3D
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/materials`}
-                      className="block w-full text-center py-2 px-4 bg-[#38c1b6]/10 text-[#38c1b6] border border-[#38c1b6]/30 rounded-lg hover:bg-[#38c1b6]/20 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#ecfeff] text-[#0f766e] border border-[#cffafe] rounded-lg hover:bg-[#cffafe] transition"
                     >
                       Quản lý vật tư
                     </Link>
