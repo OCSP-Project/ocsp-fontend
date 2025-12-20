@@ -63,8 +63,8 @@ function parsePermitText(text: string, confidence: number): PermitScanResult {
   // Extract building type
   const buildingType = extractBuildingType(text, numberOfFloors || 0);
 
-  // Extract address
-  const address = extractAddress(text);
+  // Extract address - disabled
+  const address = '';
 
   // Extract owner
   const owner = extractOwner(text);

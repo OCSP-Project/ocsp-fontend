@@ -9,6 +9,29 @@ import { useAuthContext } from "@/providers";
 import { UserRole } from "@/hooks/useAuth";
 import { usePendingRegistrationRequests } from "@/hooks/usePendingRegistrationRequests";
 import { Tag } from "antd";
+import {
+  FolderOpen,
+  Mail,
+  FileText,
+  MessageSquare,
+  Building,
+  Users,
+  BarChart3,
+  Settings,
+  User,
+  Shield,
+  Home,
+  Briefcase,
+  Calendar,
+  CheckCircle,
+  Bell,
+  TrendingUp,
+  Wrench,
+  Eye,
+  Plus,
+  Search,
+  Star,
+} from "lucide-react";
 
 export default function DashboardLayout({
   children,
@@ -182,7 +205,10 @@ export default function DashboardLayout({
                   href="/projects?tab=projects"
                   className={getActiveTabClass("projects")}
                 >
-                  Dự án
+                  <div className="flex items-center">
+                    <FolderOpen className="w-4 h-4 mr-2" />
+                    Dự án
+                  </div>
                 </Link>
 
                 {isContractor ? (
@@ -191,13 +217,19 @@ export default function DashboardLayout({
                       href="/projects?tab=invites"
                       className={getActiveTabClass("invites")}
                     >
-                      Lời mời & Đề xuất
+                      <div className="flex items-center">
+                        <Mail className="w-4 h-4 mr-2" />
+                        Lời mời & Đề xuất
+                      </div>
                     </Link>
                     <Link
                       href="/projects?tab=contracts"
                       className={getActiveTabClass("contracts")}
                     >
-                      Hợp đồng
+                      <div className="flex items-center">
+                        <FileText className="w-4 h-4 mr-2" />
+                        Hợp đồng
+                      </div>
                     </Link>
                     {/* <Link
                       href="/projects?tab=milestones"
@@ -209,13 +241,19 @@ export default function DashboardLayout({
                       href="/contractor/posts"
                       className={getActivePathClass("/contractor/posts")}
                     >
-                      Bài đăng
+                      <div className="flex items-center">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Bài đăng
+                      </div>
                     </Link>
                     <Link
                       href="/contractor/company"
                       className={getActivePathClass("/contractor/company")}
                     >
-                      Thông tin công ty
+                      <div className="flex items-center">
+                        <Building className="w-4 h-4 mr-2" />
+                        Thông tin công ty
+                      </div>
                     </Link>
                   </>
                 ) : (
@@ -224,13 +262,19 @@ export default function DashboardLayout({
                       href="/projects?tab=quotes"
                       className={getActiveTabClass("quotes")}
                     >
-                      Báo giá & Đề xuất
+                      <div className="flex items-center">
+                        <TrendingUp className="w-4 h-4 mr-2" />
+                        Báo giá & Đề xuất
+                      </div>
                     </Link>
                     <Link
                       href="/projects?tab=contracts"
                       className={getActiveTabClass("contracts")}
                     >
-                      Hợp đồng
+                      <div className="flex items-center">
+                        <FileText className="w-4 h-4 mr-2" />
+                        Hợp đồng
+                      </div>
                     </Link>
                     {/* <Link
                       href="/projects?tab=milestones"
@@ -250,7 +294,10 @@ export default function DashboardLayout({
                   href="/contractor/chat"
                   className={getActivePathClass("/contractor/chat")}
                 >
-                  Tin nhắn
+                  <div className="flex items-center">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Chat
+                  </div>
                 </Link>
               </CollapsibleSection>
             )}
@@ -259,14 +306,20 @@ export default function DashboardLayout({
             {isAdmin && (
               <CollapsibleSection sectionKey="admin" title="Quản trị hệ thống">
                 <Link href="/admin" className={getActivePathClass("/admin")}>
-                  Bảng điều khiển
+                  <div className="flex items-center">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Bảng điều khiển
+                  </div>
                 </Link>
                 <div className="flex items-center gap-2">
                   <Link
                     href="/admin/users"
                     className={`${getActivePathClass("/admin/users")} flex-1`}
                   >
-                    Người dùng
+                    <div className="flex items-center">
+                      <Users className="w-4 h-4 mr-2" />
+                      Người dùng
+                    </div>
                   </Link>
                   {isAdmin && pendingCount > 0 && (
                     <Tag
@@ -281,25 +334,37 @@ export default function DashboardLayout({
                   href="/admin/projects"
                   className={getActivePathClass("/admin/projects")}
                 >
-                  Quản lý dự án
+                  <div className="flex items-center">
+                    <FolderOpen className="w-4 h-4 mr-2" />
+                    Quản lý dự án
+                  </div>
                 </Link>
                 <Link
                   href="/admin/news"
                   className={getActivePathClass("/admin/news")}
                 >
-                  Quản lý tin tức
+                  <div className="flex items-center">
+                    <Bell className="w-4 h-4 mr-2" />
+                    Quản lý tin tức
+                  </div>
                 </Link>
                 <Link
                   href="/admin/reports"
                   className={getActivePathClass("/admin/reports")}
                 >
-                  Báo cáo
+                  <div className="flex items-center">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Báo cáo
+                  </div>
                 </Link>
                 <Link
                   href="/admin/settings"
                   className={getActivePathClass("/admin/settings")}
                 >
-                  Cài đặt hệ thống
+                  <div className="flex items-center">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Cài đặt hệ thống
+                  </div>
                 </Link>
               </CollapsibleSection>
             )}
@@ -314,31 +379,46 @@ export default function DashboardLayout({
                   href="/supervisor/projects"
                   className={getActivePathClass("/supervisor/projects")}
                 >
-                  Dự án giám sát
+                  <div className="flex items-center">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Dự án giám sát
+                  </div>
                 </Link>
                 <Link
                   href="/projects?tab=contracts"
                   className={getActiveTabClass("contracts")}
                 >
-                  Hợp đồng
+                  <div className="flex items-center">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Hợp đồng
+                  </div>
                 </Link>
                 <Link
                   href="/supervisor/inspections"
                   className={getActivePathClass("/supervisor/inspections")}
                 >
-                  Kiểm tra chất lượng
+                  <div className="flex items-center">
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Kiểm tra chất lượng
+                  </div>
                 </Link>
                 <Link
                   href="/supervisor/reports"
                   className={getActivePathClass("/supervisor/reports")}
                 >
-                  Báo cáo giám sát
+                  <div className="flex items-center">
+                    <BarChart3 className="w-4 h-4 mr-2" />
+                    Báo cáo giám sát
+                  </div>
                 </Link>
                 <Link
                   href="/supervisor/schedule"
                   className={getActivePathClass("/supervisor/schedule")}
                 >
-                  Lịch làm việc
+                  <div className="flex items-center">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    Lịch làm việc
+                  </div>
                 </Link>
               </CollapsibleSection>
             )}
@@ -350,7 +430,10 @@ export default function DashboardLayout({
                   href="/chat"
                   className={getActivePathClass("/chat")}
                 >
-                  Tin nhắn
+                  <div className="flex items-center">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Tin nhắn
+                  </div>
                 </Link>
               </CollapsibleSection>
             )}
@@ -359,7 +442,10 @@ export default function DashboardLayout({
             {isHomeowner && (
               <CollapsibleSection sectionKey="contact" title="Liên hệ">
                 <Link href="/chat" className={getActivePathClass("/chat")}>
-                  Tin nhắn
+                  <div className="flex items-center">
+                    <MessageSquare className="w-4 h-4 mr-2" />
+                    Tin nhắn
+                  </div>
                 </Link>
               </CollapsibleSection>
             )}
@@ -370,14 +456,20 @@ export default function DashboardLayout({
                 href="/ai-consultant"
                 className={getActivePathClass("/ai-consultant")}
               >
-                AI Tư vấn Xây dựng
+                <div className="flex items-center">
+                  <Star className="w-4 h-4 mr-2" />
+                  AI Tư vấn Xây dựng
+                </div>
               </Link>
             </CollapsibleSection>
 
             {/* Common Navigation */}
             <CollapsibleSection sectionKey="personal" title="Cá nhân">
               <Link href="/profile" className={getActivePathClass("/profile")}>
-                Hồ sơ cá nhân
+                <div className="flex items-center">
+                  <User className="w-4 h-4 mr-2" />
+                  Hồ sơ cá nhân
+                </div>
               </Link>
               {/* <Link
                 href="/notifications"
