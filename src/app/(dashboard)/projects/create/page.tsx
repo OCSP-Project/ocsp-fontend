@@ -97,7 +97,6 @@ export default function CreateProjectPage() {
       // Auto-fill form
       setForm((prev: CreateProjectDto) => ({
         ...prev,
-        address: result.address || prev.address,
         description: `${result.buildingType} - Diện tích ${result.floorArea}m²`,
         floorArea: result.floorArea,
         numberOfFloors: result.numberOfFloors,
@@ -753,11 +752,11 @@ function PreviewSection({
             value={scanResult.owner || "N/A"}
             className="col-span-2"
           />
-          <InfoItem
+          {/* <InfoItem
             label="Địa chỉ"
             value={scanResult.address || "N/A"}
             className="col-span-2"
-          />
+          /> */}
         </div>
 
         {scanResult.warnings.length > 0 && (

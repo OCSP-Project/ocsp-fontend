@@ -143,7 +143,7 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
     setQrSuccess(null);
     setQrError(null);
     if (!qrProjectId) { setQrError('Vui lòng chọn dự án'); return; }
-    if (!qrScope.trim()) { setQrError('Vui lòng nhập phạm vi công việc (scope)'); return; }
+    if (!qrScope.trim()) { setQrError('Vui lòng nhập  Ghi Chú'); return; }
     try {
       setQrSubmitting(true);
       const payload: CreateQuoteRequestDto = {
@@ -152,7 +152,7 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
         inviteeUserIds: [], // Không chọn nhà thầu lúc tạo
       };
       const res = await quotesApi.create(payload);
-      setQrSuccess(`Tạo bản nháp Quote Request thành công (trạng thái: ${res.status})`);
+      setQrSuccess(`Tạo yêu cầu báo giá thành công (trạng thái: ${res.status})`);
       setQrScope('');
       
       await loadQuotes(selectedProjectId);
@@ -360,10 +360,10 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
             </div>
 
             <div>
-              <label className="block text-sm text-gray-700 mb-1">Phạm vi công việc (scope)</label>
+              <label className="block text-sm text-gray-700 mb-1">Ghi Chú</label>
               <textarea
                 className="w-full bg-white border border-gray-300 rounded-md px-3 py-2 text-gray-700 min-h-[120px] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#38c1b6]/40 focus:border-[#38c1b6]"
-                placeholder="Mô tả phạm vi thi công, yêu cầu, vật liệu..."
+                placeholder="Mô tả ghi chú"
                 value={qrScope}
                 onChange={(e) => setQrScope(e.target.value)}
               />
@@ -378,7 +378,7 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
                 disabled={qrSubmitting}
                 className={btnPrimary}
               >
-                {qrSubmitting ? 'Đang tạo...' : 'Tạo bản nháp'}
+                {qrSubmitting ? 'Đang tạo...' : 'Tạo'}
               </button>
             </div>
           </form>
@@ -438,7 +438,7 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
       {/* Proposals Section */}
       <div className={cardCls}>
         <div className="flex items-center justify-between mb-4">
-          <h3 className={titleCls}>Proposals từ nhà thầu</h3>
+          <h3 className={titleCls}>Đề xuất từ nhà thầu</h3>
           {proposals.some(p => p.status === 'Accepted') && (
             <div className="bg-green-600/20 border border-green-500/30 rounded-lg px-3 py-2 text-green-300 text-sm">
               <div className="flex items-center gap-2">
@@ -450,9 +450,9 @@ export default function QuotesSection({ projects, onSwitchTab }: Props) {
         </div>
 
         {listLoading ? (
-          <div className="text-gray-500">Đang tải proposals...</div>
+          <div className="text-gray-500">Đang tải đề xuất...</div>
         ) : proposals.length === 0 ? (
-          <div className="text-gray-500">Chưa có proposal nào</div>
+          <div className="text-gray-500">Chưa có đề xuất nào</div>
         ) : (
           <div className="grid gap-4">
             {proposals.map((proposal) => (

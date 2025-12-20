@@ -179,7 +179,7 @@ export default function InvitesSection({}: Props) {
   const onCreateProposal = async (_quoteId: string) => {
     notification.info({
       message: "Thông báo",
-      description: "Tạo proposal trực tiếp đã được thay bằng upload Excel.",
+      description: "Tạo đề xuất trực tiếp đã được thay bằng upload Excel.",
     });
   };
 
@@ -189,7 +189,7 @@ export default function InvitesSection({}: Props) {
       await loadInvites();
       notification.success({
         message: "Thành công",
-        description: "Đã nộp Proposal",
+        description: "Đã nộp đề xuất",
       });
     } catch (e: any) {
       notification.error({
@@ -377,14 +377,14 @@ export default function InvitesSection({}: Props) {
                   chi tiết yêu cầu báo giá
                 </button>
                 {!q.myProposal?.id ? (
-                  <button className="px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-stone-900" onClick={() => setShowFormFor(q.id)}>Tạo Proposal</button>
+                  <button className="px-3 py-1.5 rounded-md bg-amber-600 hover:bg-amber-500 text-stone-900" onClick={() => setShowFormFor(q.id)}>Tạo đề xuất</button>
                 ) : (
                   <>
                     {/* Status Display */}
                     {q.myProposal.status === 'RevisionRequested' ? (
                       <div className="flex items-center gap-2 px-3 py-2 bg-orange-600/20 border border-orange-500/30 rounded-lg">
                         <span className="text-orange-400 text-sm font-medium">⚠️ Yêu cầu chỉnh sửa đề xuất báo giá từ chủ nhà</span>
-                        <span className="text-orange-300 text-xs">Vui lòng liên hệ với chủ nhà để thảo luận vấn đề cần chỉnh sửa . Sau đó vui lòng chỉnh sửa Proposal và nộp lại</span>
+                        <span className="text-orange-300 text-xs">Vui lòng liên hệ với chủ nhà để thảo luận vấn đề cần chỉnh sửa . Sau đó vui lòng chỉnh sửa đề xuất và nộp lại</span>
                       </div>
                     ) : q.myProposal.status === 'Resubmitted' ? (
                       <div className="flex items-center gap-2 px-3 py-2 bg-purple-600/20 border border-purple-500/30 rounded-lg">
@@ -397,19 +397,19 @@ export default function InvitesSection({}: Props) {
                     
                     {/* Action Buttons */}
                     {q.myProposal.status === 'Draft' && (
-                      <button className="px-3 py-1.5 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-200" onClick={() => onEditProposal(q.id)}>Sửa Proposal</button>
+                      <button className="px-3 py-1.5 rounded-md bg-stone-700 hover:bg-stone-600 text-stone-200" onClick={() => onEditProposal(q.id)}>Sửa đề xuất</button>
                     )}
                     {q.myProposal.status === 'Draft' && (
-                      <button className="px-3 py-1.5 rounded-md bg-green-600 hover:bg-green-500 text-stone-900 disabled:opacity-50" onClick={() => onSubmitProposal(q.myProposal!.id!)}>Nộp Proposal</button>
+                      <button className="px-3 py-1.5 rounded-md bg-green-600 hover:bg-green-500 text-stone-900 disabled:opacity-50" onClick={() => onSubmitProposal(q.myProposal!.id!)}>Nộp đề xuất</button>
                     )}
                     {q.myProposal.status === 'RevisionRequested' && (
-                      <button className="px-3 py-1.5 rounded-md bg-orange-600 hover:bg-orange-500 text-white" onClick={() => onEditProposal(q.id)}>Chỉnh sửa Proposal</button>
+                      <button className="px-3 py-1.5 rounded-md bg-orange-600 hover:bg-orange-500 text-white" onClick={() => onEditProposal(q.id)}>Chỉnh sửa đề xuất</button>
                     )}
                     {q.myProposal.status === 'RevisionRequested' && (
-                      <button className="px-3 py-1.5 rounded-md bg-green-600 hover:bg-green-500 text-stone-900 disabled:opacity-50" onClick={() => onSubmitProposal(q.myProposal!.id!)}>Nộp Proposal</button>
+                      <button className="px-3 py-1.5 rounded-md bg-green-600 hover:bg-green-500 text-stone-900 disabled:opacity-50" onClick={() => onSubmitProposal(q.myProposal!.id!)}>Nộp đề xuất</button>
                     )}
                     {q.myProposal && (
-                      <button className="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-stone-100" onClick={() => onViewProposalDetail(q.id)}>Xem Proposal</button>
+                      <button className="px-3 py-1.5 rounded-md bg-blue-600 hover:bg-blue-500 text-stone-100" onClick={() => onViewProposalDetail(q.id)}>Xem đề xuất</button>
                     )}
                   </>
                 )}
@@ -419,7 +419,7 @@ export default function InvitesSection({}: Props) {
               {showFormFor === q.id && (
                 <div className="mt-4 border-t border-stone-700/60 pt-4">
                   <div className="mb-4 p-3 bg-blue-900/20 border border-blue-700/30 rounded-lg">
-                    <h4 className="text-blue-300 font-semibold mb-2">📋 Hướng dẫn tạo Proposal:</h4>
+                    <h4 className="text-blue-300 font-semibold mb-2">📋 Hướng dẫn tạo đề xuất:</h4>
                     <ol className="text-sm text-blue-200 space-y-1">
                       <li>1. Nhấn "📥 Tải Template Excel" để tải file mẫu</li>
                       <li>2. Mở file Excel và chỉnh sửa sao cho phù hợp với dự án</li>             
@@ -490,12 +490,12 @@ export default function InvitesSection({}: Props) {
                       {projectDetailData.project.numberOfFloors || 'Chưa cập nhật'}
                     </p>
                   </div>
-                  <div>
+                  {/* <div>
                     <p className="text-stone-500 text-sm mb-2">Ngân sách</p>
                     <p className="text-amber-300 font-semibold text-xl">
                       {projectDetailData.project.budget ? formatCurrency(projectDetailData.project.budget) : 'Chưa xác định'}
                     </p>
-                  </div>
+                  </div> */}
                   {/* Ngừng hiển thị ngày bắt đầu theo flow mới */}
                   {/* Ngừng hiển thị ngày hoàn thành dự kiến theo flow mới */}
                   <div>
