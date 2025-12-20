@@ -92,6 +92,16 @@ export function MaterialNotificationDropdown() {
         return '❌';
       case NotificationType.MaterialRequestPartiallyApproved:
         return '⚠️';
+      case NotificationType.QuoteRequestSent:
+        return '📋';
+      case NotificationType.ProposalSubmitted:
+        return '📝';
+      case NotificationType.ProposalAccepted:
+        return '🎉';
+      case NotificationType.ProposalRejected:
+        return '😔';
+      case NotificationType.ProposalRevisionRequested:
+        return '✏️';
       default:
         return '🔔';
     }
