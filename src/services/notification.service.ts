@@ -9,6 +9,12 @@ export enum NotificationType {
   ProjectInvitation = 100,
   PaymentRequest = 200,
   ProgressUpdate = 300,
+  WorkItemCommentMention = 400,
+  QuoteRequestSent = 500,
+  ProposalSubmitted = 501,
+  ProposalAccepted = 502,
+  ProposalRejected = 503,
+  ProposalRevisionRequested = 504,
 }
 
 export interface NotificationDto {

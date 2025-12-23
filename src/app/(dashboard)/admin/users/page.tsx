@@ -34,8 +34,18 @@ import {
   SearchOutlined,
   FilterOutlined,
 } from "@ant-design/icons";
-import { adminApi, type CreateUserDto, type UserDto, type UserProjectInfo } from "@/lib/admin/admin.api";
-import { registrationApi, type RegistrationRequestDto, type ApproveRegistrationRequestDto, type RejectRegistrationRequestDto } from "@/lib/registration/registration.api";
+import {
+  adminApi,
+  type CreateUserDto,
+  type UserDto,
+  type UserProjectInfo,
+} from "@/lib/admin/admin.api";
+import {
+  registrationApi,
+  type RegistrationRequestDto,
+  type ApproveRegistrationRequestDto,
+  type RejectRegistrationRequestDto,
+} from "@/lib/registration/registration.api";
 import { UserRole } from "@/hooks/useAuth";
 import RoleBasedRoute from "@/components/shared/RoleBasedRoute";
 import { usePendingRegistrationRequests } from "@/hooks/usePendingRegistrationRequests";
@@ -55,24 +65,33 @@ const UsersManagementPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserDto | null>(null);
-  
+
   // Filter states
   const [searchText, setSearchText] = useState<string>("");
-  const [selectedRole, setSelectedRole] = useState<number | undefined>(undefined);
-  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>(null);
-  
+  const [selectedRole, setSelectedRole] = useState<number | undefined>(
+    undefined
+  );
+  const [dateRange, setDateRange] = useState<
+    [Dayjs | null, Dayjs | null] | null
+  >(null);
+
   // Registration requests states
-  const [registrationRequests, setRegistrationRequests] = useState<RegistrationRequestDto[]>([]);
-  const [registrationRequestsLoading, setRegistrationRequestsLoading] = useState(false);
+  const [registrationRequests, setRegistrationRequests] = useState<
+    RegistrationRequestDto[]
+  >([]);
+  const [registrationRequestsLoading, setRegistrationRequestsLoading] =
+    useState(false);
   const [activeTab, setActiveTab] = useState<string>("users");
   const [approveModalVisible, setApproveModalVisible] = useState(false);
   const [rejectModalVisible, setRejectModalVisible] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<RegistrationRequestDto | null>(null);
+  const [selectedRequest, setSelectedRequest] =
+    useState<RegistrationRequestDto | null>(null);
   const [approveForm] = Form.useForm();
   const [rejectForm] = Form.useForm();
 
   // Get pending requests count from hook (for sidebar badge)
-  const { pendingCount: pendingRequestsCount, refresh: refreshPendingCount } = usePendingRegistrationRequests();
+  const { pendingCount: pendingRequestsCount, refresh: refreshPendingCount } =
+    usePendingRegistrationRequests();
 
   // Fetch users on mount
   useEffect(() => {
@@ -92,7 +111,9 @@ const UsersManagementPage: React.FC = () => {
         if (a.role === UserRole.Admin && b.role !== UserRole.Admin) return -1;
         if (a.role !== UserRole.Admin && b.role === UserRole.Admin) return 1;
         // If both are admin or both are not admin, sort by CreatedAt descending
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        return (
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
       });
       setUsers(sortedData);
     } catch (error: any) {
@@ -126,12 +147,16 @@ const UsersManagementPage: React.FC = () => {
 
     // Filter by date range
     if (dateRange && dateRange[0] && dateRange[1]) {
-      const startDate = dateRange[0].startOf('day');
-      const endDate = dateRange[1].endOf('day');
+      const startDate = dateRange[0].startOf("day");
+      const endDate = dateRange[1].endOf("day");
       result = result.filter((user) => {
         const userCreatedAt = dayjs(user.createdAt);
-        return userCreatedAt.isAfter(startDate) && userCreatedAt.isBefore(endDate) ||
-               userCreatedAt.isSame(startDate) || userCreatedAt.isSame(endDate);
+        return (
+          (userCreatedAt.isAfter(startDate) &&
+            userCreatedAt.isBefore(endDate)) ||
+          userCreatedAt.isSame(startDate) ||
+          userCreatedAt.isSame(endDate)
+        );
       });
     }
 
@@ -162,18 +187,20 @@ const UsersManagementPage: React.FC = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    try {
-      await adminApi.deleteUser(userId);
-      message.success("Xóa người dùng thành công!");
-      fetchUsers(); // Refresh list
-    } catch (error: any) {
-      console.error("Failed to delete user:", error);
-      message.error(
-        error?.response?.data?.message || "Không thể xóa người dùng"
-      );
-    }
-  };
+  // Xóa người dùng tạm thời không được phép sử dụng trên UI admin
+  // Giữ lại handler này nếu sau này cần mở lại feature.
+  // const handleDeleteUser = async (userId: string) => {
+  //   try {
+  //     await adminApi.deleteUser(userId);
+  //     message.success("Xóa người dùng thành công!");
+  //     fetchUsers(); // Refresh list
+  //   } catch (error: any) {
+  //     console.error("Failed to delete user:", error);
+  //     message.error(
+  //       error?.response?.data?.message || "Không thể xóa người dùng"
+  //     );
+  //   }
+  // };
 
   const handleBanUser = async (userId: string) => {
     try {
@@ -230,7 +257,8 @@ const UsersManagementPage: React.FC = () => {
     } catch (error: any) {
       console.error("Failed to fetch registration requests:", error);
       message.error(
-        error?.response?.data?.message || "Không thể tải danh sách yêu cầu đăng ký"
+        error?.response?.data?.message ||
+          "Không thể tải danh sách yêu cầu đăng ký"
       );
     } finally {
       setRegistrationRequestsLoading(false);
@@ -239,11 +267,13 @@ const UsersManagementPage: React.FC = () => {
 
   const handleApprove = async (values: ApproveRegistrationRequestDto) => {
     if (!selectedRequest) return;
-    
+
     try {
       setSubmitting(true);
       await registrationApi.approve(selectedRequest.id, values);
-      message.success("Đã phê duyệt yêu cầu đăng ký và tạo tài khoản thành công!");
+      message.success(
+        "Đã phê duyệt yêu cầu đăng ký và tạo tài khoản thành công!"
+      );
       setApproveModalVisible(false);
       approveForm.resetFields();
       setSelectedRequest(null);
@@ -262,7 +292,7 @@ const UsersManagementPage: React.FC = () => {
 
   const handleReject = async (values: RejectRegistrationRequestDto) => {
     if (!selectedRequest) return;
-    
+
     try {
       setSubmitting(true);
       await registrationApi.reject(selectedRequest.id, values);
@@ -330,17 +360,41 @@ const UsersManagementPage: React.FC = () => {
         if (record.requestedRole === UserRole.Supervisor) {
           return (
             <Space direction="vertical" size="small">
-              <div><Text type="secondary">Phòng ban: </Text>{record.department || "-"}</div>
-              <div><Text type="secondary">Chức vụ: </Text>{record.position || "-"}</div>
-              {record.district && <div><Text type="secondary">Quận: </Text>{record.district}</div>}
+              <div>
+                <Text type="secondary">Phòng ban: </Text>
+                {record.department || "-"}
+              </div>
+              <div>
+                <Text type="secondary">Chức vụ: </Text>
+                {record.position || "-"}
+              </div>
+              {record.district && (
+                <div>
+                  <Text type="secondary">Quận: </Text>
+                  {record.district}
+                </div>
+              )}
             </Space>
           );
         } else {
           return (
             <Space direction="vertical" size="small">
-              <div><Text type="secondary">Công ty: </Text>{record.companyName || "-"}</div>
-              {record.yearsOfExperience && <div><Text type="secondary">Kinh nghiệm: </Text>{record.yearsOfExperience} năm</div>}
-              {record.completedProjects && <div><Text type="secondary">Dự án hoàn thành: </Text>{record.completedProjects}</div>}
+              <div>
+                <Text type="secondary">Công ty: </Text>
+                {record.companyName || "-"}
+              </div>
+              {record.yearsOfExperience && (
+                <div>
+                  <Text type="secondary">Kinh nghiệm: </Text>
+                  {record.yearsOfExperience} năm
+                </div>
+              )}
+              {record.completedProjects && (
+                <div>
+                  <Text type="secondary">Dự án hoàn thành: </Text>
+                  {record.completedProjects}
+                </div>
+              )}
             </Space>
           );
         }
@@ -366,6 +420,7 @@ const UsersManagementPage: React.FC = () => {
     {
       title: "Hành động",
       key: "actions",
+      align: "center" as const,
       render: (_: any, record: RegistrationRequestDto) => (
         <Space>
           {record.status === 0 && (
@@ -397,7 +452,7 @@ const UsersManagementPage: React.FC = () => {
               type="link"
               size="small"
               onClick={() => {
-                window.open(`/admin/users/${record.createdUserId}`, '_blank');
+                window.open(`/admin/users/${record.createdUserId}`, "_blank");
               }}
             >
               Xem tài khoản
@@ -418,7 +473,9 @@ const UsersManagementPage: React.FC = () => {
           <UserOutlined />
           <div>
             <div style={{ fontWeight: 500 }}>{text}</div>
-            <div style={{ fontSize: "12px", color: "#666" }}>{record.email}</div>
+            <div style={{ fontSize: "12px", color: "#666" }}>
+              {record.email}
+            </div>
           </div>
         </Space>
       ),
@@ -487,6 +544,7 @@ const UsersManagementPage: React.FC = () => {
     {
       title: "Hành động",
       key: "actions",
+      align: "center" as const,
       render: (_: any, record: UserDto) => (
         <Space>
           {record.role !== UserRole.Admin && (
@@ -502,7 +560,10 @@ const UsersManagementPage: React.FC = () => {
                   <Button
                     type="primary"
                     size="small"
-                    style={{ backgroundColor: "#52c41a", borderColor: "#52c41a" }}
+                    style={{
+                      backgroundColor: "#52c41a",
+                      borderColor: "#52c41a",
+                    }}
                   >
                     Unban
                   </Button>
@@ -516,33 +577,13 @@ const UsersManagementPage: React.FC = () => {
                   cancelText="Hủy"
                   okButtonProps={{ danger: true }}
                 >
-                  <Button
-                    danger
-                    size="small"
-                  >
+                  <Button danger size="small">
                     Ban
                   </Button>
                 </Popconfirm>
               )}
             </>
           )}
-          <Popconfirm
-            title="Xóa người dùng này?"
-            description="Hành động này không thể hoàn tác."
-            onConfirm={() => handleDeleteUser(record.id)}
-            okText="Xóa"
-            cancelText="Hủy"
-            okButtonProps={{ danger: true }}
-          >
-            <Button
-              danger
-              icon={<DeleteOutlined />}
-              size="small"
-              disabled={record.role === UserRole.Admin} // Không cho xóa admin
-            >
-              Xóa
-            </Button>
-          </Popconfirm>
         </Space>
       ),
     },
@@ -623,7 +664,9 @@ const UsersManagementPage: React.FC = () => {
                 style={{ width: "100%" }}
                 placeholder={["Từ ngày", "Đến ngày"]}
                 value={dateRange}
-                onChange={(dates) => setDateRange(dates as [Dayjs | null, Dayjs | null] | null)}
+                onChange={(dates) =>
+                  setDateRange(dates as [Dayjs | null, Dayjs | null] | null)
+                }
                 format="DD/MM/YYYY"
               />
             </Col>
@@ -660,8 +703,8 @@ const UsersManagementPage: React.FC = () => {
               />
             </Card>
           </TabPane>
-          
-          <TabPane 
+
+          <TabPane
             tab={
               <span>
                 Yêu cầu đăng ký nhà thầu, giám sát viên
@@ -671,7 +714,7 @@ const UsersManagementPage: React.FC = () => {
                   </Tag>
                 )}
               </span>
-            } 
+            }
             key="requests"
           >
             <Card>
@@ -835,9 +878,9 @@ const UsersManagementPage: React.FC = () => {
                   size="small"
                   onRow={(record) => ({
                     onClick: () => {
-                      window.open(`/projects/${record.projectId}`, '_blank');
+                      window.open(`/projects/${record.projectId}`, "_blank");
                     },
-                    style: { cursor: 'pointer' },
+                    style: { cursor: "pointer" },
                   })}
                   columns={[
                     {
@@ -858,7 +901,15 @@ const UsersManagementPage: React.FC = () => {
                       dataIndex: "participationRole",
                       key: "participationRole",
                       render: (role: string) => (
-                        <Tag color={role === "Homeowner" ? "green" : role === "Supervisor" ? "orange" : "blue"}>
+                        <Tag
+                          color={
+                            role === "Homeowner"
+                              ? "green"
+                              : role === "Supervisor"
+                              ? "orange"
+                              : "blue"
+                          }
+                        >
                           {role}
                         </Tag>
                       ),
@@ -886,14 +937,18 @@ const UsersManagementPage: React.FC = () => {
                       dataIndex: "joinedAt",
                       key: "joinedAt",
                       render: (date: string | null) =>
-                        date
-                          ? new Date(date).toLocaleDateString("vi-VN")
-                          : "-",
+                        date ? new Date(date).toLocaleDateString("vi-VN") : "-",
                     },
                   ]}
                 />
               ) : (
-                <div style={{ textAlign: "center", padding: "20px", color: "#999" }}>
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "20px",
+                    color: "#999",
+                  }}
+                >
                   <Text type="secondary">
                     Người dùng này chưa tham gia dự án nào
                   </Text>
@@ -918,10 +973,16 @@ const UsersManagementPage: React.FC = () => {
           {selectedRequest && (
             <div style={{ marginBottom: 16 }}>
               <Text strong>Người đăng ký: </Text>
-              <Text>{selectedRequest.username} ({selectedRequest.email})</Text>
+              <Text>
+                {selectedRequest.username} ({selectedRequest.email})
+              </Text>
               <br />
               <Text strong>Vai trò: </Text>
-              <Text>{selectedRequest.requestedRole === UserRole.Supervisor ? "Giám sát viên" : "Nhà thầu"}</Text>
+              <Text>
+                {selectedRequest.requestedRole === UserRole.Supervisor
+                  ? "Giám sát viên"
+                  : "Nhà thầu"}
+              </Text>
             </div>
           )}
           <Form
@@ -984,7 +1045,9 @@ const UsersManagementPage: React.FC = () => {
           {selectedRequest && (
             <div style={{ marginBottom: 16 }}>
               <Text strong>Người đăng ký: </Text>
-              <Text>{selectedRequest.username} ({selectedRequest.email})</Text>
+              <Text>
+                {selectedRequest.username} ({selectedRequest.email})
+              </Text>
             </div>
           )}
           <Form
@@ -1008,7 +1071,12 @@ const UsersManagementPage: React.FC = () => {
 
             <Form.Item>
               <Space>
-                <Button type="primary" danger htmlType="submit" loading={submitting}>
+                <Button
+                  type="primary"
+                  danger
+                  htmlType="submit"
+                  loading={submitting}
+                >
                   Từ chối
                 </Button>
                 <Button

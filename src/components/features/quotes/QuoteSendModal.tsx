@@ -88,7 +88,7 @@ export default function QuoteSendModal({
 
   const handleSendQuotes = async () => {
     if (selectedQuotes.length === 0) {
-      setError('Vui lòng chọn ít nhất 1 quote để gửi');
+      setError('Vui lòng chọn ít nhất 1 bản báo giá để gửi');
       return;
     }
 
@@ -98,7 +98,7 @@ export default function QuoteSendModal({
     );
     
     if (invalidQuotes.length > 0) {
-      setError(`Không thể gửi ${invalidQuotes.length} quote có trạng thái ${invalidQuotes[0].status}`);
+      setError(`Không thể gửi ${invalidQuotes.length} bản báo giá có trạng thái ${invalidQuotes[0].status}`);
       return;
     }
 
@@ -118,8 +118,8 @@ export default function QuoteSendModal({
       }
 
       const message = sendToAll 
-        ? `Đã gửi ${selectedQuotes.length} quote đến tất cả nhà thầu`
-        : `Đã gửi ${selectedQuotes.length} quote đến ${contractorName}`;
+        ? `Đã gửi ${selectedQuotes.length} bản báo giá đến tất cả nhà thầu`
+        : `Đã gửi ${selectedQuotes.length} bản báo giá đến ${contractorName}`;
       
       setSuccess(message);
       setSelectedQuotes([]);
@@ -130,7 +130,7 @@ export default function QuoteSendModal({
         onClose();
       }, 2000);
     } catch (e: any) {
-      setError(e?.response?.data || e?.message || 'Gửi quote thất bại');
+      setError(e?.response?.data || e?.message || 'Gửi báo giá thất bại');
     } finally {
       setSubmitting(false);
     }
@@ -144,10 +144,10 @@ export default function QuoteSendModal({
         <div className="flex items-center justify-between mb-6">
           <div>
             <h3 className="text-2xl font-semibold text-amber-300 mb-1">
-              {sendToAll ? 'Gửi Quote đến Tất cả Nhà thầu' : `Gửi Quote đến ${contractorName}`}
+              {sendToAll ? 'Gửi Báo giá đến Tất cả Nhà thầu' : `Gửi Báo giá đến ${contractorName}`}
             </h3>
             <p className="text-stone-400 text-sm">
-              Chọn các quote bạn muốn gửi. Có thể chọn nhiều quote cùng lúc.
+              Chọn các bản báo giá bạn muốn gửi. Có thể chọn nhiều bản báo giá cùng lúc.
             </p>
           </div>
           <button
@@ -168,10 +168,10 @@ export default function QuoteSendModal({
               <div className="flex items-center justify-between mb-6 p-4 bg-stone-900/50 rounded-lg border border-stone-700">
                 <div className="flex items-center space-x-4">
                   <div className="text-sm text-stone-300">
-                    <span className="font-medium text-amber-300">{selectedQuotes.length}</span> quotes đã chọn
+                    <span className="font-medium text-amber-300">{selectedQuotes.length}</span> bản báo giá đã chọn
                   </div>
                   <div className="text-xs text-stone-500">
-                    Tổng cộng {quotes.length} quotes có sẵn
+                    Tổng cộng {quotes.length} bản báo giá có sẵn
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -213,7 +213,7 @@ export default function QuoteSendModal({
                             onChange={() => handleSelectQuote(q.id)}
                             disabled={q.status === 'Cancelled' || q.status === 'Closed'}
                             className="mt-1 rounded border-stone-600 bg-stone-800 text-amber-600 focus:ring-amber-500 disabled:opacity-50"
-                            title={q.status === 'Closed' ? 'Không thể gửi quote đã đóng' : q.status === 'Cancelled' ? 'Không thể gửi quote đã hủy' : undefined}
+                            title={q.status === 'Closed' ? 'Không thể gửi bản báo giá đã đóng' : q.status === 'Cancelled' ? 'Không thể gửi bản báo giá đã hủy' : undefined}
                           />
                           <div className="flex-1 min-w-0">
                             <div className="font-medium text-stone-100 mb-2 leading-relaxed">
@@ -290,7 +290,7 @@ export default function QuoteSendModal({
                 disabled={submitting || selectedQuotes.length === 0}
                 className="px-6 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-stone-600 disabled:cursor-not-allowed text-stone-900 font-medium rounded-md transition-colors"
               >
-                {submitting ? 'Đang gửi...' : `Gửi ${selectedQuotes.length} quote`}
+                {submitting ? 'Đang gửi...' : `Gửi ${selectedQuotes.length} bản báo giá`}
               </button>
             </div>
           </div>

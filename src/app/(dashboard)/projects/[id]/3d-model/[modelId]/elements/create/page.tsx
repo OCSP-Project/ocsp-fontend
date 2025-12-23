@@ -22,7 +22,9 @@ export default function CreateElementPage() {
   const [elementType, setElementType] = useState(1); // Wall
   const [floorLevel, setFloorLevel] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [interactionMode, setInteractionMode] = useState<"view" | "selection">("view");
+  const [interactionMode, setInteractionMode] = useState<"view" | "selection">(
+    "view"
+  );
 
   useEffect(() => {
     const load = async () => {
@@ -70,7 +72,8 @@ export default function CreateElementPage() {
     } catch (error: any) {
       notification.error({
         message: "Lỗi",
-        description: error?.response?.data?.message || error?.message || "Có lỗi xảy ra",
+        description:
+          error?.response?.data?.message || error?.message || "Có lỗi xảy ra",
       });
     }
   };
@@ -81,13 +84,16 @@ export default function CreateElementPage() {
         <Header />
         <div className="h-screen pt-16 flex items-center justify-center bg-white relative overflow-hidden">
           <div className="absolute inset-0 bg-white">
-            <div className="absolute inset-0" style={{
-              backgroundImage: `
+            <div
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `
                 radial-gradient(circle at top left, rgba(56, 193, 182, 0.5), transparent 70%),
                 radial-gradient(circle at bottom right, rgba(102, 126, 234, 0.3), transparent 70%)
               `,
-              filter: 'blur(80px)'
-            }}></div>
+                filter: "blur(80px)",
+              }}
+            ></div>
           </div>
           <div className="text-gray-700 relative z-10">Loading...</div>
         </div>
@@ -101,22 +107,28 @@ export default function CreateElementPage() {
       <div className="h-screen pt-16 flex bg-white relative overflow-hidden">
         {/* Background gradient glow */}
         <div className="absolute inset-0 bg-white">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `
               radial-gradient(circle at top left, rgba(56, 193, 182, 0.5), transparent 70%),
               radial-gradient(circle at bottom right, rgba(102, 126, 234, 0.3), transparent 70%)
             `,
-            filter: 'blur(80px)'
-          }}></div>
+              filter: "blur(80px)",
+            }}
+          ></div>
         </div>
         {/* Left Panel: Form */}
         <div className="w-[400px] bg-white/95 backdrop-blur-xl border-r border-gray-200 overflow-y-auto p-6 relative z-10 shadow-xl">
-          <h1 className="text-2xl font-bold mb-4" style={{
-            background: 'linear-gradient(135deg, #38c1b6 0%, #667eea 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text'
-          }}>
+          <h1
+            className="text-2xl font-bold mb-4"
+            style={{
+              background: "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
             ➕ Tạo Building Element
           </h1>
 
@@ -202,7 +214,11 @@ export default function CreateElementPage() {
                         <span
                           key={idx}
                           className="bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs px-2.5 py-1 rounded-lg cursor-pointer hover:from-green-600 hover:to-emerald-600 transition-all shadow-sm hover:shadow-md"
-                          onClick={() => setSelectedMeshes(prev => prev.filter(i => i !== idx))}
+                          onClick={() =>
+                            setSelectedMeshes((prev) =>
+                              prev.filter((i) => i !== idx)
+                            )
+                          }
                           title="Click để xóa mesh này"
                         >
                           {idx} ×
@@ -219,9 +235,10 @@ export default function CreateElementPage() {
               disabled={selectedMeshes.length === 0}
               className="w-full text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden"
               style={{
-                background: selectedMeshes.length === 0
-                  ? '#9ca3af'
-                  : 'linear-gradient(135deg, #38c1b6 0%, #667eea 100%)'
+                background:
+                  selectedMeshes.length === 0
+                    ? "#9ca3af"
+                    : "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)",
               }}
             >
               ✅ Tạo Element
@@ -230,7 +247,10 @@ export default function CreateElementPage() {
             <Button
               type="button"
               onClick={() => router.back()}
-              className="w-full bg-white/80 backdrop-blur-sm hover:bg-white text-gray-700 font-bold py-3.5 rounded-xl border-2 border-gray-200 transition-all hover:border-gray-300 shadow-sm hover:shadow-md"
+              className="w-full bg-black backdrop-blur-sm hover:bg-white text-gray-700 font-bold py-3.5 rounded-xl border-2 border-gray-200 transition-all hover:border-gray-300 shadow-sm hover:shadow-md"
+              style={{
+                background: "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)",
+              }}
             >
               ← Quay lại
             </Button>
@@ -238,12 +258,17 @@ export default function CreateElementPage() {
 
           {/* Instructions */}
           <div className="mt-6 bg-gradient-to-br from-teal-50/90 to-purple-50/90 backdrop-blur-sm border-2 border-teal-200/50 rounded-xl p-4 shadow-sm">
-            <h3 className="font-bold mb-2" style={{
-              background: 'linear-gradient(135deg, #38c1b6 0%, #667eea 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>💡 Hướng dẫn</h3>
+            <h3
+              className="font-bold mb-2"
+              style={{
+                background: "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              💡 Hướng dẫn
+            </h3>
             <ul className="text-sm text-gray-700 space-y-1">
               <li>1️⃣ Click vào các mesh trong model 3D</li>
               <li>2️⃣ Mesh được chọn sẽ đổi màu xanh lá</li>
@@ -275,7 +300,10 @@ export default function CreateElementPage() {
               }`}
               style={
                 interactionMode === "view"
-                  ? { background: 'linear-gradient(135deg, #38c1b6 0%, #667eea 100%)' }
+                  ? {
+                      background:
+                        "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)",
+                    }
                   : {}
               }
             >
@@ -295,15 +323,21 @@ export default function CreateElementPage() {
 
           {/* Info overlay */}
           <div className="absolute bottom-4 left-4 bg-white/95 backdrop-blur-xl border-2 border-gray-200 text-gray-800 p-4 rounded-xl shadow-xl z-20">
-            <div className="text-sm font-bold mb-2" style={{
-              background: interactionMode === "view"
-                ? 'linear-gradient(135deg, #38c1b6 0%, #667eea 100%)'
-                : 'linear-gradient(to-r, #10b981 0%, #059669 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
-              {interactionMode === "view" ? "🔍 View Mode" : "✏️ Selection Mode"}
+            <div
+              className="text-sm font-bold mb-2"
+              style={{
+                background:
+                  interactionMode === "view"
+                    ? "linear-gradient(135deg, #38c1b6 0%, #667eea 100%)"
+                    : "linear-gradient(to-r, #10b981 0%, #059669 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              {interactionMode === "view"
+                ? "🔍 View Mode"
+                : "✏️ Selection Mode"}
             </div>
             <div className="text-xs text-gray-600 space-y-1">
               {interactionMode === "view" ? (

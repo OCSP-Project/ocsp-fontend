@@ -32,7 +32,7 @@ import { UserRole } from "@/hooks/useAuth";
 
 const { Title, Text, Paragraph } = Typography;
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 const RAG_API_BASE = process.env.NEXT_PUBLIC_RAG_API_URL || "http://13.210.146.91:8000";
 
 interface Contractor {
@@ -72,35 +72,65 @@ const RAGManagementPage: React.FC = () => {
   const fetchContractors = async () => {
     setLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      const response = await fetch(`${API_BASE}/api/Contractor`, {
+      const token = localStorage.getItem("accessToken"); // Use 'accessToken' key (same as apiClient)
+      const url = `${API_BASE}/contractor/search`;
+      const requestBody = {
+        page: 1,
+        pageSize: 100, // Get all contractors for RAG embedding
+      };
+
+      console.log("🔵 [RAG Management] Fetching contractors...");
+      console.log("  URL:", url);
+      console.log("  Method: POST");
+      console.log("  Body:", requestBody);
+      console.log("  Token:", token ? `${token.substring(0, 20)}...` : "NO TOKEN");
+
+      // Use POST /contractor/search endpoint (same as view-contractors page)
+      const response = await fetch(url, {
+        method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
+        body: JSON.stringify(requestBody),
       });
 
-      if (!response.ok) throw new Error("Failed to fetch contractors");
+      console.log("🔵 [RAG Management] Response status:", response.status);
+      console.log("🔵 [RAG Management] Response OK:", response.ok);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("❌ [RAG Management] Error response:", errorText);
+        throw new Error(`Failed to fetch contractors: ${response.status} ${errorText}`);
+      }
 
       const data = await response.json();
+      console.log("🔵 [RAG Management] Response data:", data);
+      console.log("🔵 [RAG Management] Data type:", typeof data);
+      console.log("🔵 [RAG Management] Data keys:", Object.keys(data));
 
       // Handle paginated response (support both camelCase and PascalCase)
       if (data.contractors && Array.isArray(data.contractors)) {
+        console.log("✅ [RAG Management] Found contractors (camelCase):", data.contractors.length);
         setContractors(data.contractors);
       } else if (data.Contractors && Array.isArray(data.Contractors)) {
         // Handle PascalCase from C# backend
+        console.log("✅ [RAG Management] Found Contractors (PascalCase):", data.Contractors.length);
         setContractors(data.Contractors);
       } else if (Array.isArray(data)) {
         // Handle direct array response (fallback)
+        console.log("✅ [RAG Management] Found direct array:", data.length);
         setContractors(data);
       } else {
-        console.error("Expected array but got:", data);
+        console.error("❌ [RAG Management] Expected array but got:", data);
         setContractors([]);
         message.warning("Định dạng dữ liệu không hợp lệ");
       }
-    } catch (error) {
-      console.error("Error fetching contractors:", error);
-      message.error("Không thể tải danh sách nhà thầu");
+    } catch (error: any) {
+      console.error("❌ [RAG Management] Error fetching contractors:", error);
+      console.error("❌ [RAG Management] Error message:", error.message);
+      console.error("❌ [RAG Management] Error stack:", error.stack);
+      message.error(`Không thể tải danh sách nhà thầu: ${error.message}`);
     } finally {
       setLoading(false);
     }

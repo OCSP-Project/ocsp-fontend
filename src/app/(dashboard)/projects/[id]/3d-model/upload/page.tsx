@@ -13,6 +13,19 @@ export default function ModelUploadPage() {
   const { user } = useAuth();
   const projectId = params.id as string;
 
+  // UI tokens aligned with dashboard teal/indigo light theme
+  const wrapperCls =
+    "min-h-[calc(100vh-4rem)] bg-gradient-to-br from-teal-50 via-white to-indigo-50 pt-24 px-4";
+  const innerCls = "max-w-4xl mx-auto space-y-6";
+  const cardCls =
+    "bg-white/95 backdrop-blur-xl rounded-2xl border border-white/70 shadow-lg p-6 text-slate-800";
+  const infoCardCls =
+    "bg-amber-50 border border-amber-200 rounded-2xl p-6 text-slate-800";
+  const btnPrimaryCls =
+    "flex-1 bg-gradient-to-r from-teal-500 to-indigo-500 hover:from-teal-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transition disabled:opacity-60 disabled:cursor-not-allowed";
+  const btnGhostCls =
+    "bg-white/80 hover:bg-white text-slate-700 border border-slate-200 rounded-xl px-6 py-3 shadow-sm hover:border-teal-200 transition disabled:opacity-60 disabled:cursor-not-allowed";
+
   const [file, setFile] = useState<File | null>(null);
   const [description, setDescription] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -24,19 +37,19 @@ export default function ModelUploadPage() {
     return (
       <>
         <Header />
-        <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 to-stone-900 pt-20">
-          <div className="max-w-4xl mx-auto px-4 py-10">
-            <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-6 text-center">
-              <h2 className="text-2xl font-bold text-red-400 mb-2">
+        <div className={wrapperCls}>
+          <div className={innerCls}>
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-6 text-center shadow-md">
+              <h2 className="text-2xl font-bold text-red-600 mb-2">
                 🚫 Không có quyền truy cập
               </h2>
-              <p className="text-stone-300 mb-4">
+              <p className="text-slate-600 mb-4">
                 Chỉ có <strong>Giám sát viên</strong> mới có thể upload mô hình
                 3D.
               </p>
               <Button
                 onClick={() => router.push(`/projects/${projectId}`)}
-                className="bg-stone-700 hover:bg-stone-600"
+                className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-xl"
               >
                 ← Quay lại dự án
               </Button>
@@ -108,26 +121,26 @@ export default function ModelUploadPage() {
   return (
     <>
       <Header />
-      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 to-stone-900 pt-20">
-        <div className="max-w-4xl mx-auto px-4 py-10">
-          <div className="mb-8">
+      <div className={wrapperCls}>
+        <div className={innerCls}>
+          <div className="mb-6">
             <button
               onClick={() => router.push(`/projects/${projectId}/3d-model`)}
-              className="text-stone-400 hover:text-stone-300 mb-4 inline-flex items-center gap-2"
+              className="text-slate-500 hover:text-slate-700 mb-3 inline-flex items-center gap-2 text-sm"
             >
               ← Quay lại
             </button>
-            <h1 className="text-3xl font-bold text-amber-200 mb-2">
+            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[#38c1b6] to-[#667eea] bg-clip-text text-transparent mb-2">
               📤 Upload Mô hình 3D
             </h1>
-            <p className="text-stone-400">
-              Upload file GLB cho dự án. Chỉ Giám sát viên mới có quyền upload.
+            <p className="text-slate-600">
+              Tải lên file GLB cho dự án. Chỉ Giám sát viên mới có quyền upload.
             </p>
           </div>
 
-          <div className="bg-stone-800/60 backdrop-blur-xl rounded-xl border border-stone-700 p-6">
+          <div className={cardCls}>
             <div className="mb-6">
-              <label className="block text-stone-300 font-semibold mb-3">
+              <label className="block text-slate-800 font-semibold mb-3">
                 📁 Chọn file GLB *
               </label>
               <div className="relative">
@@ -136,20 +149,20 @@ export default function ModelUploadPage() {
                   accept=".glb"
                   onChange={handleFileChange}
                   disabled={uploading}
-                  className="block w-full text-sm text-stone-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-amber-600 file:text-stone-900 hover:file:bg-amber-500 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="block w-full text-sm text-slate-700 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gradient-to-r file:from-teal-500 file:to-indigo-500 file:text-white hover:file:from-teal-600 hover:file:to-indigo-600 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
-              <p className="text-xs text-stone-500 mt-2">
+              <p className="text-xs text-slate-500 mt-2">
                 ⚠️ Chỉ chấp nhận file .GLB, tối đa 50MB
               </p>
             </div>
 
             {file && (
-              <div className="mb-6 p-4 bg-blue-500/10 border border-blue-500/30 rounded-lg">
-                <h3 className="text-blue-300 font-semibold mb-2">
+              <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+                <h3 className="text-blue-700 font-semibold mb-2">
                   📦 Thông tin file:
                 </h3>
-                <div className="space-y-1 text-sm text-stone-300">
+                <div className="space-y-1 text-sm text-slate-700">
                   <div>
                     Tên file: <strong>{file.name}</strong>
                   </div>
@@ -165,7 +178,7 @@ export default function ModelUploadPage() {
             )}
 
             <div className="mb-6">
-              <label className="block text-stone-300 font-semibold mb-3">
+              <label className="block text-slate-800 font-semibold mb-3">
                 📝 Mô tả (Tùy chọn)
               </label>
               <textarea
@@ -174,25 +187,25 @@ export default function ModelUploadPage() {
                 disabled={uploading}
                 rows={3}
                 placeholder="Nhập mô tả cho mô hình 3D này..."
-                className="w-full bg-stone-900/60 border border-stone-700 rounded-lg px-4 py-2 text-stone-100 placeholder-stone-500 resize-none focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50"
+                className="w-full bg-white/80 border border-slate-200 rounded-xl px-4 py-2 text-slate-800 placeholder-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-teal-200 disabled:opacity-60"
               />
             </div>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400">
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
                 ⚠️ {error}
               </div>
             )}
 
             {uploading && (
               <div className="mb-6">
-                <div className="flex justify-between text-sm text-stone-400 mb-2">
+                <div className="flex justify-between text-sm text-slate-500 mb-2">
                   <span>Đang upload...</span>
                   <span>{progress}%</span>
                 </div>
-                <div className="w-full bg-stone-700 rounded-full h-2">
+                <div className="w-full bg-slate-200 rounded-full h-2">
                   <div
-                    className="bg-amber-500 h-2 rounded-full transition-all duration-300"
+                    className="bg-gradient-to-r from-teal-500 to-indigo-500 h-2 rounded-full transition-all duration-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -203,23 +216,23 @@ export default function ModelUploadPage() {
               <Button
                 onClick={handleUpload}
                 disabled={!file || uploading}
-                className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:bg-stone-700 disabled:opacity-50 text-stone-900 font-bold py-3"
+                className={btnPrimaryCls}
               >
                 {uploading ? "⏳ Đang upload..." : "🚀 Upload mô hình"}
               </Button>
               <Button
                 onClick={() => router.push(`/projects/${projectId}/3d-model`)}
                 disabled={uploading}
-                className="bg-stone-700 hover:bg-stone-600 text-white px-6"
+                className={btnGhostCls}
               >
                 Hủy
               </Button>
             </div>
           </div>
 
-          <div className="mt-8 bg-amber-500/10 border border-amber-500/30 rounded-lg p-6">
-            <h3 className="text-amber-300 font-bold mb-3">💡 Hướng dẫn:</h3>
-            <ol className="space-y-2 text-stone-300 text-sm">
+          <div className={infoCardCls + " mt-4"}>
+            <h3 className="text-amber-700 font-bold mb-3">💡 Hướng dẫn:</h3>
+            <ol className="space-y-2 text-slate-700 text-sm">
               <li>1️⃣ Chọn file GLB từ máy tính của bạn</li>
               <li>2️⃣ Kiểm tra thông tin file (kích thước, tên file)</li>
               <li>3️⃣ Thêm mô tả nếu cần (tùy chọn)</li>

@@ -62,7 +62,9 @@ export default function ProjectDetailPage() {
     }
     return new Set<string>();
   };
-  const processedOrdersRef = React.useRef<Set<string>>(getInitialProcessedOrders());
+  const processedOrdersRef = React.useRef<Set<string>>(
+    getInitialProcessedOrders()
+  );
 
   const fetchProject = async () => {
     try {
@@ -105,24 +107,36 @@ export default function ProjectDetailPage() {
   // Check if we need to refresh user data after supervisor-features payment
   useEffect(() => {
     // Check if there's a flag in sessionStorage indicating we just completed supervisor-features payment
-    const justCompletedPayment = sessionStorage.getItem("justCompletedSupervisorFeatures");
-    if (justCompletedPayment === "true" && user && user.role === UserRole.Homeowner && isHomeowner) {
+    const justCompletedPayment = sessionStorage.getItem(
+      "justCompletedSupervisorFeatures"
+    );
+    if (
+      justCompletedPayment === "true" &&
+      user &&
+      user.role === UserRole.Homeowner &&
+      isHomeowner
+    ) {
       // User should have Supervisor role now, but still has Homeowner role
       // Force refresh token to get updated user data
-      console.log("Detected supervisor-features payment completion, refreshing user data...");
-      const refreshToken = localStorage.getItem('refreshToken');
+      console.log(
+        "Detected supervisor-features payment completion, refreshing user data..."
+      );
+      const refreshToken = localStorage.getItem("refreshToken");
       if (refreshToken) {
-        authApi.refreshToken(refreshToken)
+        authApi
+          .refreshToken(refreshToken)
           .then((newTokens) => {
-            localStorage.setItem('accessToken', newTokens.accessToken);
-            localStorage.setItem('refreshToken', newTokens.refreshToken);
-            localStorage.setItem('expiresAt', newTokens.expiresAt);
-            localStorage.setItem('user', JSON.stringify(newTokens.user));
+            localStorage.setItem("accessToken", newTokens.accessToken);
+            localStorage.setItem("refreshToken", newTokens.refreshToken);
+            localStorage.setItem("expiresAt", newTokens.expiresAt);
+            localStorage.setItem("user", JSON.stringify(newTokens.user));
             // Trigger auth state change
-            if (typeof window !== 'undefined') {
-              window.dispatchEvent(new CustomEvent('auth-state-change', {
-                detail: { user: newTokens.user, isAuthenticated: true }
-              }));
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(
+                new CustomEvent("auth-state-change", {
+                  detail: { user: newTokens.user, isAuthenticated: true },
+                })
+              );
             }
             // Clear the flag
             sessionStorage.removeItem("justCompletedSupervisorFeatures");
@@ -201,8 +215,13 @@ export default function ProjectDetailPage() {
       paymentsApi
         .manualWebhook(payload)
         .then((response) => {
-          console.log("Manual webhook successful", { orderId, resultCode, isSuccess, response });
-          
+          console.log("Manual webhook successful", {
+            orderId,
+            resultCode,
+            isSuccess,
+            response,
+          });
+
           // Check payment purpose from extraData BEFORE marking as processed
           const purpose = extraData
             ? (() => {
@@ -222,12 +241,17 @@ export default function ProjectDetailPage() {
           // Only mark as processed if webhook succeeds AND payment is successful
           if (isSuccess) {
             processedOrdersRef.current.add(orderId);
-            
+
             // Also store in sessionStorage to persist across reloads
-            const processedOrders = JSON.parse(sessionStorage.getItem("processedMoMoOrders") || "[]");
+            const processedOrders = JSON.parse(
+              sessionStorage.getItem("processedMoMoOrders") || "[]"
+            );
             if (!processedOrders.includes(orderId)) {
               processedOrders.push(orderId);
-              sessionStorage.setItem("processedMoMoOrders", JSON.stringify(processedOrders));
+              sessionStorage.setItem(
+                "processedMoMoOrders",
+                JSON.stringify(processedOrders)
+              );
             }
           }
 
@@ -248,9 +272,14 @@ export default function ProjectDetailPage() {
               window.location.href = window.location.pathname;
             }, 2000);
           } else if (!isSuccess) {
-            console.error("Payment failed:", { resultCode, message: search.get("message") });
+            console.error("Payment failed:", {
+              resultCode,
+              message: search.get("message"),
+            });
             antdMessage.error(
-              `Thanh toán không thành công. Mã lỗi: ${resultCode}. ${search.get("message") || ""}`,
+              `Thanh toán không thành công. Mã lỗi: ${resultCode}. ${
+                search.get("message") || ""
+              }`,
               5000
             );
           } else {
@@ -480,6 +509,12 @@ export default function ProjectDetailPage() {
       : 15000000
     : 0;
 
+  // Only the homeowner (project owner with Homeowner role) can manage these actions
+  const isHomeownerRole = user?.role === UserRole.Homeowner;
+  const canManageProjectAsHomeowner = isHomeowner && isHomeownerRole;
+  const canShowSupervisorRegistrationButton =
+    canRegisterSupervisor && canManageProjectAsHomeowner;
+
   const onRegisterSupervisor = async () => {
     if (!project) return;
     const confirmed = window.confirm(
@@ -488,22 +523,25 @@ export default function ProjectDetailPage() {
       )}₫?`
     );
     if (!confirmed) return;
-    
+
     // Lưu thông tin vào sessionStorage để dùng ở trang supervisor profile
-    sessionStorage.setItem('pendingSupervisorRegistration', JSON.stringify({
-      projectId: projectId,
-      monthlyPrice: monthlyPrice,
-    }));
-    
+    sessionStorage.setItem(
+      "pendingSupervisorRegistration",
+      JSON.stringify({
+        projectId: projectId,
+        monthlyPrice: monthlyPrice,
+      })
+    );
+
     // Chỉ redirect đến trang supervisors để cho phép chọn supervisor
-    router.push('/supervisors');
+    router.push("/supervisors");
   };
 
   // Supervisor features registration logic
-  const supervisorFeaturesPrice = 500000; 
+  const supervisorFeaturesPrice = 500000;
   // Check if user has supervisor features (role is Supervisor)
   const hasSupervisorFeaturesRole = user?.role === UserRole.Supervisor;
-  const canRegisterSupervisorFeatures = isHomeowner && user?.role === UserRole.Homeowner;
+  const canRegisterSupervisorFeatures = canManageProjectAsHomeowner;
 
   const onRegisterSupervisorFeatures = async () => {
     if (!project || !user) return;
@@ -519,7 +557,7 @@ export default function ProjectDetailPage() {
 
       // Use the same redirect URL format as supervisor payment
       const redirectUrl = `${window.location.origin}/projects/${projectId}`;
-      
+
       console.log("[Supervisor Features] Creating payment:", {
         amount: supervisorFeaturesPrice,
         projectId,
@@ -645,20 +683,12 @@ export default function ProjectDetailPage() {
                   disabled={saving}
                   className={btnPrimary}
                 >
-                  Đăng ký dịch vụ giám sát ({supervisorFeaturesPrice.toLocaleString("vi-VN")}₫)
+                  Đăng ký dịch vụ giám sát (
+                  {supervisorFeaturesPrice.toLocaleString("vi-VN")}₫)
                 </button>
               )}
-              {canRegisterSupervisor && (
-                <button
-                  onClick={onRegisterSupervisor}
-                  disabled={saving}
-                  className={btnPrimary}
-                >
-                  Đăng ký giám sát viên ({monthlyPrice.toLocaleString("vi-VN")}
-                  ₫)
-                </button>
-              )}
-              {!editing && (
+
+              {!editing && canManageProjectAsHomeowner && (
                 <button onClick={() => setEditing(true)} className={btnPrimary}>
                   Chỉnh sửa
                 </button>
@@ -674,7 +704,8 @@ export default function ProjectDetailPage() {
 
           {hasSupervisorFeaturesRole && isHomeowner && (
             <div className="mb-4 p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700">
-              ✓ Bạn đã đăng ký sử dụng các dịch vụ giám sát. Bạn có thể sử dụng các chức năng của giám sát viên.
+              ✓ Bạn đã đăng ký sử dụng các dịch vụ giám sát. Bạn có thể sử dụng
+              các chức năng của giám sát viên.
             </div>
           )}
 
@@ -941,59 +972,59 @@ export default function ProjectDetailPage() {
                 {/* Quick Actions */}
                 <div className={cardCls}>
                   <div className="space-y-3">
-                    <Link
+                    {/* <Link
                       href={`/projects/${project.id}/progress`}
                       className="block w-full text-center py-2 px-4 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 transition"
                     >
                       Theo dõi tiến độ
-                    </Link>
+                    </Link> */}
 
                     <Link
                       href={`/projects/${project.id}/budget`}
-                      className="block w-full text-center py-2 px-4 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#ecfdf3] text-[#166534] border border-[#bbf7d0] rounded-lg hover:bg-[#dcfce7] transition"
                     >
                       Dự toán & Gantt Chart
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/diary`}
-                      className="block w-full text-center py-2 px-4 bg-[#38c1b6]/10 text-[#38c1b6] border border-[#38c1b6]/30 rounded-lg hover:bg-[#38c1b6]/20 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#e0f2fe] text-[#075985] border border-[#bae6fd] rounded-lg hover:bg-[#dbeafe] transition"
                     >
                       Nhật ký công trình
                     </Link>
 
-                    <Link
+                    {/* <Link
                       href={`/projects/${project.id}/resources`}
                       className="block w-full text-center py-2 px-4 bg-orange-50 text-orange-700 border border-orange-200 rounded-lg hover:bg-orange-100 transition"
                     >
                       Báo cáo tài nguyên
-                    </Link>
+                    </Link> */}
 
                     <button
                       onClick={handleProjectChat}
                       disabled={loadingConversation}
-                      className="block w-full text-center py-2 px-4 bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="block w-full text-center py-2 px-4 bg-[#fff1f2] text-[#be123c] border border-[#fecdd3] rounded-lg hover:bg-[#ffe4e6] transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {loadingConversation ? "Đang xử lý..." : "Chat dự án"}
                     </button>
 
                     <Link
                       href={`/projects/${project.id}/reports`}
-                      className="block w-full text-center py-2 px-4 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#eef2ff] text-[#4338ca] border border-[#c7d2fe] rounded-lg hover:bg-[#e0e7ff] transition"
                     >
                       Báo cáo
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/3d-model`}
-                      className="block w-full text-center py-2 px-4 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#fef9c3] text-[#854d0e] border border-[#fef08a] rounded-lg hover:bg-[#fef08a] transition"
                     >
                       Mô hình 3D
                     </Link>
 
                     <Link
                       href={`/projects/${project.id}/materials`}
-                      className="block w-full text-center py-2 px-4 bg-[#38c1b6]/10 text-[#38c1b6] border border-[#38c1b6]/30 rounded-lg hover:bg-[#38c1b6]/20 transition"
+                      className="block w-full text-center py-2 px-4 bg-[#ecfeff] text-[#0f766e] border border-[#cffafe] rounded-lg hover:bg-[#cffafe] transition"
                     >
                       Quản lý vật tư
                     </Link>

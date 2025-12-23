@@ -102,33 +102,40 @@ export function InviteMembersModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
-      <div className="bg-stone-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-auto border border-stone-600">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-auto rounded-2xl border border-gray-200 bg-white shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-stone-600">
-          <h2 className="text-2xl font-bold text-amber-300">Mời thành viên</h2>
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200">
+          <div>
+            <h2 className="text-xl font-semibold bg-gradient-to-r from-[#38c1b6] to-[#667eea] bg-clip-text text-transparent">
+              Mời thành viên
+            </h2>
+            <p className="mt-1 text-xs text-gray-500">
+              Gửi lời mời tham gia dự án cho nhà thầu, giám sát viên hoặc các thành viên khác.
+            </p>
+          </div>
           <button
             onClick={handleClose}
             disabled={loading}
-            className="text-stone-400 hover:text-stone-200 disabled:opacity-50"
+            className="text-gray-400 hover:text-gray-600 disabled:opacity-50 rounded-full p-1 hover:bg-gray-100 transition"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>
         </div>
 
         {/* Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-4 space-y-6">
           {/* Role Selection */}
           <div>
-            <label className="block text-sm font-medium text-stone-300 mb-2">
-              Vai trò <span className="text-red-400">*</span>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Vai trò <span className="text-red-500">*</span>
             </label>
             <select
               value={selectedRole || ''}
               onChange={(e) => setSelectedRole(Number(e.target.value) as ProjectParticipantRole)}
-              className="w-full px-4 py-2 bg-stone-700 border border-stone-600 rounded-lg text-stone-100 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-[#38c1b6] focus:outline-none focus:ring-2 focus:ring-[#38c1b6]/30"
               required
               disabled={loading}
             >
@@ -143,26 +150,26 @@ export function InviteMembersModal({
 
           {/* Email Input */}
           <div>
-            <label className="block text-sm font-medium text-stone-300 mb-2">
-              Email <span className="text-red-400">*</span>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Email <span className="text-red-500">*</span>
             </label>
             <textarea
               value={emails}
               onChange={(e) => setEmails(e.target.value)}
               placeholder="Nhập nhiều email, cách nhau bởi dấu phẩy hoặc xuống dòng&#10;Ví dụ:&#10;user1@example.com, user2@example.com&#10;user3@example.com"
               rows={4}
-              className="w-full px-4 py-2 bg-stone-700 border border-stone-600 rounded-lg text-stone-100 placeholder-stone-400 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-[#38c1b6] focus:outline-none focus:ring-2 focus:ring-[#38c1b6]/30"
               required
               disabled={loading}
             />
-            <p className="mt-1 text-sm text-stone-400">
+            <p className="mt-1 text-xs text-gray-500">
               Có thể nhập nhiều email, phân cách bằng dấu phẩy (,) hoặc xuống dòng
             </p>
           </div>
 
           {/* Custom Message */}
           <div>
-            <label className="block text-sm font-medium text-stone-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               Lời nhắn (tùy chọn)
             </label>
             <textarea
@@ -170,22 +177,22 @@ export function InviteMembersModal({
               onChange={(e) => setCustomMessage(e.target.value)}
               placeholder="Thêm lời nhắn cá nhân cho lời mời..."
               rows={3}
-              className="w-full px-4 py-2 bg-stone-700 border border-stone-600 rounded-lg text-stone-100 placeholder-stone-400 focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm placeholder-gray-400 focus:border-[#38c1b6] focus:outline-none focus:ring-2 focus:ring-[#38c1b6]/30"
               disabled={loading}
             />
           </div>
 
           {/* Result Display */}
           {result && (
-            <div className={`p-4 rounded-lg ${result.success ? 'bg-green-900/20 border border-green-700' : 'bg-red-900/20 border border-red-700'}`}>
-              <p className={`font-medium ${result.success ? 'text-green-300' : 'text-red-300'}`}>
+            <div className={`p-4 rounded-lg border text-sm ${result.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-red-50 border-red-200 text-red-800'}`}>
+              <p className="font-medium">
                 {result.message}
               </p>
 
               {result.successfulInvites.length > 0 && (
                 <div className="mt-2">
-                  <p className="text-sm font-medium text-green-400">Đã gửi lời mời:</p>
-                  <ul className="list-disc list-inside text-sm text-green-300">
+                  <p className="text-sm font-medium text-emerald-700">Đã gửi lời mời:</p>
+                  <ul className="list-disc list-inside text-xs text-emerald-700/90">
                     {result.successfulInvites.map((email, index) => (
                       <li key={index}>{email}</li>
                     ))}
@@ -195,8 +202,8 @@ export function InviteMembersModal({
 
               {result.failedInvites.length > 0 && (
                 <div className="mt-2">
-                  <p className="text-sm font-medium text-red-400">Không thể gửi:</p>
-                  <ul className="list-disc list-inside text-sm text-red-300">
+                  <p className="text-sm font-medium text-red-700">Không thể gửi:</p>
+                  <ul className="list-disc list-inside text-xs text-red-700/90">
                     {result.failedInvites.map((error, index) => (
                       <li key={index}>{error}</li>
                     ))}
@@ -207,22 +214,22 @@ export function InviteMembersModal({
           )}
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-stone-600">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
               onClick={handleClose}
               disabled={loading}
-              className="px-6 py-2 text-stone-300 bg-stone-700 border border-stone-600 rounded-lg hover:bg-stone-600 disabled:opacity-50"
+              className="px-5 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
             >
               Hủy
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-6 py-2 text-stone-900 bg-amber-600 rounded-lg hover:bg-amber-500 disabled:opacity-50 flex items-center gap-2 font-semibold"
+              className="px-6 py-2 rounded-lg bg-gradient-to-r from-[#38c1b6] to-[#667eea] text-sm font-semibold text-white shadow-md hover:opacity-90 disabled:opacity-60 flex items-center gap-2"
             >
               {loading && (
-                <svg className="animate-spin h-5 w-5 text-stone-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
