@@ -22,6 +22,16 @@ export const buildingElementsApi = {
     };
   },
 
+  getDetail: async (id: string) => {
+    const res = await apiClient.get(`${BASE}/${id}/detail`);
+    const d = res.data;
+    return {
+      ...d,
+      meshIndices: safeParseJsonArray(d.meshIndicesJson),
+      trackingStatus: mapTrackingStatus(d.trackingStatus),
+    };
+  },
+
   create: async (req: {
     modelId: string;
     name: string;
@@ -70,10 +80,10 @@ export const buildingElementsApi = {
 
   addPhoto: async (historyId: string, file: File, caption?: string) => {
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('photo', file); // ← Match backend param name
     formData.append('caption', caption || '');
     const res = await apiClient.post(
-      `${BASE}/tracking/${historyId}/photos`,
+      `${BASE}/tracking/${historyId}/photos/upload`, // ← Fixed endpoint
       formData,
       { headers: { 'Content-Type': 'multipart/form-data' } }
     );

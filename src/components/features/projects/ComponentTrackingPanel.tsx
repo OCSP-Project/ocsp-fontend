@@ -30,12 +30,31 @@ export default function ComponentTrackingPanel({
   const [completionPercentage, setCompletionPercentage] = useState(0);
   const [uploadedPhotos, setUploadedPhotos] = useState<File[]>([]);
   const [photoPreview, setPhotoPreview] = useState<string[]>([]);
+  const [elementDetail, setElementDetail] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Update percentage when selected element changes
+  // Fetch element details when selected element changes
   useEffect(() => {
-    if (selectedElement) {
-      setCompletionPercentage(selectedElement.completion_percentage || 0);
-    }
+    const fetchElementDetail = async () => {
+      if (!selectedElement) {
+        setElementDetail(null);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const detail = await buildingElementsApi.getDetail(selectedElement.id);
+        setElementDetail(detail);
+        setCompletionPercentage(detail.completionPercentage || 0);
+      } catch (error) {
+        console.error("Error fetching element detail:", error);
+        setCompletionPercentage(selectedElement.completion_percentage || 0);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchElementDetail();
   }, [selectedElement]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,6 +101,10 @@ export default function ComponentTrackingPanel({
 
       onUpdateCompletion(selectedElement.id, completionPercentage, uploadedPhotos);
 
+      // Refresh element detail to show saved data
+      const updatedDetail = await buildingElementsApi.getDetail(selectedElement.id);
+      setElementDetail(updatedDetail);
+
       setUploadedPhotos([]);
       setPhotoPreview([]);
       setNotes("");
@@ -117,6 +140,15 @@ export default function ComponentTrackingPanel({
     return "text-green-500";
   };
 
+  const getPercentageColorHex = (percentage: number) => {
+    if (percentage === 0) return "#ef4444";      // red-500
+    if (percentage <= 25) return "#ea580c";      // orange-600
+    if (percentage <= 50) return "#f97316";      // orange-500
+    if (percentage <= 75) return "#eab308";      // yellow-500
+    if (percentage < 100) return "#4ade80";      // green-400
+    return "#22c55e";                            // green-500
+  };
+
   const getPercentageLabel = (percentage: number) => {
     if (percentage === 0) return "🔴 Chưa bắt đầu";
     if (percentage <= 25) return "🟠 Khởi công";
@@ -137,10 +169,64 @@ export default function ComponentTrackingPanel({
         🏗️ Daily Tracking System
       </h1>
 
+      {/* Selected Element - Existing Tracking Data */}
+      {selectedElement && elementDetail?.latestHistory && (
+        <div className="bg-gradient-to-br from-blue-50/90 to-indigo-50/90 backdrop-blur-sm border-2 border-blue-200 p-4 rounded-xl mb-5 shadow-md">
+          <h3 className="text-lg font-bold mb-3 text-gray-800">📋 Tracking hiện tại</h3>
+
+          <div className="bg-white/80 backdrop-blur-sm border-2 border-gray-200 p-3 rounded-xl mb-3">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-bold text-gray-700">% Hoàn thành:</span>
+              <span
+                className="text-2xl font-bold"
+                style={{ color: getPercentageColorHex(elementDetail.latestHistory.newPercentage) }}
+              >
+                {elementDetail.latestHistory.newPercentage}%
+              </span>
+            </div>
+            <div className="text-xs text-gray-500">
+              Cập nhật: {new Date(elementDetail.latestHistory.trackingDate).toLocaleString('vi-VN')}
+            </div>
+          </div>
+
+          {elementDetail.latestHistory.notes && (
+            <div className="bg-white/80 backdrop-blur-sm border-2 border-gray-200 p-3 rounded-xl mb-3">
+              <div className="text-sm font-bold text-gray-700 mb-1">📝 Ghi chú:</div>
+              <div className="text-sm text-gray-600">{elementDetail.latestHistory.notes}</div>
+            </div>
+          )}
+
+          {elementDetail.latestPhotos && elementDetail.latestPhotos.length > 0 && (
+            <div className="bg-white/80 backdrop-blur-sm border-2 border-gray-200 p-3 rounded-xl">
+              <div className="text-sm font-bold text-gray-700 mb-2">📸 Ảnh hiện trường ({elementDetail.latestPhotos.length}):</div>
+              <div className="grid grid-cols-2 gap-2">
+                {elementDetail.latestPhotos.map((photo: any, idx: number) => (
+                  <div key={photo.id} className="relative">
+                    <img
+                      src={photo.photoUrl}
+                      alt={photo.caption || `Photo ${idx + 1}`}
+                      className="w-full h-20 object-cover rounded-lg border-2 border-gray-300"
+                    />
+                    {photo.caption && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-black/60 text-white text-xs px-1 py-0.5 rounded-b-lg">
+                        {photo.caption}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Selected Element - Tracking Form */}
       {selectedElement && (
         <div className="bg-gradient-to-br from-teal-50/90 to-purple-50/90 backdrop-blur-sm border-2 border-gray-200 p-4 rounded-xl mb-5 shadow-md">
-          <h3 className="text-lg font-bold mb-3 text-gray-800">📦 {selectedElement.name}</h3>
+          <h3 className="text-lg font-bold mb-3 text-gray-800">
+            📦 {selectedElement.name}
+            {elementDetail?.latestHistory && <span className="text-sm font-normal text-gray-600"> - Cập nhật mới</span>}
+          </h3>
 
           {/* Completion Percentage Slider */}
           <div className="bg-white/80 backdrop-blur-sm border-2 border-gray-200 p-3 rounded-xl mb-4">
@@ -148,9 +234,8 @@ export default function ComponentTrackingPanel({
               📊 % Hoàn thành:
             </label>
             <div
-              className={`text-3xl font-bold mb-2 ${getPercentageColor(
-                completionPercentage
-              )}`}
+              className="text-3xl font-bold mb-2"
+              style={{ color: getPercentageColorHex(completionPercentage) }}
             >
               {completionPercentage}%
             </div>

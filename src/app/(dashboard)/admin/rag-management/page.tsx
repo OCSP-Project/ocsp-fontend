@@ -32,7 +32,7 @@ import { UserRole } from "@/hooks/useAuth";
 
 const { Title, Text, Paragraph } = Typography;
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api";
 const RAG_API_BASE = process.env.NEXT_PUBLIC_RAG_API_URL || "http://13.210.146.91:8000";
 
 interface Contractor {
@@ -73,7 +73,7 @@ const RAGManagementPage: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("accessToken"); // Use 'accessToken' key (same as apiClient)
-      const url = `${API_BASE}/api/contractor/search`; // Add /api prefix
+      const url = `${API_BASE}/contractor/search`;
       const requestBody = {
         page: 1,
         pageSize: 100, // Get all contractors for RAG embedding
