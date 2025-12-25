@@ -102,8 +102,8 @@ const SupervisorProfile: React.FC<SupervisorProfileProps> = ({
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-700 pt-20">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="min-h-[calc(100vh-4rem)] bg-gray-50 text-gray-800 pt-12">
+      <div className="max-w-3xl mx-auto px-4 sm:px-8 py-6">
         {/* Header Section */}
         <div className="mb-8">
           <button
@@ -121,14 +121,14 @@ const SupervisorProfile: React.FC<SupervisorProfileProps> = ({
 
         <div className="max-w-5xl mx-auto">
           {/* Profile Header Card */}
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-xl p-8 mb-8 relative overflow-hidden">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-6 relative overflow-hidden">
             {/* Decorative gradient */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[#38c1b6]/10 to-[#667eea]/10 rounded-full -mr-32 -mt-32"></div>
             <div className="relative z-10">
             <div className="flex flex-col md:flex-row items-start gap-6">
               {/* Avatar */}
               <div className="relative">
-                <div className="w-32 h-32 bg-gradient-to-br from-[#38c1b6] to-[#667eea] rounded-2xl flex items-center justify-center text-white font-bold text-4xl shadow-2xl ring-4 ring-white">
+                <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-bold text-3xl ring-2 ring-white">
                   {supervisor.username.charAt(0).toUpperCase()}
                 </div>
                 {supervisor.availableNow && (
@@ -162,10 +162,10 @@ const SupervisorProfile: React.FC<SupervisorProfileProps> = ({
 
                 {/* Availability Status */}
                 <div
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-semibold text-sm shadow-md ${
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-md font-medium text-xs border ${
                     supervisor.availableNow
-                      ? "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border-2 border-green-200"
-                      : "bg-gradient-to-r from-red-50 to-rose-50 text-red-700 border-2 border-red-200"
+                      ? "bg-green-50 text-green-700 border-green-200"
+                      : "bg-red-50 text-red-700 border-red-200"
                   }`}
                 >
                   {supervisor.availableNow
@@ -178,11 +178,11 @@ const SupervisorProfile: React.FC<SupervisorProfileProps> = ({
           </div>
 
           {/* Details Grid */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-2 gap-4">
             {/* Contact & Basic Info */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 hover:shadow-xl transition-shadow relative overflow-hidden">
+            <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#38c1b6] to-[#4ecdc4]"></div>
-              <h3 className="text-xl font-bold bg-gradient-to-r from-[#38c1b6] to-[#4ecdc4] bg-clip-text text-transparent mb-6 flex items-center gap-2">
+              <h3 className="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
                 <span className="text-2xl">📞</span>
                 Thông tin liên hệ
               </h3>
@@ -218,9 +218,9 @@ const SupervisorProfile: React.FC<SupervisorProfileProps> = ({
             </div>
 
             {/* Professional Info */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 hover:shadow-xl transition-shadow relative overflow-hidden">
+            <div className="bg-white rounded-lg border border-gray-100 shadow-sm p-4 relative overflow-hidden">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#667eea] to-[#764ba2]"></div>
-              <h3 className="text-xl font-bold bg-gradient-to-r from-[#667eea] to-[#764ba2] bg-clip-text text-transparent mb-6 flex items-center gap-2">
+              <h3 className="text-md font-semibold text-gray-700 mb-4 flex items-center gap-2">
                 <span className="text-2xl">💼</span>
                 Thông tin nghề nghiệp
               </h3>

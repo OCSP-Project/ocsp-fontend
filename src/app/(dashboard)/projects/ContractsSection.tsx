@@ -84,6 +84,17 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
   );
   const [loadingProposal, setLoadingProposal] = useState(false);
 
+  // UI tokens to align with the light teal/indigo palette
+  const wrapperCls =
+    "relative overflow-hidden rounded-2xl bg-gradient-to-br from-teal-50 via-white to-indigo-50 border border-teal-100/60 shadow-xl p-6";
+  const cardCls =
+    "bg-white/90 backdrop-blur-xl rounded-2xl border border-white/70 shadow-lg p-6 text-slate-800";
+  const ghostBtnCls =
+    "flex items-center gap-2 px-3 py-2 rounded-lg bg-white/80 text-slate-700 border border-slate-200 hover:border-teal-200 hover:text-teal-700 transition";
+  const primaryBtnCls =
+    "flex items-center gap-2 px-3 py-2 rounded-lg bg-gradient-to-r from-teal-500 to-indigo-500 text-white shadow-md hover:shadow-lg transition";
+  const subtleTextCls = "text-sm text-slate-500";
+
   const showBannerMessage = useCallback((message: string, duration = 10000) => {
     setSuccessMessage(message);
     if (messageTimeoutRef.current) {
@@ -116,14 +127,14 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
   // Track processed orders to prevent duplicate webhook calls
   // Use both ref (for current session) and localStorage (persists across refreshes)
   const processedOrdersRef = React.useRef<Set<string>>(new Set());
-  
+
   // Load processed orders from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem("processedMoMoOrders");
       if (stored) {
         const orderIds = JSON.parse(stored) as string[];
-        orderIds.forEach(id => processedOrdersRef.current.add(id));
+        orderIds.forEach((id) => processedOrdersRef.current.add(id));
       }
     } catch (e) {
       console.error("Failed to load processed orders from localStorage:", e);
@@ -153,7 +164,10 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
           orderIds.push(orderId);
           // Keep only last 100 orderIds to avoid localStorage bloat
           const recentOrderIds = orderIds.slice(-100);
-          localStorage.setItem("processedMoMoOrders", JSON.stringify(recentOrderIds));
+          localStorage.setItem(
+            "processedMoMoOrders",
+            JSON.stringify(recentOrderIds)
+          );
         }
       } catch (e) {
         console.error("Failed to save processed order to localStorage:", e);
@@ -494,13 +508,13 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-stone-400">Đang tải hợp đồng...</div>
+        <div className="text-slate-500">Đang tải hợp đồng...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className={wrapperCls + " space-y-6"}>
       {/* Success/Error Message */}
       {successMessage && (
         <div
@@ -509,8 +523,8 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
             successMessage.includes("Lỗi") ||
             successMessage.includes("Error") ||
             successMessage.includes("không thành công")
-              ? "bg-red-600/20 border border-red-500/30 text-red-500"
-              : "bg-green-600/20 border border-green-500/30 text-green-500"
+              ? "bg-red-50 border border-red-200 text-red-600"
+              : "bg-emerald-50 border border-emerald-200 text-emerald-600"
           }`}
         >
           <div className="flex items-center gap-2">
@@ -520,7 +534,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
             successMessage.includes("không thành công") ? (
               <span className="text-red-500">⚠️</span>
             ) : (
-              <CheckCircleOutlined className="text-green-500" />
+              <CheckCircleOutlined className="text-emerald-500" />
             )}
             <span>{successMessage}</span>
           </div>
@@ -528,14 +542,14 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
       )}
 
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-amber-500">Hợp đồng</h2>
+        <h2 className="text-2xl font-bold text-slate-900">Hợp đồng</h2>
       </div>
 
       {contracts.length === 0 && supervisorContracts.length === 0 ? (
         <div className="text-center py-12">
-          <FileTextOutlined className="text-6xl text-stone-600 mb-4" />
-          <p className="text-stone-400 text-lg">Chưa có hợp đồng nào</p>
-          <p className="text-stone-500 text-sm">
+          <FileTextOutlined className="text-6xl text-slate-400 mb-4" />
+          <p className="text-slate-500 text-lg">Chưa có hợp đồng nào</p>
+          <p className={subtleTextCls}>
             Hợp đồng sẽ được tạo sau khi bạn chấp nhận proposal hoặc đăng ký
             giám sát viên
           </p>
@@ -545,24 +559,21 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
           {/* Contractor Contracts */}
           {contracts.length > 0 && (
             <div>
-              <h3 className="text-xl font-semibold text-amber-500 mb-4">
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">
                 Hợp đồng nhà thầu
               </h3>
               <div className="grid gap-4">
                 {contracts.map((contract) => (
-                  <div
-                    key={contract.id}
-                    className="bg-stone-800 rounded-lg border border-stone-700 p-6"
-                  >
+                  <div key={contract.id} className={cardCls}>
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                          <FileTextOutlined className="text-amber-400" />
+                          <FileTextOutlined className="text-amber-500" />
                           <div>
-                            <h3 className="text-lg font-semibold text-amber-300">
+                            <h3 className="text-lg font-semibold text-slate-900">
                               Hợp đồng #{contract.id.slice(-8)}
                             </h3>
-                            <p className="text-stone-400 text-sm">
+                            <p className={subtleTextCls}>
                               Dự án: {contract.projectName}
                             </p>
                           </div>
@@ -570,19 +581,19 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                           <div>
-                            <p className="text-stone-500 text-sm">Nhà thầu</p>
-                            <p className="text-stone-300">
+                            <p className={subtleTextCls}>Nhà thầu</p>
+                            <p className="text-slate-900">
                               {contract.contractorName}
                             </p>
                           </div>
                           <div>
-                            <p className="text-stone-500 text-sm">Dự án</p>
-                            <p className="text-stone-300">
+                            <p className={subtleTextCls}>Dự án</p>
+                            <p className="text-slate-900">
                               {contract.projectName}
                             </p>
                           </div>
                           <div>
-                            <p className="text-stone-500 text-sm">Trạng thái</p>
+                            <p className={subtleTextCls}>Trạng thái</p>
                             <p
                               className={`font-medium ${getStatusColor(
                                 contract.status
@@ -595,16 +606,14 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                           <div>
-                            <p className="text-stone-500 text-sm">Ngày tạo</p>
-                            <p className="text-stone-300">
+                            <p className={subtleTextCls}>Ngày tạo</p>
+                            <p className="text-slate-900">
                               {formatDate(contract.createdAt)}
                             </p>
                           </div>
                           <div>
-                            <p className="text-stone-500 text-sm">
-                              Tổng giá trị
-                            </p>
-                            <p className="text-amber-300 font-semibold text-lg">
+                            <p className={subtleTextCls}>Tổng giá trị</p>
+                            <p className="text-amber-500 font-semibold text-lg">
                               {formatCurrency(
                                 proposalTotals[contract.id] ??
                                   contract.totalPrice
@@ -614,10 +623,8 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                           {user?.role === UserRole.Contractor &&
                             (escrowBalances[contract.id] ?? 0) > 0 && (
                               <div>
-                                <p className="text-stone-500 text-sm">
-                                  Đã thanh toán
-                                </p>
-                                <p className="text-emerald-300 font-semibold text-lg">
+                                <p className={subtleTextCls}>Đã thanh toán</p>
+                                <p className="text-emerald-600 font-semibold text-lg">
                                   {formatCurrency(
                                     escrowBalances[contract.id] ?? 0
                                   )}
@@ -630,14 +637,14 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                       <div className="flex items-center gap-2 ml-4">
                         <button
                           onClick={() => handleViewProposal(contract)}
-                          className="flex items-center gap-2 px-3 py-2 bg-stone-600 hover:bg-stone-500 text-stone-300 rounded-lg transition-colors"
+                          className={ghostBtnCls}
                         >
                           <ProjectOutlined />
                           Xem dự án
                         </button>
                         <button
                           onClick={() => handleSignContract(contract)}
-                          className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                          className={primaryBtnCls}
                         >
                           <EditOutlined />
                           Ký hợp đồng
@@ -653,7 +660,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
           {/* Supervisor Contracts */}
           {supervisorContracts.length > 0 && (
             <div ref={supervisorContractRef}>
-              <h3 className="text-xl font-semibold text-amber-500 mb-4">
+              <h3 className="text-xl font-semibold text-slate-900 mb-4">
                 Hợp đồng giám sát viên
               </h3>
               <div className="grid gap-4">
@@ -663,21 +670,21 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                     ref={(el) => {
                       contractItemRefs.current[contract.id] = el;
                     }}
-                    className={`bg-stone-800 rounded-lg border p-6 transition-all duration-500 ${
+                    className={`${cardCls} transition-all duration-500 ${
                       highlightedContractId === contract.id
-                        ? "border-amber-500 shadow-lg shadow-amber-500/20 bg-amber-900/10 ring-2 ring-amber-500/50"
-                        : "border-stone-700"
+                        ? "border-teal-300 shadow-lg shadow-teal-200/60 ring-2 ring-teal-200"
+                        : ""
                     }`}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                          <FileTextOutlined className="text-amber-400" />
+                          <FileTextOutlined className="text-amber-500" />
                           <div>
-                            <h3 className="text-lg font-semibold text-amber-300">
+                            <h3 className="text-lg font-semibold text-slate-900">
                               Hợp đồng giám sát #{contract.id.slice(-8)}
                             </h3>
-                            <p className="text-stone-400 text-sm">
+                            <p className={subtleTextCls}>
                               Dự án: {contract.projectName}
                             </p>
                           </div>
@@ -685,23 +692,21 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                           <div>
-                            <p className="text-stone-500 text-sm">
-                              Giám sát viên
-                            </p>
-                            <p className="text-stone-300">
+                            <p className={subtleTextCls}>Giám sát viên</p>
+                            <p className="text-slate-900">
                               {contract.supervisorName}
                             </p>
                           </div>
                           <div>
-                            <p className="text-stone-500 text-sm">
+                            <p className={subtleTextCls}>
                               Phí đăng ký giám sát viên
                             </p>
-                            <p className="text-amber-300 font-semibold text-lg">
+                            <p className="text-amber-500 font-semibold text-lg">
                               {formatCurrency(contract.monthlyPrice)}
                             </p>
                           </div>
                           <div>
-                            <p className="text-stone-500 text-sm">Trạng thái</p>
+                            <p className={subtleTextCls}>Trạng thái</p>
                             <p
                               className={`font-medium ${getStatusColor(
                                 contract.status
@@ -713,8 +718,8 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                         </div>
 
                         <div className="mb-4">
-                          <p className="text-stone-500 text-sm">Ngày tạo</p>
-                          <p className="text-stone-300">
+                          <p className={subtleTextCls}>Ngày tạo</p>
+                          <p className="text-slate-900">
                             {formatDate(contract.createdAt)}
                           </p>
                         </div>
@@ -743,7 +748,7 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                                 });
                               }
                             }}
-                            className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                            className={primaryBtnCls}
                           >
                             <EditOutlined />
                             Ký hợp đồng
@@ -800,10 +805,10 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
 
       {/* Proposal Detail Modal */}
       {showProposalModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-stone-800 rounded-xl border border-stone-700 p-6 w-full max-w-6xl mx-auto max-h-[90vh] overflow-auto">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 w-full max-w-6xl mx-auto max-h-[90vh] overflow-auto shadow-2xl">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-stone-100">
+              <h2 className="text-2xl font-bold text-slate-900">
                 Chi tiết Proposal
               </h2>
               <button
@@ -811,14 +816,14 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                   setShowProposalModal(false);
                   setSelectedProposal(null);
                 }}
-                className="text-stone-400 hover:text-stone-200 transition-colors"
+                className="text-slate-400 hover:text-slate-600 transition-colors text-xl"
               >
                 ✕
               </button>
             </div>
 
             {loadingProposal ? (
-              <div className="text-center py-12 text-stone-400">
+              <div className="text-center py-12 text-slate-500">
                 Đang tải thông tin proposal...
               </div>
             ) : selectedProposal ? (
@@ -827,20 +832,20 @@ export default function ContractsSection({ projectId }: ContractsSectionProps) {
                 <ProposalDisplay proposal={selectedProposal} />
 
                 {/* Close Button */}
-                <div className="flex items-center justify-end gap-3 pt-4 border-t border-stone-600 mt-6">
+                <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200 mt-6">
                   <button
                     onClick={() => {
                       setShowProposalModal(false);
                       setSelectedProposal(null);
                     }}
-                    className="px-4 py-2 bg-stone-700 hover:bg-stone-600 text-stone-300 rounded-lg transition-colors"
+                    className={ghostBtnCls}
                   >
                     Đóng
                   </button>
                 </div>
               </>
             ) : (
-              <div className="text-center py-12 text-stone-400">
+              <div className="text-center py-12 text-slate-500">
                 Không tìm thấy thông tin proposal
               </div>
             )}

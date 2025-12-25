@@ -91,19 +91,19 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) return <div className="max-w-5xl mx-auto p-6 text-stone-300">Loading...</div>;
-  if (error) return <div className="max-w-5xl mx-auto p-6 text-rose-400">{error}</div>;
-  if (!profile) return <div className="max-w-5xl mx-auto p-6 text-stone-200">No profile</div>;
+  if (loading) return <div className="max-w-5xl mx-auto p-6 text-gray-600">Loading...</div>;
+  if (error) return <div className="max-w-5xl mx-auto p-6 text-red-600">{error}</div>;
+  if (!profile) return <div className="max-w-5xl mx-auto p-6 text-gray-500">No profile</div>;
 
   const inputCls =
-    'w-full rounded-md border border-stone-700 bg-stone-900/60 text-stone-100 placeholder-stone-400 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition';
-  const cardCls = 'bg-stone-800/60 backdrop-blur-xl rounded-xl border border-stone-700 shadow-lg p-5 text-stone-100';
-  const titleCls = 'text-xl font-semibold text-amber-300 tracking-wide';
+    'w-full rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-400 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#38c1b6] focus:border-[#38c1b6] transition';
+  const cardCls = 'bg-white backdrop-blur-xl rounded-xl border border-gray-200 shadow-lg p-6 text-gray-700 hover:shadow-xl transition-shadow';
+  const titleCls = 'text-xl font-semibold bg-gradient-to-r from-[#38c1b6] to-[#667eea] bg-clip-text text-transparent tracking-wide';
   const btnPrimary =
-    'inline-flex items-center justify-center rounded-md bg-amber-600 text-stone-900 px-4 py-2 font-semibold hover:bg-amber-500 active:bg-amber-600 disabled:opacity-60 disabled:cursor-not-allowed transition';
+    'inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[#38c1b6] to-[#667eea] text-white px-5 py-2.5 font-semibold hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-xl';
   const btnGhost =
-    'inline-flex items-center justify-center rounded-md border border-stone-600 px-3 py-2 text-stone-200 hover:bg-stone-700/60 transition';
-  const labelCls = 'text-sm text-stone-300 mb-1 block';
+    'inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 transition';
+  const labelCls = 'text-sm font-medium text-gray-700 mb-1.5 block';
 
   // Build absolute URL for files served by backend (fileUrl is relative like /uploads/...)
   const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
@@ -112,19 +112,19 @@ export default function ProfilePage() {
   return (
     <>
       <Header />
-      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-900 text-stone-100 pt-20">
+      <div className="min-h-[calc(100vh-4rem)] bg-white text-gray-700 pt-20">
         <div className="max-w-5xl mx-auto px-4 py-10">
-          <h1 className="text-3xl font-extrabold tracking-tight mb-6 text-amber-200">Hồ sơ</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight mb-6 bg-gradient-to-r from-[#38c1b6] to-[#667eea] bg-clip-text text-transparent">Hồ sơ</h1>
 
           <div className={`${cardCls} mb-6`}>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <div className="text-stone-400">Username</div>
-                <div className="font-medium text-stone-100">{profile.username}</div>
+                <div className="text-gray-600">Username</div>
+                <div className="font-medium text-gray-900">{profile.username}</div>
               </div>
               <div>
-                <div className="text-stone-400">Email</div>
-                <div className="font-medium text-stone-100">{profile.email}</div>
+                <div className="text-gray-600">Email</div>
+                <div className="font-medium text-gray-900">{profile.email}</div>
               </div>
             </div>
           </div>
@@ -195,19 +195,19 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between mb-4">
               <h2 className={titleCls}>Tài liệu</h2>
             </div>
-            {documents.length === 0 && <div className="text-stone-300">Chưa có tài liệu</div>}
-            <div className="divide-y divide-stone-700/60">
+            {documents.length === 0 && <div className="text-gray-500">Chưa có tài liệu</div>}
+            <div className="divide-y divide-gray-200">
               {documents.map((d) => (
                 <div key={d.id} className="flex items-center justify-between py-3">
                   <div>
-                    <div className="font-medium text-stone-100">
-                      {d.fileName} <span className="text-stone-400">({d.fileType}, {Math.round(d.fileSize / 1024)} KB)</span>
+                    <div className="font-medium text-gray-900">
+                      {d.fileName} <span className="text-gray-500">({d.fileType}, {Math.round(d.fileSize / 1024)} KB)</span>
                     </div>
-                    <div className="text-sm text-stone-400">{d.description || '-'} | {d.documentType || '-'}</div>
+                    <div className="text-sm text-gray-500">{d.description || '-'} | {d.documentType || '-'}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <a className={btnGhost} href={`${backendBase}${d.fileUrl}`} target="_blank" rel="noreferrer">Mở</a>
-                    <button type="button" className="inline-flex items-center justify-center rounded-md bg-rose-600/10 text-rose-300 border border-rose-500/30 px-3 py-2 hover:bg-rose-600/20 transition" onClick={() => onDelete(d.id)}>Xóa</button>
+                    <button type="button" className="inline-flex items-center justify-center rounded-lg bg-red-50 text-red-600 border border-red-200 px-3 py-2 hover:bg-red-100 transition" onClick={() => onDelete(d.id)}>Xóa</button>
                   </div>
                 </div>
               ))}
