@@ -19,10 +19,10 @@ export default function SupervisorsPage() {
   return (
     <>
       <Header />
-      <div className="min-h-[calc(100vh-4rem)] bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-700 pt-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="min-h-[calc(100vh-4rem)] bg-gray-50 text-gray-800 pt-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Header Section */}
-          <div className="mb-10 text-center">
+          <div className="mb-8 text-center">
             <div className="inline-block mb-4">
               <span className="text-5xl">👷</span>
             </div>
